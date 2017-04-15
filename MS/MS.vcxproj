@@ -121,6 +121,7 @@
     <ClCompile Include="D3D11.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="HRTimer.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -133,6 +134,7 @@
     <ClInclude Include="D3D11.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="HRTimer.h" />
+    <ClInclude Include="Input.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

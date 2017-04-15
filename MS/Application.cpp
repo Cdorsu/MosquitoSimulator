@@ -7,9 +7,19 @@ CApplication::CApplication( )
 }
 
 CApplication::CApplication( HINSTANCE hInstance, bool bFullscreen )
+	:m_hInstance( hInstance )
 {
 	InitWindow( hInstance, bFullscreen );
 	m_Graphics = new CGraphics( m_hWnd, m_WindowWidth, m_WindowHeight );
+	m_Input = new CInput( hInstance, m_hWnd );
+	if ( !m_Input->addSpecialKey( DIK_A ) )
+		throw std::exception( "Couldn't add special key to input object" );
+	if ( !m_Input->addSpecialKey( DIK_B ) )
+		throw std::exception( "Couldn't add special key to input object" );
+	if ( !m_Input->removeSpecialKey( DIK_A ) )
+		throw std::exception( "Couldn't remove special key from input object" );
+	if ( !m_Input->removeSpecialKey( DIK_B ) )
+		throw std::exception( "Couldn't remove special key from input object" );
 }
 
 void CApplication::InitWindow( HINSTANCE hInstance, bool bFullscreen )
@@ -64,6 +74,11 @@ void CApplication::Run( )
 				m_Timer.StartTimer( );
 			}
 			m_Timer.Frame( );
+			m_Input->Frame( );
+			if ( m_Input->isKeyPressed( DIK_ESCAPE ) )
+				break;
+			if ( m_Input->isSpecialKeyPressed( DIK_A ) )
+				OutputDebugString( L"A" );
 			m_Graphics->BeginScene( );
 			m_Graphics->EndScene( );
 		}
@@ -72,8 +87,10 @@ void CApplication::Run( )
 
 CApplication::~CApplication( )
 {
-	if (m_Graphics )
+	if ( m_Graphics )
 		delete m_Graphics;
+	if ( m_Input )
+		delete m_Input;
 	DestroyWindow( m_hWnd );
 	UnregisterClass( ENGINE_NAME, m_hInstance );
 }

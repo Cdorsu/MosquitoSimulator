@@ -3,8 +3,9 @@
 #include "common\definitions.h"
 #include "common\standardIncludes.h"
 #include "common\windowsIncludes.h"
+#include "Graphics\Graphics.h"
+#include "Input.h"
 #include "HRTimer.h"
-#include "Graphics.h"
 
 class CApplication sealed
 {
@@ -15,6 +16,7 @@ class CApplication sealed
 	UINT m_WindowHeight;
 	UINT m_FPS;
 	CGraphics * m_Graphics;
+	CInput * m_Input;
 private:
 	void InitWindow( HINSTANCE hInstance, bool bFullscreen );
 public:
