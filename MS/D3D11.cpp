@@ -8,44 +8,40 @@ CD3D11::CD3D11(  )
 	m_BackgroundColor = utility::hexToRGB( 0x0 ); // default black screen
 }
 
-CD3D11::CD3D11( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen )
+bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen )
 {
-	m_BackgroundColor = utility::hexToRGB( 0xFFFF00 );
+	m_BackgroundColor = utility::hexToRGB( 0x0 );
 	HRESULT hr;
 	IDXGIFactory * Factory;
 	IDXGIAdapter * Adapter;
 	IDXGIOutput * Output;
 	DXGI_MODE_DESC * Modes;
 	DXGI_ADAPTER_DESC adapterDesc;
-	UINT nModes, Numerator, Denominator;
+	UINT nModes, Numerator = 60, Denominator = 1;
 
 	hr = CreateDXGIFactory( __uuidof( IDXGIFactory ), ( void** ) &Factory );
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't create DXGI factory" );
+	IFFAILED( hr, L"Couldn't create DXGI factory" );
 
 	hr = Factory->EnumAdapters( 0, &Adapter );
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't enum adapters" );
+	IFFAILED( hr, L"Couldn't enum adapters" );
 
 	hr = Adapter->EnumOutputs( 0, &Output );
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't get output from adapter" );
+	IFFAILED( hr, L"Couldn't get output from adapter" );
 
 	hr = Output->GetDisplayModeList( 
 		DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, // Get all the displays with this format
 		DXGI_ENUM_MODES_INTERLACED, // Flag
 		&nModes, // Put the result in here (number of displays)
 		NULL ); // We only need the number now
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't get display mode for monitor" );
+	IFFAILED( hr, L"Couldn't get display mode for monitor" );
+
 	Modes = new DXGI_MODE_DESC[ nModes ];
 	hr = Output->GetDisplayModeList(
 		DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, // Get all the displays with this format
 		DXGI_ENUM_MODES_INTERLACED, // Flag
 		&nModes, // Put the result in here (number of displays)
 		Modes ); // Put all the results here
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't get display mode for monitor" );
+	IFFAILED( hr, L"Couldn't get display mode for monitor" );
 	for ( UINT i = 0; i < nModes; ++i ) // search through all modes a modes which corresponds with our window
 	{
 		if ( Modes[ i ].Width == WindowWidth && Modes[ i ].Height == WindowHeight )
@@ -56,8 +52,7 @@ CD3D11::CD3D11( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen
 	}
 
 	hr = Adapter->GetDesc( &adapterDesc ); // get description of the adapter
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't get adapter description" );
+	IFFAILED( hr, L"Couldn't get adapter description" );
 
 	m_GPUInfo = adapterDesc.Description;
 	m_DedicatedVideoMemory = adapterDesc.DedicatedVideoMemory / 1024 / 1024;
@@ -95,23 +90,20 @@ CD3D11::CD3D11( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen
 		&m_d3d11Device, // The device to create
 		NULL, // We don't care about the feature level this function returns
 		&m_d3d11DeviceContext ); // The device context
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't create swapchain, device and device context" );
+	IFFAILED( hr, L"Couldn't create swapchain, device and device context" );
 
 	ID3D11Texture2D * Backbuffer;
 	hr = m_SwapChain->GetBuffer( 0, // Get the first back buffer (the only one)
 		__uuidof( ID3D11Texture2D ), // Use this kind of texture
 		(void**) &Backbuffer ); // And store the information here
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't get back buffer from swap chain" );
+	IFFAILED( hr, L"Couldn't get back buffer from swap chain" );
 
 	hr = m_d3d11Device->CreateRenderTargetView(
 		Backbuffer, // The data we need
 		nullptr, // No furhter description
 		&m_d3d11RenderTargetView ); // Make this Render Target View
 	Backbuffer->Release( ); // Let's keep it clean
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't create Render Target View" );
+	IFFAILED( hr, L"Couldn't create Render Target View" );
 
 	ID3D11Texture2D * DSBuffer;
 	D3D11_TEXTURE2D_DESC dsbufferDesc = { 0 }; // description for depth stencil view buffer
@@ -128,8 +120,7 @@ CD3D11::CD3D11( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen
 		&dsbufferDesc, // create a texture like this
 		nullptr, // with no initial data
 		&DSBuffer ); // and store it here
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't create depth stencil view buffer" );
+	IFFAILED( hr, L"Couldn't create depth stencil view buffer" );
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsViewDesc;
 	ZeroMemory( &dsViewDesc, sizeof( D3D11_DEPTH_STENCIL_VIEW_DESC ) );
 	dsViewDesc.Format = dsbufferDesc.Format; // it's the same format
@@ -139,8 +130,7 @@ CD3D11::CD3D11( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen
 		DSBuffer, // create a d/s view with data from here
 		&dsViewDesc, // with this description
 		&m_d3d11DSView ); // and store it here
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't create depth stencil view" );
+	IFFAILED( hr, L"Couldn't create depth stencil view" );
 
 	m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_d3d11RenderTargetView, m_d3d11DSView );
 
@@ -158,6 +148,8 @@ CD3D11::CD3D11( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen
 	m_DefaultViewport.MinDepth = 0.0f; // from 0 to 1
 
 	m_d3d11DeviceContext->RSSetViewports( 1, &m_DefaultViewport );
+
+	return true;
 }
 
 void CD3D11::BeginScene( )
@@ -172,10 +164,15 @@ void CD3D11::EndScene( )
 	m_SwapChain->Present( 1, 0 );
 }
 
-CD3D11::~CD3D11( )
+void CD3D11::Shutdown( )
 {
 	SAFE_RELEASE( m_d3d11Device );
 	SAFE_RELEASE( m_d3d11DeviceContext );
 	SAFE_RELEASE( m_d3d11RenderTargetView );
 	SAFE_RELEASE( m_SwapChain );
+}
+
+CD3D11::~CD3D11( )
+{
+	Shutdown( );
 }

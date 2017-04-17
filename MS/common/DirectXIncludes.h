@@ -9,6 +9,7 @@
 #pragma comment (lib, "DXGI.lib")
 #pragma comment (lib, "dinput8.lib")
 #pragma comment (lib, "dxguid.lib")
+#pragma comment (lib, "D3Dcompiler.lib")
 
 #include <d3d11.h>
 #include <d3dx11.h>
@@ -17,3 +18,4 @@
 #include <DirectXMath.h>
 #include <dinput.h>
 #include <DXGI.h>
+#include <D3Dcompiler.h>

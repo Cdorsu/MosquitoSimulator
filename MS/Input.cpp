@@ -7,7 +7,7 @@ CInput::CInput( )
 	ZeroMemory( this, sizeof( CInput ) );
 }
 
-CInput::CInput( HINSTANCE hInstance, HWND hWnd )
+bool CInput::Initialize( HINSTANCE hInstance, HWND hWnd )
 {
 	HRESULT hr;
 	hr = DirectInput8Create( hInstance, // Use Direct Input for this instance
@@ -15,34 +15,29 @@ CInput::CInput( HINSTANCE hInstance, HWND hWnd )
 		IID_IDirectInput8, // Use this instance
 		reinterpret_cast<void**>(&m_DirectInput), // And store the result here
 		NULL ); // No punkOuter
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't create Direct Input" );
+	IFFAILED( hr, L"Couldn't create Direct Input" );
 
 	hr = m_DirectInput->CreateDevice( GUID_SysKeyboard, // Create a keyboard
 		&m_Keyboard, // and store it here
 		NULL ); // No punkOuter
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't create Direct Input Device" );
+	IFFAILED( hr, L"Couldn't create Direct Input Device" );
 
 	hr = m_DirectInput->CreateDevice( GUID_SysMouse, // Create a mouse
 		&m_Mouse, // and store it here
 		NULL ); // No punkOuter
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't create Direct Input Device" );
+	IFFAILED( hr, L"Couldn't create Direct Input Device" );
 	
 	hr = m_Mouse->SetCooperativeLevel( hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE );
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't set cooperative level for direct input device" );
+	IFFAILED( hr, L"Couldn't set cooperative level for direct input device" );
 	hr = m_Mouse->SetDataFormat( &c_dfDIMouse );
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't set data format for direct input device" );
+	IFFAILED( hr, L"Couldn't set data format for direct input device" );
 
 	hr = m_Keyboard->SetCooperativeLevel( hWnd, DISCL_FOREGROUND | DISCL_NOWINKEY | DISCL_NONEXCLUSIVE );
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't set cooperative level for direct input device" );
+	IFFAILED( hr, L"Couldn't set cooperative level for direct input device" );
 	hr = m_Keyboard->SetDataFormat( &c_dfDIKeyboard );
-	if ( FAILED( hr ) )
-		throw std::exception( "Couldn't set data format for direct input device" );
+	IFFAILED( hr, L"Couldn't set data format for direct input device" );
+
+	return true;
 
 }
 
@@ -93,9 +88,14 @@ bool CInput::removeSpecialKey( BYTE key )
 	return bFound; // return the result
 }
 
-CInput::~CInput( )
+void CInput::Shutdown( )
 {
 	SAFE_RELEASE( m_Mouse );
 	SAFE_RELEASE( m_Keyboard );
 	SAFE_RELEASE( m_DirectInput );
+}
+
+CInput::~CInput( )
+{
+	Shutdown( );
 }

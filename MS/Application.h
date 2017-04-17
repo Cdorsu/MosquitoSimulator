@@ -3,7 +3,7 @@
 #include "common\definitions.h"
 #include "common\standardIncludes.h"
 #include "common\windowsIncludes.h"
-#include "Graphics\Graphics.h"
+#include "Graphics.h"
 #include "Input.h"
 #include "HRTimer.h"
 
@@ -15,16 +15,17 @@ class CApplication sealed
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	UINT m_FPS;
-	CGraphics * m_Graphics;
-	CInput * m_Input;
+	CGraphics * m_Graphics = nullptr;
+	CInput * m_Input = nullptr;
 private:
-	void InitWindow( HINSTANCE hInstance, bool bFullscreen );
+	bool InitWindow( HINSTANCE hInstance, bool bFullscreen );
 public:
 	CApplication( );
-	CApplication( HINSTANCE hInstance, bool bFullscreen = true );
 	~CApplication( );
 public:
+	bool Initialize( HINSTANCE hInstance, bool bFullscreen = true );
 	void Run( );
+	void Shutdown( );
 public:
 	static LRESULT CALLBACK WndProc( HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam );
 };

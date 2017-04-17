@@ -15,8 +15,10 @@ class CInput
 	std::vector<BYTE> m_vecSpecialKeys;
 public:
 	CInput( );
-	CInput( HINSTANCE hInstance, HWND hWnd );
 	~CInput( );
+public:
+	bool Initialize( HINSTANCE hInstance, HWND hWnd );
+	void Shutdown( );
 public:
 	void Frame( );
 	bool isKeyPressed( BYTE key );

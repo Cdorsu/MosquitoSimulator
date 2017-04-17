@@ -16,3 +16,7 @@
 
 #define SAMPLE_DESC_COUNT 1
 #define SAMPLE_DESC_QUALITY 0
+
+#define IFFAILED(expr, error) if ( FAILED(expr) ) { OutputDebugString(error); return false; }
+
+#define ALIGN16 __declspec ( align ( 16 ) )

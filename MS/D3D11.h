@@ -19,10 +19,15 @@ class CD3D11
 	UINT m_DedicatedVideoMemory;
 public:
 	CD3D11( );
-	CD3D11( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen = true );
 	~CD3D11( );
+public:
+	bool Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen );
+	void Shutdown( );
 public:
 	void BeginScene( );
 	void EndScene( );
+public:
+	inline ID3D11Device * GetDevice( ) { return m_d3d11Device; };
+	inline ID3D11DeviceContext * GetImmediateContext( ) { return m_d3d11DeviceContext; };
 };
 

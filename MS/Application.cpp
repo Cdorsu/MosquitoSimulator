@@ -6,23 +6,7 @@ CApplication::CApplication( )
 	ZeroMemory( this, sizeof( CApplication ) );
 }
 
-CApplication::CApplication( HINSTANCE hInstance, bool bFullscreen )
-	:m_hInstance( hInstance )
-{
-	InitWindow( hInstance, bFullscreen );
-	m_Graphics = new CGraphics( m_hWnd, m_WindowWidth, m_WindowHeight );
-	m_Input = new CInput( hInstance, m_hWnd );
-	if ( !m_Input->addSpecialKey( DIK_A ) )
-		throw std::exception( "Couldn't add special key to input object" );
-	if ( !m_Input->addSpecialKey( DIK_B ) )
-		throw std::exception( "Couldn't add special key to input object" );
-	if ( !m_Input->removeSpecialKey( DIK_A ) )
-		throw std::exception( "Couldn't remove special key from input object" );
-	if ( !m_Input->removeSpecialKey( DIK_B ) )
-		throw std::exception( "Couldn't remove special key from input object" );
-}
-
-void CApplication::InitWindow( HINSTANCE hInstance, bool bFullscreen )
+bool CApplication::InitWindow( HINSTANCE hInstance, bool bFullscreen )
 {
 	WNDCLASSEX wndClass = { 0 };
 	wndClass.cbSize = sizeof( wndClass );
@@ -32,25 +16,41 @@ void CApplication::InitWindow( HINSTANCE hInstance, bool bFullscreen )
 	wndClass.lpszClassName = ENGINE_NAME;
 	wndClass.style = CS_HREDRAW | CS_VREDRAW;
 	if ( !RegisterClassEx( &wndClass ) )
-		throw std::exception( "Couldn't register the window class" );
-	if ( bFullscreen )
 	{
+		throw std::exception( "Couldn't register the window class" );
+		return false;
+	}
+
 		m_WindowWidth = GetSystemMetrics( SM_CXSCREEN );
 		m_WindowHeight = GetSystemMetrics( SM_CYSCREEN );
-	}
-	else
-	{
-		m_WindowWidth = 800;
-		m_WindowHeight = 600;
-	}
 
 	m_hWnd = CreateWindowEx( WS_EX_CLIENTEDGE, ENGINE_NAME, GAME_NAME, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, m_WindowWidth, m_WindowHeight, nullptr, nullptr, hInstance, nullptr );
 	if ( !m_hWnd )
+	{
 		throw std::exception( "Couldn't create window" );
+		return false;
+	}
 	UpdateWindow( m_hWnd );
 	ShowWindow( m_hWnd, SW_SHOWNORMAL );
 	SetFocus( m_hWnd );
+	return true;
+}
+
+bool CApplication::Initialize( HINSTANCE hInstance, bool bFullscreen )
+{
+	if ( !InitWindow( hInstance, bFullscreen ) )
+		return false;
+
+	m_Graphics = new CGraphics( );
+	if ( !m_Graphics->Initialize( m_hWnd, m_WindowWidth, m_WindowHeight, bFullscreen ) )
+		return false;
+
+	m_Input = new CInput( );
+	if ( !m_Input->Initialize( hInstance, m_hWnd ) )
+		return false;
+
+	return true;
 }
 
 void CApplication::Run( )
@@ -77,22 +77,26 @@ void CApplication::Run( )
 			m_Input->Frame( );
 			if ( m_Input->isKeyPressed( DIK_ESCAPE ) )
 				break;
-			if ( m_Input->isSpecialKeyPressed( DIK_A ) )
-				OutputDebugString( L"A" );
 			m_Graphics->BeginScene( );
+			m_Graphics->Render( );
 			m_Graphics->EndScene( );
 		}
 	}
 }
 
-CApplication::~CApplication( )
+void CApplication::Shutdown( )
 {
+	DestroyWindow( m_hWnd );
+	UnregisterClass( ENGINE_NAME, m_hInstance );
 	if ( m_Graphics )
 		delete m_Graphics;
 	if ( m_Input )
 		delete m_Input;
-	DestroyWindow( m_hWnd );
-	UnregisterClass( ENGINE_NAME, m_hInstance );
+}
+
+CApplication::~CApplication( )
+{
+	Shutdown( );
 }
 
 LRESULT CALLBACK CApplication::WndProc( HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam )
