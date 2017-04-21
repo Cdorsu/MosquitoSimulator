@@ -3,7 +3,7 @@
 #include "common\DirectXIncludes.h"
 #include "common\standardIncludes.h"
 
-class CInput
+class CInput sealed
 {
 	IDirectInput8 * m_DirectInput;
 	IDirectInputDevice8 * m_Keyboard;
@@ -15,6 +15,7 @@ class CInput
 	std::vector<BYTE> m_vecSpecialKeys;
 public:
 	CInput( );
+	CInput( CInput const& ) = delete;
 	~CInput( );
 public:
 	bool Initialize( HINSTANCE hInstance, HWND hWnd );
@@ -26,5 +27,14 @@ public:
 public: // Try not to use these in runtime
 	bool addSpecialKey( BYTE key );
 	bool removeSpecialKey( BYTE key );
+public:
+	float GetHorizontalMouseMove( )
+	{
+		return m_currentMouseState.lX;
+	}
+	float GetVerticalMouseMove( )
+	{
+		return m_currentMouseState.lY;
+	}
 };
 

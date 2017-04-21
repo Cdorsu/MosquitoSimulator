@@ -5,12 +5,12 @@
 CD3D11::CD3D11(  )
 {
 	ZeroMemory( this, sizeof( CD3D11 ) );
+	m_SampleCount = 4;
 	m_BackgroundColor = utility::hexToRGB( 0x0 ); // default black screen
 }
 
-bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen )
+bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float Near, float Far, bool bFullscreen )
 {
-	m_BackgroundColor = utility::hexToRGB( 0x0 );
 	HRESULT hr;
 	IDXGIFactory * Factory;
 	IDXGIAdapter * Adapter;
@@ -57,6 +57,32 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bF
 	m_GPUInfo = adapterDesc.Description;
 	m_DedicatedVideoMemory = adapterDesc.DedicatedVideoMemory / 1024 / 1024;
 
+	UINT flags = D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_SINGLETHREADED;
+
+#if _DEBUG
+	flags |= D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+	hr = D3D11CreateDevice( nullptr, // Use default adapter
+		D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, NULL, // Use Hardware driver type (second means that we don't use any software module)
+		flags, // Specify what kind of device we want
+		nullptr, 0, // Use the highest feature level available
+		D3D11_SDK_VERSION, // Specify sdk version
+		&m_d3d11Device, // The device we'll use
+		nullptr, // We don't care about the flags
+		&m_d3d11DeviceContext ); // The device context we'll use
+	IFFAILED( hr, L"Couldn't create device" );
+
+	hr = m_d3d11Device->CheckMultisampleQualityLevels( DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, m_SampleCount, &m_SampleQuality );
+	IFFAILED( hr, L"Couldn't check for MSAA compatibility" );
+	if ( m_SampleQuality <= 1 )
+	{
+		m_SampleQuality = 0;
+		m_SampleCount = 1;
+	}
+	else
+		m_SampleQuality -= 1;
+
 	DXGI_MODE_DESC modeDesc; // Description of back buffer
 	ZeroMemory( &modeDesc, sizeof( DXGI_MODE_DESC ) );
 	modeDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM; // Default format
@@ -73,15 +99,30 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bF
 	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // Use the buffer as a back buffer
 	swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // change between windowed and fullscreen
 	swapDesc.OutputWindow = hWnd;
-	swapDesc.SampleDesc.Count = SAMPLE_DESC_COUNT;
-	swapDesc.SampleDesc.Quality = SAMPLE_DESC_QUALITY;
+	swapDesc.SampleDesc.Count = m_SampleCount;
+	swapDesc.SampleDesc.Quality = m_SampleQuality;
 	swapDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD; // We don't care
 	swapDesc.Windowed = bFullscreen ? FALSE : TRUE;
 
-	hr = D3D11CreateDeviceAndSwapChain( NULL, // Dont' use adapter so this will work on my computer
+	IDXGIFactory * SwapChainFactory;
+	IDXGIAdapter * SwapChainAdapter;
+	IDXGIDevice * Device;
+	hr = m_d3d11Device->QueryInterface( __uuidof( Device ),
+		reinterpret_cast< void** >( &Device ) );
+	IFFAILED( hr, L"Couldn't get the DXGI device from D3D11 device" );
+	hr = Device->GetParent( __uuidof( IDXGIAdapter ),
+		reinterpret_cast< void** >( &SwapChainAdapter ) );
+	IFFAILED( hr, L"Couldn't get parent from DXGI Device" );
+	hr = SwapChainAdapter->GetParent( __uuidof( IDXGIFactory ),
+		reinterpret_cast< void** > ( &SwapChainFactory ) );
+	IFFAILED( hr, L"Couln't get parent from DXGI Adapter" );
+	hr = SwapChainFactory->CreateSwapChain( m_d3d11Device, &swapDesc, &m_SwapChain );
+	IFFAILED( hr, L"Couldn't create swap chain" );
+
+	/*hr = D3D11CreateDeviceAndSwapChain( NULL, // Dont' use adapter so this will work on my computer
 		D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, // Use GPU
 		NULL, // We are using hardare driver type, so we don't need a sofware module
-		NULL, // Flags (Nothing special)
+		flags, // Specify what flags are we using
 		NULL, // Dont' use feature level so this will work on my computer
 		NULL, // Dont' use feature level so this will work on my computer
 		D3D11_SDK_VERSION, // Standard version 
@@ -90,7 +131,7 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bF
 		&m_d3d11Device, // The device to create
 		NULL, // We don't care about the feature level this function returns
 		&m_d3d11DeviceContext ); // The device context
-	IFFAILED( hr, L"Couldn't create swapchain, device and device context" );
+	IFFAILED( hr, L"Couldn't create swapchain, device and device context" );*/
 
 	ID3D11Texture2D * Backbuffer;
 	hr = m_SwapChain->GetBuffer( 0, // Get the first back buffer (the only one)
@@ -113,8 +154,8 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bF
 	dsbufferDesc.Width = WindowWidth;
 	dsbufferDesc.Height = WindowHeight;
 	dsbufferDesc.MipLevels = 1; // Mip level for texture
-	dsbufferDesc.SampleDesc.Count = SAMPLE_DESC_COUNT;
-	dsbufferDesc.SampleDesc.Quality = SAMPLE_DESC_QUALITY;
+	dsbufferDesc.SampleDesc.Count = m_SampleCount;
+	dsbufferDesc.SampleDesc.Quality = m_SampleQuality;
 	dsbufferDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT; // Use this as usual
 	hr = m_d3d11Device->CreateTexture2D(
 		&dsbufferDesc, // create a texture like this
@@ -124,7 +165,10 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bF
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsViewDesc;
 	ZeroMemory( &dsViewDesc, sizeof( D3D11_DEPTH_STENCIL_VIEW_DESC ) );
 	dsViewDesc.Format = dsbufferDesc.Format; // it's the same format
-	dsViewDesc.ViewDimension = D3D11_DSV_DIMENSION::D3D11_DSV_DIMENSION_TEXTURE2D; // just use a texture 2d
+	if ( m_SampleQuality > 0 )
+		dsViewDesc.ViewDimension = D3D11_DSV_DIMENSION::D3D11_DSV_DIMENSION_TEXTURE2DMS; // a multisampled 2d texture
+	else
+		dsViewDesc.ViewDimension = D3D11_DSV_DIMENSION::D3D11_DSV_DIMENSION_TEXTURE2D; // a 2D texture
 	dsViewDesc.Texture2D.MipSlice = 0; // no mip slice (texture detail)
 	hr = m_d3d11Device->CreateDepthStencilView(
 		DSBuffer, // create a d/s view with data from here
@@ -148,6 +192,7 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bF
 	m_DefaultViewport.MinDepth = 0.0f; // from 0 to 1
 
 	m_d3d11DeviceContext->RSSetViewports( 1, &m_DefaultViewport );
+	m_OrthoMatrix = DirectX::XMMatrixOrthographicLH( ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight, Near, Far );
 
 	return true;
 }
@@ -175,4 +220,14 @@ void CD3D11::Shutdown( )
 CD3D11::~CD3D11( )
 {
 	Shutdown( );
+}
+
+void* CD3D11::operator new ( size_t size )
+{
+	return _aligned_malloc( size,16 );
+}
+
+void CD3D11::operator delete ( void* object )
+{
+	_aligned_free( object );
 }

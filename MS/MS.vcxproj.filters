@@ -25,11 +25,17 @@
     <Filter Include="Source Files\Input">
       <UniqueIdentifier>{21afb81d-a232-4454-b1c5-d424c66e5076}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Shaders">
-      <UniqueIdentifier>{f4c6c7f1-42c8-42c3-a200-41646fe3cb70}</UniqueIdentifier>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{59c8e532-e94f-48f6-8d44-a85a8bfa35b4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Shaders">
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{cf716150-0728-4b69-b1e0-3b2679069628}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Shaders">
       <UniqueIdentifier>{b43db423-3eb0-41b0-ac1f-63431221dca8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Shaders">
+      <UniqueIdentifier>{f4c6c7f1-42c8-42c3-a200-41646fe3cb70}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,20 +48,29 @@
     <ClCompile Include="HRTimer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D3D11.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Input.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DefaultShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
     <ClCompile Include="Graphics.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D11.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DefaultShader.cpp">
-      <Filter>Source Files\Shaders</Filter>
+    <ClCompile Include="WorldShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,9 +89,6 @@
     <ClInclude Include="HRTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D3D11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="common\DirectXIncludes.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
@@ -89,24 +101,40 @@
     <ClInclude Include="Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Shader.h">
-      <Filter>Header Files\Shaders</Filter>
+      <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="DefaultShader.h">
-      <Filter>Header Files\Shaders</Filter>
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D11.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="PixelShader.hlsl">
+    <FxCompile Include="PixelShader.hlsl">
       <Filter>Shader Files</Filter>
-    </None>
+    </FxCompile>
+    <FxCompile Include="WorldVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="WorldPixelShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

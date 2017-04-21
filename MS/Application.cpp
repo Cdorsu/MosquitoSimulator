@@ -42,12 +42,12 @@ bool CApplication::Initialize( HINSTANCE hInstance, bool bFullscreen )
 	if ( !InitWindow( hInstance, bFullscreen ) )
 		return false;
 
-	m_Graphics = new CGraphics( );
-	if ( !m_Graphics->Initialize( m_hWnd, m_WindowWidth, m_WindowHeight, bFullscreen ) )
-		return false;
-
 	m_Input = new CInput( );
 	if ( !m_Input->Initialize( hInstance, m_hWnd ) )
+		return false;
+
+	m_Graphics = new CGraphics( );
+	if ( !m_Graphics->Initialize( m_hWnd, m_WindowWidth, m_WindowHeight, bFullscreen, m_Input ) )
 		return false;
 
 	return true;
@@ -77,6 +77,7 @@ void CApplication::Run( )
 			m_Input->Frame( );
 			if ( m_Input->isKeyPressed( DIK_ESCAPE ) )
 				break;
+			m_Graphics->Update( m_Timer.GetFrameTime( ) );
 			m_Graphics->BeginScene( );
 			m_Graphics->Render( );
 			m_Graphics->EndScene( );

@@ -2,7 +2,7 @@
 
 #include "common\windowsIncludes.h"
 
-class CHRTimer
+class CHRTimer sealed
 {
 	UINT m_Frames;
 	LONGLONG m_StartTime;

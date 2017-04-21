@@ -27,12 +27,12 @@ bool CInput::Initialize( HINSTANCE hInstance, HWND hWnd )
 		NULL ); // No punkOuter
 	IFFAILED( hr, L"Couldn't create Direct Input Device" );
 	
-	hr = m_Mouse->SetCooperativeLevel( hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE );
+	hr = m_Mouse->SetCooperativeLevel( hWnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE );
 	IFFAILED( hr, L"Couldn't set cooperative level for direct input device" );
 	hr = m_Mouse->SetDataFormat( &c_dfDIMouse );
 	IFFAILED( hr, L"Couldn't set data format for direct input device" );
 
-	hr = m_Keyboard->SetCooperativeLevel( hWnd, DISCL_FOREGROUND | DISCL_NOWINKEY | DISCL_NONEXCLUSIVE );
+	hr = m_Keyboard->SetCooperativeLevel( hWnd, DISCL_FOREGROUND | DISCL_NOWINKEY | DISCL_EXCLUSIVE );
 	IFFAILED( hr, L"Couldn't set cooperative level for direct input device" );
 	hr = m_Keyboard->SetDataFormat( &c_dfDIKeyboard );
 	IFFAILED( hr, L"Couldn't set data format for direct input device" );
