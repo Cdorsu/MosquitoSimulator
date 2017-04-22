@@ -118,6 +118,52 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 	IFFAILED( hr, L"Couln't get parent from DXGI Adapter" );
 	hr = SwapChainFactory->CreateSwapChain( m_d3d11Device, &swapDesc, &m_SwapChain );
 	IFFAILED( hr, L"Couldn't create swap chain" );
+	hr = Factory->MakeWindowAssociation( hWnd, DXGI_MWA_NO_WINDOW_CHANGES );
+	IFFAILED( hr, L"Couldnt make a window association" );
+
+#if _DEBUG // just a homework
+	wchar_t buffer[ 500 ];
+	UINT index = 0;
+	while ( true )
+	{
+		hr = SwapChainFactory->EnumAdapters( index, &SwapChainAdapter );
+		if ( hr == DXGI_ERROR_NOT_FOUND )
+			break;
+		swprintf_s( buffer, L"Adapter %d:", index );
+		OutputDebugString( buffer );
+		hr = SwapChainAdapter->CheckInterfaceSupport( __uuidof( ID3D10Device ), nullptr );
+		if ( hr == S_OK )
+		{
+			OutputDebugString( L"\nCompatible with D3D11\n" );
+			UINT output = 0;
+			IDXGIOutput * Monitor;
+			while ( true )
+			{
+				hr = SwapChainAdapter->EnumOutputs( output, &Monitor );
+				if ( hr == DXGI_ERROR_NOT_FOUND )
+					break;
+				UINT numModes;
+				hr = Monitor->GetDisplayModeList( DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, nullptr );
+				if ( FAILED( hr ) )
+					OutputDebugString( L"Couldn't verify display mode for this monitor" );
+				DXGI_MODE_DESC *TotalModes = new DXGI_MODE_DESC[ numModes ];
+				Monitor->GetDisplayModeList( DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, TotalModes );
+				for ( int i = 0; i < numModes; ++i )
+				{
+					swprintf_s( buffer, L"Width: %d, Height: %d; Refresh rate: %d / %d\n", TotalModes[ i ].Width, TotalModes[ i ].Height,
+						TotalModes[ i ].RefreshRate.Numerator, TotalModes[ i ].RefreshRate.Denominator );
+					OutputDebugString( buffer );
+				}
+				output++;
+			}
+			swprintf_s( buffer, L"Num outputs for Adapter %d: %d\n", index, output );
+			OutputDebugString( buffer );
+		}
+		else
+			OutputDebugString( L"\nNot compatible with D3D11\n" );
+		index++;
+	}
+#endif
 
 	/*hr = D3D11CreateDeviceAndSwapChain( NULL, // Dont' use adapter so this will work on my computer
 		D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, // Use GPU
