@@ -30,11 +30,11 @@ public: // Try not to use these in runtime
 public:
 	float GetHorizontalMouseMove( )
 	{
-		return m_currentMouseState.lX;
+		return ( float ) m_currentMouseState.lX;
 	}
 	float GetVerticalMouseMove( )
 	{
-		return m_currentMouseState.lY;
+		return ( float ) m_currentMouseState.lY;
 	}
 };
 
