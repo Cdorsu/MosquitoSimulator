@@ -31,6 +31,10 @@ void CCamera::Update( )
 {
 	m_fCamYaw += m_InputInstance->GetHorizontalMouseMove( ) * 0.001f;
 	m_fCamPitch += m_InputInstance->GetVerticalMouseMove( ) * 0.001f;
+	if ( m_fCamPitch > 1.5f )
+		m_fCamPitch = 1.5f;
+	else if ( m_fCamPitch < -1.5f )
+		m_fCamPitch = -1.5f;
 	if ( m_InputInstance->isKeyPressed( DIK_W ) )
 		m_fMoveForwardBackward += 15 * 0.02f;
 	if ( m_InputInstance->isKeyPressed( DIK_S ) )
