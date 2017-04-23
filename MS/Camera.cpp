@@ -36,13 +36,13 @@ void CCamera::Update( )
 	else if ( m_fCamPitch < -1.5f )
 		m_fCamPitch = -1.5f;
 	if ( m_InputInstance->isKeyPressed( DIK_W ) )
-		m_fMoveForwardBackward += 15 * 0.02f;
+		m_fMoveForwardBackward += 5 * 0.02f;
 	if ( m_InputInstance->isKeyPressed( DIK_S ) )
-		m_fMoveForwardBackward -= 15 * 0.02f;
+		m_fMoveForwardBackward -= 5 * 0.02f;
 	if ( m_InputInstance->isKeyPressed( DIK_D ) )
-		m_fMoveRightLeft += 15 * 0.02f;
+		m_fMoveRightLeft += 5 * 0.02f;
 	if ( m_InputInstance->isKeyPressed( DIK_A ) )
-		m_fMoveRightLeft -= 15 * 0.02f;
+		m_fMoveRightLeft -= 5 * 0.02f;
 }
 
 void CCamera::Render( )
@@ -56,6 +56,7 @@ void CCamera::Render( )
 	m_Position = DirectX::XMVectorAdd( m_Position, DirectX::XMVectorScale( m_Right, m_fMoveRightLeft ) );
 
 	m_fMoveForwardBackward = 0;
+	m_fMoveRightLeft = 0;
 
 	m_ViewMatrix = DirectX::XMMatrixLookToLH( m_Position, m_Direction, m_UpDirection );
 }

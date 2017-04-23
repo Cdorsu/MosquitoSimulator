@@ -17,6 +17,8 @@ public:
 	IDXGISwapChain * m_SwapChain;
 	D3D11_VIEWPORT m_DefaultViewport;
 
+	ID3D11RasterizerState * m_NoCulling;
+
 	utility::SColor m_BackgroundColor;
 	LPWSTR m_GPUInfo;
 	UINT m_DedicatedVideoMemory;
@@ -33,6 +35,7 @@ public:
 public:
 	inline ID3D11Device * GetDevice( ) { return m_d3d11Device; };
 	inline ID3D11DeviceContext * GetImmediateContext( ) { return m_d3d11DeviceContext; };
+	inline DirectX::XMMATRIX& GetOrthoMatrix( ) { return m_OrthoMatrix; };
 public:
 	void * operator new ( size_t size );
 	void operator delete ( void* object );

@@ -1,18 +1,18 @@
-#include "WorldShader.h"
+#include "C2DShader.h"
 
 
 
-CWorldShader::CWorldShader( )
+C2DShader::C2DShader( )
 {
-	ZeroMemory( this, sizeof( CWorldShader ) );
+	ZeroMemory( this, sizeof( C2DShader ) );
 }
 
-bool CWorldShader::Initialize( ID3D11Device * device )
+bool C2DShader::Initialize( ID3D11Device * device )
 {
 	HRESULT hr;
 	ID3DBlob * VertexShaderBlob;
 	if ( !CompileAndCreateVertexShader( device,
-		L"WorldVertexShader.hlsl", L"Shaders\\WorldVertexShader.cso",
+		L"2DVertexShader.hlsl", L"Shaders\\2DVertexShader.cso",
 		&m_VertexShader, &VertexShaderBlob ) )
 		return false;
 	D3D11_INPUT_ELEMENT_DESC layout[ 2 ];
@@ -36,7 +36,7 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 		&m_InputLayout ); // The input layout
 	IFFAILED( hr, L"Couldn't create a input layout" );
 	if ( !CompileAndCreatePixelShader( device,
-		L"WorldPixelShader.hlsl", L"Shaders\\WorldPixelShader.cso",
+		L"2DPixelShader.hlsl", L"Shaders\\2DPixelShader.cso",
 		&m_PixelShader ) )
 		return false;
 	D3D11_BUFFER_DESC buffDesc = { 0 };
@@ -62,13 +62,13 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 	return true;
 }
 
-void CWorldShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World,
-	DirectX::FXMMATRIX& View, DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture )
+void C2DShader::SetData( ID3D11DeviceContext * context,
+	DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture )
 {
 	static HRESULT hr;
 	static DirectX::XMMATRIX WVP;
 	static D3D11_MAPPED_SUBRESOURCE MappedResource;
-	WVP = World * View * Projection;
+	WVP = Projection;
 	WVP = DirectX::XMMatrixTranspose( WVP );
 	hr = context->Map( m_Buffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )
@@ -80,22 +80,22 @@ void CWorldShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& W
 	context->PSSetSamplers( 0, 1, &m_WrapSampler );
 }
 
-void CWorldShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-	DirectX::FXMMATRIX& View, DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture )
+void C2DShader::Render( ID3D11DeviceContext * context, UINT indexCount, 
+	DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture )
 {
-	SetData( context, World, View, Projection, Texture );
+	SetData( context, Projection, Texture );
 	SetShaders( context );
 	DrawIndexed( context, indexCount );
 }
 
-void CWorldShader::SetShaders( ID3D11DeviceContext * context )
+void C2DShader::SetShaders( ID3D11DeviceContext * context )
 {
 	context->VSSetShader( m_VertexShader, nullptr, 0 );
 	context->PSSetShader( m_PixelShader, nullptr, 0 );
 	context->IASetInputLayout( m_InputLayout );
 }
 
-void CWorldShader::Shutdown( )
+void C2DShader::Shutdown( )
 {
 	SAFE_RELEASE( m_VertexShader );
 	SAFE_RELEASE( m_PixelShader );
@@ -104,6 +104,6 @@ void CWorldShader::Shutdown( )
 	SAFE_RELEASE( m_WrapSampler );
 }
 
-CWorldShader::~CWorldShader( )
+C2DShader::~C2DShader( )
 {
 }

@@ -10,7 +10,7 @@
 #define GAME_NAME L"Mosquito Simulator"
 #endif
 
-#define SAFE_RELEASE( Object ) { if ( (Object) != nullptr ) { (Object)->Release(); (Object) = nullptr; } }
+#define SAFE_RELEASE( Object ) { if ( (Object) ) { (Object)->Release(); (Object) = 0; } }
 
 #define DIRECTINPUT_VERSION 0x0800
 

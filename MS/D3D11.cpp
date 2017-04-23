@@ -148,7 +148,7 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 					OutputDebugString( L"Couldn't verify display mode for this monitor" );
 				DXGI_MODE_DESC *TotalModes = new DXGI_MODE_DESC[ numModes ];
 				Monitor->GetDisplayModeList( DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, TotalModes );
-				for ( int i = 0; i < numModes; ++i )
+				for ( UINT i = 0; i < numModes; ++i )
 				{
 					swprintf_s( buffer, L"Width: %d, Height: %d; Refresh rate: %d / %d\n", TotalModes[ i ].Width, TotalModes[ i ].Height,
 						TotalModes[ i ].RefreshRate.Numerator, TotalModes[ i ].RefreshRate.Denominator );
@@ -238,6 +238,16 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 	m_DefaultViewport.MinDepth = 0.0f; // from 0 to 1
 
 	m_d3d11DeviceContext->RSSetViewports( 1, &m_DefaultViewport );
+
+
+	D3D11_RASTERIZER_DESC rastDesc;
+	ZeroMemory( &rastDesc, sizeof( D3D11_RASTERIZER_DESC ) );
+	rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+	rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+	hr = m_d3d11Device->CreateRasterizerState( &rastDesc, &m_NoCulling );
+	IFFAILED( hr, L"Couldn't create rasterizer state" );
+	m_d3d11DeviceContext->RSSetState( m_NoCulling );
+
 	m_OrthoMatrix = DirectX::XMMatrixOrthographicLH( ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight, Near, Far );
 
 	return true;

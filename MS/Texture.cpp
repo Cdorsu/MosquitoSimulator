@@ -24,7 +24,11 @@ bool CTexture::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 
 void CTexture::Shutdown( )
 {
-	SAFE_RELEASE( m_Texture );
+	if ( m_Texture )
+	{
+		m_Texture->Release( );
+		m_Texture = 0;
+	}
 }
 
 CTexture::~CTexture( )

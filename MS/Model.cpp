@@ -61,6 +61,7 @@ void CModel::Shutdown( )
 	{
 		m_Texture->Shutdown( );
 		delete m_Texture;
+		m_Texture = 0;
 	}
 	SAFE_RELEASE( m_VertexBuffer );
 	SAFE_RELEASE( m_IndexBuffer );
