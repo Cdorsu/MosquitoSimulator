@@ -10,10 +10,12 @@ ALIGN16 class CModel sealed
 	struct SVertex
 	{
 		SVertex( float x = 0.0f, float y = 0.0f, float z = 0.0f,
-			float u = 0.0f, float v = 0.0f )
-			: Position( x, y, z ), Texture( u, v ) { };
+			float u = 0.0f, float v = 0.0f,
+			float nx = 0.0f, float ny = 0.0f, float nz = 0.0f )
+			: Position( x, y, z ), Texture( u, v ), Normal( nx, ny, nz ) { };
 		DirectX::XMFLOAT3 Position;
 		DirectX::XMFLOAT2 Texture;
+		DirectX::XMFLOAT3 Normal;
 	};
 protected:
 	ID3D11Buffer * m_VertexBuffer;
@@ -24,11 +26,15 @@ protected:
 	UINT m_VertexCount;
 	UINT m_IndexCount;
 	DirectX::XMMATRIX m_World;
+
+	std::vector<SVertex> m_vecVertices;
+	std::vector<DWORD> m_vecIndices;
 public:
 	CModel( );
 	~CModel( );
 public:
 	bool Initialize( ID3D11Device * device );
+	bool Initialize( ID3D11Device * device, LPWSTR lpFile );
 	void Render( ID3D11DeviceContext * context );
 	void Shutdown( );
 public:

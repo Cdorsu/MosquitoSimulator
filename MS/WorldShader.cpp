@@ -52,7 +52,7 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
-	sampDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
+	sampDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	sampDesc.MaxAnisotropy = 16;
 	sampDesc.MaxLOD = 0;
 	sampDesc.MinLOD = 0;

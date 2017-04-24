@@ -79,10 +79,10 @@ void CTextureWindow::Render( ID3D11DeviceContext * context, UINT PosX, UINT PosY
 	
 	SVertex Vertices[] = 
 	{
-		SVertex( left,top, 0.1f,0.0f,0.0f ),
-		SVertex( right,top, 0.1f,1.0f,0.0f ),
-		SVertex( right,bottom, 0.1f,1.0f,1.0f ),
-		SVertex( left,bottom, 0.1f, 0.0f,1.0f ),
+		SVertex( left,top, 0.0f,0.0f,0.0f ),
+		SVertex( right,top, 0.0f,1.0f,0.0f ),
+		SVertex( right,bottom, 0.0f,1.0f,1.0f ),
+		SVertex( left,bottom, 0.0f, 0.0f,1.0f ),
 	};
 	hr = context->Map( m_VertexBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )

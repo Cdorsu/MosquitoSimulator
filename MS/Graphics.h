@@ -21,6 +21,7 @@ private:
 	CCamera * m_Camera;
 	CTextureWindow * m_Image;
 	CModel * m_Triangle;
+	CModel * m_Torus;
 
 	CInput * m_Input;
 public:

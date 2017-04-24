@@ -14,6 +14,7 @@
 
 #define DIRECTINPUT_VERSION 0x0800
 
-#define IFFAILED(expr, error) if ( FAILED(expr) ) { OutputDebugString(error); return false; }
+#define IFFAILED(expr, error) if ( FAILED(expr) ) { OutputDebugString(error); \
+ OutputDebugString(L"\n"); return false; }
 
 #define ALIGN16 __declspec ( align ( 16 ) )

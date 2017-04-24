@@ -37,6 +37,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Triangle = new CModel( );
 	if ( !m_Triangle->Initialize( m_D3D11->GetDevice( ) ) )
 		return false;
+	m_Torus = new CModel( );
+	if ( !m_Torus->Initialize( m_D3D11->GetDevice( ), L"Assets\\Torus.aba" ) )
+		return false;
 	return true;
 }
 
@@ -49,9 +52,13 @@ void CGraphics::Render( )
 {
 	m_Camera->Render( );
 
-	m_Triangle->Render( m_D3D11->GetImmediateContext( ) );
-	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Triangle->GetIndexCount( ), m_Triangle->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_Triangle->GetTexture( ) );
+	//m_Triangle->Render( m_D3D11->GetImmediateContext( ) );
+	//m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Triangle->GetIndexCount( ), m_Triangle->GetWorld( ),
+		//m_Camera->GetView( ), m_Camera->GetProjection( ), m_Triangle->GetTexture( ) );
+
+	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
+	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_Torus->GetTexture( ) );
 
 	m_Image->Render( m_D3D11->GetImmediateContext( ), 10, 10 );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_Image->GetIndexCount( ),
@@ -60,6 +67,12 @@ void CGraphics::Render( )
 
 CGraphics::~CGraphics( )
 {
+	if ( m_Torus )
+	{
+		m_Torus->Shutdown( );
+		delete m_Torus;
+		m_Torus = 0;
+	}
 	if ( m_Triangle )
 	{
 		m_Triangle->Shutdown( );
