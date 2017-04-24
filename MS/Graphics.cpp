@@ -34,8 +34,8 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, 0.5f * ( FLOAT ) D3DX_PI, 0.1f, 100.0f, m_Input ) )
 		return false;
 
-	m_Triangle = new CModel( );
-	if ( !m_Triangle->Initialize( m_D3D11->GetDevice( ) ) )
+	m_Cube = new CModel( );
+	if ( !m_Cube->Initialize( m_D3D11->GetDevice( ), L"Assets\\Cube.aba" ) )
 		return false;
 	m_Torus = new CModel( );
 	if ( !m_Torus->Initialize( m_D3D11->GetDevice( ), L"Assets\\Torus.aba" ) )
@@ -46,19 +46,30 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 void CGraphics::Update( float fFrameTime )
 {
 	m_Camera->Update( );
+
+	m_Cube->Identity( );
+
+	m_Torus->Identity( );
+	m_Torus->Scale( 2.f, 2.f, 2.f );
+
+
 }
 
 void CGraphics::Render( )
 {
 	m_Camera->Render( );
 
-	//m_Triangle->Render( m_D3D11->GetImmediateContext( ) );
-	//m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Triangle->GetIndexCount( ), m_Triangle->GetWorld( ),
-		//m_Camera->GetView( ), m_Camera->GetProjection( ), m_Triangle->GetTexture( ) );
+	m_D3D11->EnableBackFaceCulling( );
+
+	m_Cube->Render( m_D3D11->GetImmediateContext( ) );
+	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
+		m_Camera->GetView( ), m_Camera->GetProjection( ), m_Cube->GetTexture( ) );
 
 	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
 		m_Camera->GetView( ), m_Camera->GetProjection( ), m_Torus->GetTexture( ) );
+
+	m_D3D11->DisableCulling( );
 
 	m_Image->Render( m_D3D11->GetImmediateContext( ), 10, 10 );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_Image->GetIndexCount( ),
@@ -73,11 +84,11 @@ CGraphics::~CGraphics( )
 		delete m_Torus;
 		m_Torus = 0;
 	}
-	if ( m_Triangle )
+	if ( m_Cube )
 	{
-		m_Triangle->Shutdown( );
-		delete m_Triangle;
-		m_Triangle = 0;
+		m_Cube->Shutdown( );
+		delete m_Cube;
+		m_Cube = 0;
 	}
 	if ( m_Camera )
 	{

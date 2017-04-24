@@ -20,7 +20,7 @@ private:
 	C2DShader * m_2DShader;
 	CCamera * m_Camera;
 	CTextureWindow * m_Image;
-	CModel * m_Triangle;
+	CModel * m_Cube;
 	CModel * m_Torus;
 
 	CInput * m_Input;

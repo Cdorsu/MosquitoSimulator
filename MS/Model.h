@@ -43,6 +43,13 @@ public:
 	inline UINT GetIndexCount( ) { return m_IndexCount; };
 	inline UINT GetVertexCount( ) { return m_VertexCount; };
 public:
+	inline void Identity( ) { m_World = DirectX::XMMatrixIdentity( ); };
+	inline void Translate( float x, float y, float z ) { m_World *= DirectX::XMMatrixTranslation( x, y, z ); };
+	inline void Scale( float x, float y, float z ) { m_World *= DirectX::XMMatrixScaling( x, y, z ); };
+	inline void RotateX( float theta ) { m_World *= DirectX::XMMatrixRotationX( theta ); };
+	inline void RotateY( float theta ) { m_World *= DirectX::XMMatrixRotationY( theta ); };
+	inline void RotateZ( float theta ) { m_World *= DirectX::XMMatrixRotationZ( theta ); };
+public:
 	void* operator new ( size_t size );
 	void operator delete ( void *object );
 };

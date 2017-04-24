@@ -35,6 +35,8 @@ public:
 public:
 	inline ID3D11Device * GetDevice( ) { return m_d3d11Device; };
 	inline ID3D11DeviceContext * GetImmediateContext( ) { return m_d3d11DeviceContext; };
+	inline void DisableCulling( ) { m_d3d11DeviceContext->RSSetState( m_NoCulling ); };
+	inline void EnableBackFaceCulling( ) { m_d3d11DeviceContext->RSSetState( nullptr ); };
 	inline DirectX::XMMATRIX& GetOrthoMatrix( ) { return m_OrthoMatrix; };
 public:
 	void * operator new ( size_t size );

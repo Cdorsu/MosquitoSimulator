@@ -126,10 +126,12 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 				while ( ch != '\n' )
 					ifCitire.get( ch );
 				UINT index;
+				m_vecIndices.resize( m_IndexCount );
 				for ( UINT i = 0; i < m_IndexCount; ++i )
 				{
 					ifCitire >> index;
-					m_vecIndices.push_back( index );
+					//m_vecIndices.push_back( index );
+					m_vecIndices[ m_vecIndices.size( ) - 1 - i ] = index;
 				}
 			}
 			ifCitire.get( ch );
@@ -228,6 +230,7 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 		}
 	}
 	ifCitire.close( );
+
 
 	/* Create buffers */
 	HRESULT hr;

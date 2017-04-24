@@ -3465,7 +3465,7 @@ Torus {
         Diffuse color: 0.64 0.64 0.64
         Specular color: 0.5 0.5 0.5
         Specular power: 99.039215
-        Emissive color: 0.0 0.0 0.0 # probably won't use this
-        Diffuse map: Assets\totem_by_ekud.jpg
+        Emissive color: 0.0 0.0 0.0
+        Diffuse map: 2DArt\\Ana.jpeg
     }
 }

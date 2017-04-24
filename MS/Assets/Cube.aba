@@ -45,6 +45,6 @@ Cube {
         Diffuse color: 0.8 0.8 0.8
         Specular color: 0.8 0.8 0.8
         Specular power: 100.0
-        Diffuse map: Assets\\totem_by_ekud.jpg
+        Diffuse map: 2DArt\\silvertexture.jpg
     }
 }

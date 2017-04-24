@@ -242,7 +242,7 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 
 	D3D11_RASTERIZER_DESC rastDesc;
 	ZeroMemory( &rastDesc, sizeof( D3D11_RASTERIZER_DESC ) );
-	rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+	rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
 	rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	hr = m_d3d11Device->CreateRasterizerState( &rastDesc, &m_NoCulling );
 	IFFAILED( hr, L"Couldn't create rasterizer state" );
@@ -271,6 +271,7 @@ void CD3D11::Shutdown( )
 	SAFE_RELEASE( m_d3d11DeviceContext );
 	SAFE_RELEASE( m_d3d11RenderTargetView );
 	SAFE_RELEASE( m_SwapChain );
+	SAFE_RELEASE( m_NoCulling );
 }
 
 CD3D11::~CD3D11( )
