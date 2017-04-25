@@ -242,12 +242,6 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 	buffData.pSysMem = &m_vecVertices[ 0 ];
 	hr = device->CreateBuffer( &buffDesc, &buffData, &m_VertexBuffer );
 	IFFAILED( hr, L"Couldn't create a vertex buffer" );
-	for ( unsigned int i = 0; i < m_vecIndices.size( ) / 3; ++i )
-	{
-		wchar_t buffer[ 500 ];
-		swprintf_s( buffer, L"%d,%d,%d", m_vecIndices[ (i*3) ], m_vecIndices[ (i * 3) + 1 ], m_vecIndices[ (i*3) + 2 ] );
-		OutputDebugString( buffer );
-	}
 	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
 	buffDesc.ByteWidth = sizeof( DWORD ) * m_vecIndices.size( );

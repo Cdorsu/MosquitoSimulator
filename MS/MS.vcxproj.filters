@@ -78,6 +78,9 @@
     <ClCompile Include="TextureWindow.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="FontClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\windowsIncludes.h">
@@ -133,6 +136,9 @@
     </ClInclude>
     <ClInclude Include="TextureWindow.h">
       <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="FontClass.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

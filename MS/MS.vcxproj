@@ -122,6 +122,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="D3D11.cpp" />
     <ClCompile Include="DefaultShader.cpp" />
+    <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="HRTimer.cpp" />
     <ClCompile Include="Input.cpp" />
@@ -142,6 +143,7 @@
     <ClInclude Include="common\windowsIncludes.h" />
     <ClInclude Include="D3D11.h" />
     <ClInclude Include="DefaultShader.h" />
+    <ClInclude Include="FontClass.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Input.h" />

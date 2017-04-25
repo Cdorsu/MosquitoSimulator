@@ -25,7 +25,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 
 	m_Image = new CTextureWindow( );
-	if ( !m_Image->Initialize( m_D3D11->GetDevice( ), L"2DArt\\Ana.jpeg", WindowWidth, WindowHeight, 300, 300 ) )
+	if ( !m_Image->Initialize( m_D3D11->GetDevice( ), L"2DArt\\silvertexture.jpg", WindowWidth, WindowHeight, 300, 300 ) )
 		return false;
 
 	m_Camera = new CCamera( );
@@ -39,6 +39,10 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 	m_Torus = new CModel( );
 	if ( !m_Torus->Initialize( m_D3D11->GetDevice( ), L"Assets\\Torus.aba" ) )
+		return false;
+
+	m_Font = new FontClass( );
+	if ( !m_Font->Initialize( m_D3D11->GetDevice( ), L"Font\\font01.dds", L"Font\\font01.txt", 32 ) )
 		return false;
 	return true;
 }
@@ -78,6 +82,12 @@ void CGraphics::Render( )
 
 CGraphics::~CGraphics( )
 {
+	if ( m_Font )
+	{
+		m_Font->Shutdown( );
+		delete m_Font;
+		m_Font = 0;
+	}
 	if ( m_Torus )
 	{
 		m_Torus->Shutdown( );

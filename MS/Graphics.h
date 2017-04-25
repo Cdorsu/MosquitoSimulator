@@ -7,6 +7,7 @@
 #include "C2DShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
+#include "FontClass.h"
 
 class CGraphics sealed
 {
@@ -22,7 +23,8 @@ private:
 	CTextureWindow * m_Image;
 	CModel * m_Cube;
 	CModel * m_Torus;
-
+	FontClass * m_Font;
+private: // Do not create, do not destroy, just take it from an upper level (CApplication)
 	CInput * m_Input;
 public:
 	CGraphics( );
