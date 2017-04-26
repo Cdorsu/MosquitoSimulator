@@ -127,6 +127,7 @@
     <ClCompile Include="HRTimer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Text.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureWindow.cpp" />
     <ClCompile Include="winmain.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Text.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureWindow.h" />
     <ClInclude Include="WorldShader.h" />

@@ -46,6 +46,9 @@ bool C2DShader::Initialize( ID3D11Device * device )
 	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
 	hr = device->CreateBuffer( &buffDesc, nullptr, &m_Buffer );
 	IFFAILED( hr, L"Couldn't create a constant buffer" );
+	buffDesc.ByteWidth = sizeof( SColor );
+	hr = device->CreateBuffer( &buffDesc, nullptr, &m_ColorBuffer );
+	IFFAILED( hr, L"Couldn't create a constant buffer" );
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory( &sampDesc, sizeof( D3D11_SAMPLER_DESC ) );
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
@@ -62,8 +65,8 @@ bool C2DShader::Initialize( ID3D11Device * device )
 	return true;
 }
 
-void C2DShader::SetData( ID3D11DeviceContext * context,
-	DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture )
+void C2DShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& Projection,
+	ID3D11ShaderResourceView * Texture, utility::SColor Color )
 {
 	static HRESULT hr;
 	static DirectX::XMMATRIX WVP;
@@ -76,14 +79,22 @@ void C2DShader::SetData( ID3D11DeviceContext * context,
 	( ( SMatrices* ) MappedResource.pData )->WVP = WVP;
 	context->Unmap( m_Buffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &m_Buffer );
+	hr = context->Map( m_ColorBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	if ( FAILED( hr ) )
+		return;
+	( ( SColor* ) MappedResource.pData )->Color = Color;
+	context->Unmap( m_ColorBuffer, 0 );
+	context->PSSetConstantBuffers( 0, 1, &m_ColorBuffer );
+
 	context->PSSetShaderResources( 0, 1, &Texture );
 	context->PSSetSamplers( 0, 1, &m_WrapSampler );
 }
 
-void C2DShader::Render( ID3D11DeviceContext * context, UINT indexCount, 
-	DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture )
+void C2DShader::Render( ID3D11DeviceContext * context, UINT indexCount,
+	DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture,
+	utility::SColor Color )
 {
-	SetData( context, Projection, Texture );
+	SetData( context, Projection, Texture, Color );
 	SetShaders( context );
 	DrawIndexed( context, indexCount );
 }
@@ -101,6 +112,7 @@ void C2DShader::Shutdown( )
 	SAFE_RELEASE( m_PixelShader );
 	SAFE_RELEASE( m_InputLayout );
 	SAFE_RELEASE( m_Buffer );
+	SAFE_RELEASE( m_ColorBuffer );
 	SAFE_RELEASE( m_WrapSampler );
 }
 

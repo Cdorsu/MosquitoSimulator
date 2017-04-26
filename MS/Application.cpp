@@ -77,7 +77,7 @@ void CApplication::Run( )
 			m_Input->Frame( );
 			if ( m_Input->isKeyPressed( DIK_ESCAPE ) )
 				break;
-			m_Graphics->Update( m_Timer.GetFrameTime( ) );
+			m_Graphics->Update( m_Timer.GetFrameTime( ), m_FPS );
 			m_Graphics->BeginScene( );
 			m_Graphics->Render( );
 			m_Graphics->EndScene( );

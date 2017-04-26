@@ -4,8 +4,11 @@
 #include "common\standardIncludes.h"
 #include "common\windowsIncludes.h"
 
+class CText;
+
 class FontClass
 {
+	friend class CText;
 private:
 	static constexpr UINT TotalLetters = 95;
 private:
@@ -32,7 +35,8 @@ public:
 	~FontClass( );
 public:
 	bool Initialize( ID3D11Device* device, LPWSTR lpFontTexture, LPWSTR lpFontInfo, float Height );
-	void Build( void * whereto, UINT *indices, LPCSTR lpSentence, float x, float y );
+	void Build( _Out_ void * whereto, _Out_ void * indices, _Out_ UINT& VertexCount, _Out_ UINT& IndexCount,
+		_In_ LPCSTR lpSentence, _In_ float x, _In_ float y );
 	void Shutdown( );
 public:
 	inline ID3D11ShaderResourceView * GetTexture( ) { return m_Texture->GetTexture( ); };

@@ -7,7 +7,7 @@
 #include "C2DShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
-#include "FontClass.h"
+#include "Text.h"
 
 class CGraphics sealed
 {
@@ -20,10 +20,13 @@ private:
 	CWorldShader * m_WorldShader;
 	C2DShader * m_2DShader;
 	CCamera * m_Camera;
-	CTextureWindow * m_Image;
 	CModel * m_Cube;
 	CModel * m_Torus;
+	CText * m_FPSText;
+	CText * m_FrameTimeText;
+private: // Fonts
 	FontClass * m_Font;
+	FontClass * m_Font01;
 private: // Do not create, do not destroy, just take it from an upper level (CApplication)
 	CInput * m_Input;
 public:
@@ -31,7 +34,7 @@ public:
 	~CGraphics( );
 public:
 	bool Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen = true, CInput * Input = nullptr );
-	void Update( float fFrameTime );
+	void Update( float fFrameTime, UINT FPS );
 	void Render( );
 	void Shutdown( );
 public:
