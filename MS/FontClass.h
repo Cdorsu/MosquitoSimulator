@@ -32,7 +32,7 @@ public:
 	~FontClass( );
 public:
 	bool Initialize( ID3D11Device* device, LPWSTR lpFontTexture, LPWSTR lpFontInfo, float Height );
-	void Build( void * whereto, LPCSTR lpSentence, float x, float y );
+	void Build( void * whereto, UINT *indices, LPCSTR lpSentence, float x, float y );
 	void Shutdown( );
 public:
 	inline ID3D11ShaderResourceView * GetTexture( ) { return m_Texture->GetTexture( ); };

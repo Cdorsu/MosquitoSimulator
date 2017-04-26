@@ -32,9 +32,9 @@ bool FontClass::Initialize( ID3D11Device* device, LPWSTR lpTexture, LPWSTR lpInf
 	return true;
 }
 
-void FontClass::Build( void * whereto, LPCSTR lpSentence, float x, float y )
+void FontClass::Build( void * whereto, UINT *indices, LPCSTR lpSentence, float x, float y )
 {
-	size_t nVertices = 0;
+	size_t nVertices = 0, nIndices = 0;
 	size_t length = strlen( lpSentence );
 	SVertex * vertices = ( SVertex* ) whereto;
 	for ( size_t i = 0; i < length; ++i )
@@ -47,20 +47,30 @@ void FontClass::Build( void * whereto, LPCSTR lpSentence, float x, float y )
 			continue;
 		}
 
+		// First triangle
 		vertices[ nVertices ].Pos = DirectX::XMFLOAT3( x, y, 0.0f ); // Top left 
 		vertices[ nVertices ].Tex = DirectX::XMFLOAT2( m_Letters[ charIndex ].left, 0.0f );
+		indices[ nIndices++ ] = nVertices; // 0
 		nVertices++;
 
 		vertices[ nVertices ].Pos = DirectX::XMFLOAT3( x + m_Letters[ charIndex ].width, y, 0.0f ); // Top right
 		vertices[ nVertices ].Tex = DirectX::XMFLOAT2( m_Letters[ charIndex ].right, 0.0f );
+		indices[ nIndices++ ] = nVertices; // 1
 		nVertices++;
 
 		vertices[ nVertices ].Pos = DirectX::XMFLOAT3( x + m_Letters[ charIndex ].width, y - m_fFontHeight, 0.0f ); // Bottom right
 		vertices[ nVertices ].Tex = DirectX::XMFLOAT2( m_Letters[ charIndex ].right, 1.0f );
+		indices[ nIndices++ ] = nVertices; // 2
 		nVertices++;
+
+		// Done first triangle
+		indices[ nIndices ] = indices[ nIndices - 3 ];
+		indices[ nIndices + 1 ] = indices[ nIndices - 1 ];
+		nIndices += 2;
 
 		vertices[ nVertices ].Pos = DirectX::XMFLOAT3( x, y - m_fFontHeight, 0.0f ); // Bottom left
 		vertices[ nVertices ].Tex = DirectX::XMFLOAT2( m_Letters[ charIndex ].left, 1.0f );
+		indices[ nIndices++ ] = nVertices; // 3
 		nVertices++;
 
 		x += m_Letters[ charIndex ].width + 1.0f;
