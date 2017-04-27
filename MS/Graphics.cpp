@@ -52,6 +52,11 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		20, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
 
+	m_Light = new CLight( );
+	m_Light->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
+	m_Light->SetAmbient( utility::SColor( 0.0, 0.0f, 0.0f, 1.0f ) );
+	m_Light->SetDirection( 0.0f, 0.0f, 1.0f );
+
 	return true;
 }
 
@@ -89,11 +94,11 @@ void CGraphics::Render( )
 
 	m_Cube->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_Cube->GetTexture( ) );
+		m_Camera, m_Cube->GetTexture( ), m_Light );
 
 	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
-		m_Camera->GetView( ), m_Camera->GetProjection( ), m_Torus->GetTexture( ) );
+		m_Camera, m_Torus->GetTexture( ), m_Light );
 
 	m_D3D11->DisableCulling( );
 
@@ -110,6 +115,11 @@ void CGraphics::Render( )
 
 CGraphics::~CGraphics( )
 {
+	if ( m_Light )
+	{
+		delete m_Light;
+		m_Light = 0;
+	}
 	if ( m_FrameTimeText )
 	{
 		m_FrameTimeText->Shutdown( );

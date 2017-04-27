@@ -148,6 +148,7 @@
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Text.h" />

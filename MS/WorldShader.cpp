@@ -15,7 +15,7 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 		L"WorldVertexShader.hlsl", L"Shaders\\WorldVertexShader.cso",
 		&m_VertexShader, &VertexShaderBlob ) )
 		return false;
-	D3D11_INPUT_ELEMENT_DESC layout[ 2 ];
+	D3D11_INPUT_ELEMENT_DESC layout[ 3 ];
 	layout[ 0 ].SemanticName = "POSITION";
 	layout[ 0 ].SemanticIndex = 0;
 	layout[ 0 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
@@ -30,6 +30,13 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 	layout[ 1 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
 	layout[ 1 ].InstanceDataStepRate = 0;
 	layout[ 1 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	layout[ 2 ].SemanticName = "NORMAL";
+	layout[ 2 ].SemanticIndex = 0;
+	layout[ 2 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
+	layout[ 2 ].InputSlot = 0;
+	layout[ 2 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
+	layout[ 2 ].InstanceDataStepRate = 0;
+	layout[ 2 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	UINT numElements = sizeof( layout ) / sizeof( layout[ 0 ] );
 	hr = device->CreateInputLayout( layout, numElements, // Info about the layout
 		VertexShaderBlob->GetBufferPointer( ), VertexShaderBlob->GetBufferSize( ), // Info about the vertex shader
@@ -45,6 +52,9 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 	buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
 	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
 	hr = device->CreateBuffer( &buffDesc, nullptr, &m_Buffer );
+	IFFAILED( hr, L"Couldn't create a constant buffer" );
+	buffDesc.ByteWidth = sizeof( SLight );
+	hr = device->CreateBuffer( &buffDesc, nullptr, &m_LightBuffer );
 	IFFAILED( hr, L"Couldn't create a constant buffer" );
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory( &sampDesc, sizeof( D3D11_SAMPLER_DESC ) );
@@ -63,27 +73,43 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 }
 
 void CWorldShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World,
-	DirectX::FXMMATRIX& View, DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture )
+	CCamera * Camera, ID3D11ShaderResourceView * Texture )
 {
 	static HRESULT hr;
 	static DirectX::XMMATRIX WVP;
 	static D3D11_MAPPED_SUBRESOURCE MappedResource;
-	WVP = World * View * Projection;
+	WVP = World * Camera->GetView( ) * Camera->GetProjection( );
 	WVP = DirectX::XMMatrixTranspose( WVP );
 	hr = context->Map( m_Buffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )
 		return;
 	( ( SMatrices* ) MappedResource.pData )->WVP = WVP;
+	( ( SMatrices* ) MappedResource.pData )->World = DirectX::XMMatrixTranspose( World );
 	context->Unmap( m_Buffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &m_Buffer );
 	context->PSSetShaderResources( 0, 1, &Texture );
 	context->PSSetSamplers( 0, 1, &m_WrapSampler );
 }
 
-void CWorldShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-	DirectX::FXMMATRIX& View, DirectX::FXMMATRIX& Projection, ID3D11ShaderResourceView * Texture )
+void CWorldShader::SetLightData( ID3D11DeviceContext * context, CLight * Light )
 {
-	SetData( context, World, View, Projection, Texture );
+	static HRESULT hr;
+	static D3D11_MAPPED_SUBRESOURCE MappedResource;
+	hr = context->Map( m_LightBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	if ( FAILED( hr ) )
+		return;
+	( ( SLight* ) MappedResource.pData )->Direction = Light->GetDirection( );
+	( ( SLight* ) MappedResource.pData )->Diffuse = Light->GetDiffuse( );
+	( ( SLight* ) MappedResource.pData )->Ambient = Light->GetAmbient( );
+	context->Unmap( m_LightBuffer, 0 );
+	context->PSSetConstantBuffers( 0, 1, &m_LightBuffer );
+}
+
+void CWorldShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
+	CCamera * Camera, ID3D11ShaderResourceView * Texture, CLight * Light )
+{
+	SetLightData( context, Light );
+	SetData( context, World, Camera, Texture );
 	SetShaders( context );
 	DrawIndexed( context, indexCount );
 }
@@ -101,6 +127,7 @@ void CWorldShader::Shutdown( )
 	SAFE_RELEASE( m_PixelShader );
 	SAFE_RELEASE( m_InputLayout );
 	SAFE_RELEASE( m_Buffer );
+	SAFE_RELEASE( m_LightBuffer );
 	SAFE_RELEASE( m_WrapSampler );
 }
 

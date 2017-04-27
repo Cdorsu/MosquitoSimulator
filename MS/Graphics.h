@@ -24,6 +24,8 @@ private:
 	CModel * m_Torus;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
+
+	CLight * m_Light;
 private: // Fonts
 	FontClass * m_Font;
 	FontClass * m_Font01;
