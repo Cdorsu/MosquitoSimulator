@@ -46,5 +46,6 @@ Cube {
         Specular color: 0.8 0.8 0.8
         Specular power: 100.0
         Diffuse map: 2DArt\\silvertexture.jpg
+        Specular map: 2DArt\\silvertextureSpecular.jpg
     }
 }

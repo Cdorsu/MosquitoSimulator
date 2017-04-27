@@ -73,7 +73,7 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 }
 
 void CWorldShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World,
-	CCamera * Camera, ID3D11ShaderResourceView * Texture )
+	CCamera * Camera )
 {
 	static HRESULT hr;
 	static DirectX::XMMATRIX WVP;
@@ -85,9 +85,9 @@ void CWorldShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& W
 		return;
 	( ( SMatrices* ) MappedResource.pData )->WVP = WVP;
 	( ( SMatrices* ) MappedResource.pData )->World = DirectX::XMMatrixTranspose( World );
+	( ( SMatrices* ) MappedResource.pData )->CamPos = Camera->GetCamPos( );
 	context->Unmap( m_Buffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &m_Buffer );
-	context->PSSetShaderResources( 0, 1, &Texture );
 	context->PSSetSamplers( 0, 1, &m_WrapSampler );
 }
 
@@ -101,17 +101,27 @@ void CWorldShader::SetLightData( ID3D11DeviceContext * context, CLight * Light )
 	( ( SLight* ) MappedResource.pData )->Direction = Light->GetDirection( );
 	( ( SLight* ) MappedResource.pData )->Diffuse = Light->GetDiffuse( );
 	( ( SLight* ) MappedResource.pData )->Ambient = Light->GetAmbient( );
+	( ( SLight* ) MappedResource.pData )->SpecColor = Light->GetSpecularColor( );
+	( ( SLight* ) MappedResource.pData )->SpecPower = Light->GetSpecularPower( );
 	context->Unmap( m_LightBuffer, 0 );
 	context->PSSetConstantBuffers( 0, 1, &m_LightBuffer );
 }
 
 void CWorldShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-	CCamera * Camera, ID3D11ShaderResourceView * Texture, CLight * Light )
+	CCamera * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Specular, CLight * Light )
 {
 	SetLightData( context, Light );
-	SetData( context, World, Camera, Texture );
+	SetData( context, World, Camera );
+	SetTextures( context, Texture, Specular );
 	SetShaders( context );
 	DrawIndexed( context, indexCount );
+}
+
+void CWorldShader::SetTextures( ID3D11DeviceContext * context, ID3D11ShaderResourceView * Texture,
+	ID3D11ShaderResourceView * Specular )
+{
+	context->PSSetShaderResources( 0, 1, &Texture );
+	context->PSSetShaderResources( 1, 1, &Specular );
 }
 
 void CWorldShader::SetShaders( ID3D11DeviceContext * context )

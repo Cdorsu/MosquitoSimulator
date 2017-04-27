@@ -38,6 +38,13 @@ public:
 	inline void SetPosition( DirectX::FXMVECTOR& Position ) { m_Position = Position; };
 	inline DirectX::XMMATRIX& GetView( ) { return m_ViewMatrix; };
 	inline DirectX::XMMATRIX& GetProjection( ) { return m_ProjectionMatrix; };
+	inline DirectX::XMVECTOR& GetPosition( ) { return m_Position; };
+	inline DirectX::XMFLOAT3 GetCamPos()
+	{
+		DirectX::XMFLOAT3 Result;
+		DirectX::XMStoreFloat3( &Result, m_Position );
+		return Result;
+	}
 public:
 	inline void* operator new ( size_t size )
 	{

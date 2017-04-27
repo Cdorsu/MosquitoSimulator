@@ -8,13 +8,16 @@ class CWorldShader sealed : public CShader
 	{
 		DirectX::XMMATRIX WVP;
 		DirectX::XMMATRIX World;
+		DirectX::XMFLOAT3 CamPos;
+		float pad;
 	};
 	struct SLight
 	{
 		DirectX::XMFLOAT3 Direction;
-		float pad;
+		float SpecPower;
 		utility::SColor Diffuse;
 		utility::SColor Ambient;
+		utility::SColor SpecColor;
 	};
 private:
 	ID3D11VertexShader * m_VertexShader;
@@ -29,11 +32,13 @@ public:
 public:
 	bool Initialize( ID3D11Device * device );
 	void Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-		CCamera * Camera, ID3D11ShaderResourceView * Texture, CLight * Light );
-	void SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World,
-		CCamera * Camera, ID3D11ShaderResourceView * Texture );
+		CCamera * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Specular,
+		CLight * Light );
+	void SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World, CCamera * Camera );
 	void SetLightData( ID3D11DeviceContext * context, CLight * Light );
 	void SetShaders( ID3D11DeviceContext * context );
+	void SetTextures( ID3D11DeviceContext * context, ID3D11ShaderResourceView * Texture,
+		ID3D11ShaderResourceView * Specular );
 	void Shutdown( );
 };
 

@@ -3,6 +3,7 @@
 #include "common\definitions.h"
 #include "common\standardIncludes.h"
 #include "common\DirectXIncludes.h"
+#include "common\utility.h"
 #include "Texture.h"
 
 ALIGN16 class CModel sealed
@@ -30,6 +31,9 @@ protected:
 	std::vector<SVertex> m_vecVertices;
 	std::vector<DWORD> m_vecIndices;
 public:
+	float m_fSpecularPower;
+	utility::SColor m_SpecularColor;
+public:
 	CModel( );
 	~CModel( );
 public:
@@ -40,8 +44,11 @@ public:
 public:
 	inline DirectX::XMMATRIX& GetWorld( ) { return m_World; };
 	inline ID3D11ShaderResourceView* GetTexture( ) { return m_Texture->GetTexture( ); };
+	inline ID3D11ShaderResourceView* GetSpecularMap( ) { return m_Specularmap->GetTexture( ); };
 	inline UINT GetIndexCount( ) { return m_IndexCount; };
 	inline UINT GetVertexCount( ) { return m_VertexCount; };
+	inline float GetSpecularPower( ) { return m_fSpecularPower; };
+	inline utility::SColor GetSpecularColor( ) { return m_SpecularColor; };
 public:
 	inline void Identity( ) { m_World = DirectX::XMMatrixIdentity( ); };
 	inline void Translate( float x, float y, float z ) { m_World *= DirectX::XMMatrixTranslation( x, y, z ); };

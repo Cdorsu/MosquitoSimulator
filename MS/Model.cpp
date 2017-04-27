@@ -196,17 +196,25 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 						ifCitire >> word;
 						if ( word == L"power:" )
 						{
-							float specPower;
-							ifCitire >> specPower;
+							ifCitire >> m_fSpecularPower;
 						}
 						else if ( word == L"color:" )
 						{
 							float r, g, b;
 							ifCitire >> r >> g >> b;
+							m_SpecularColor = utility::SColor( r, g, b, 1.0f );
 						}
 						else if ( word == L"map:" )
 						{
 							ifCitire >> word;
+							m_Specularmap = new CTexture( );
+							if ( !m_Specularmap->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
+							{
+								wchar_t buffer[ 500 ];
+								swprintf_s( buffer, L"Couldn't open file %ws\n", word.c_str( ) );
+								OutputDebugString( buffer );
+								return false;
+							}
 						}
 					}
 					break;
@@ -270,6 +278,12 @@ void CModel::Shutdown( )
 		m_Texture->Shutdown( );
 		delete m_Texture;
 		m_Texture = 0;
+	}
+	if ( m_Specularmap )
+	{
+		m_Specularmap->Shutdown( );
+		delete m_Specularmap;
+		m_Specularmap = 0;
 	}
 	SAFE_RELEASE( m_VertexBuffer );
 	SAFE_RELEASE( m_IndexBuffer );

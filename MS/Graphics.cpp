@@ -56,6 +56,8 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Light->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	m_Light->SetAmbient( utility::SColor( 0.0, 0.0f, 0.0f, 1.0f ) );
 	m_Light->SetDirection( 0.0f, 0.0f, 1.0f );
+	m_Light->SetSpecularColor( m_Light->GetDiffuse( ) );
+	m_Light->SetSpecularPower( 128.0f );
 
 	return true;
 }
@@ -94,11 +96,11 @@ void CGraphics::Render( )
 
 	m_Cube->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
-		m_Camera, m_Cube->GetTexture( ), m_Light );
+		m_Camera, m_Cube->GetTexture( ), m_Cube->GetSpecularMap( ), m_Light );
 
 	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
-		m_Camera, m_Torus->GetTexture( ), m_Light );
+		m_Camera, m_Torus->GetTexture( ), m_Torus->GetSpecularMap( ), m_Light );
 
 	m_D3D11->DisableCulling( );
 

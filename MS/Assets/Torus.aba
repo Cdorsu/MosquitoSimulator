@@ -3467,5 +3467,6 @@ Torus {
         Specular power: 99.039215
         Emissive color: 0.0 0.0 0.0
         Diffuse map: 2DArt\\silvertexture.jpg
+	Specular map: 2DArt\\silvertextureSpecular.jpg
     }
 }
