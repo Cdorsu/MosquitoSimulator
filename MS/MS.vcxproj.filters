@@ -84,6 +84,12 @@
     <ClCompile Include="FontClass.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyboxShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\windowsIncludes.h">
@@ -149,6 +155,12 @@
     <ClInclude Include="Light.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyboxShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -167,6 +179,12 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="2DPixelShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

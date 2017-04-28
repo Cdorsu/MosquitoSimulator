@@ -5,9 +5,11 @@
 #include "DefaultShader.h"
 #include "WorldShader.h"
 #include "C2DShader.h"
+#include "SkyboxShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
 #include "Text.h"
+#include "Skybox.h"
 
 class CGraphics sealed
 {
@@ -19,11 +21,13 @@ private:
 	CDefaultShader * m_DefaultShader;
 	CWorldShader * m_WorldShader;
 	C2DShader * m_2DShader;
+	CSkyboxShader * m_SkyboxShader;
 	CCamera * m_Camera;
 	CModel * m_Cube;
 	CModel * m_Torus;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
+	CSkybox * m_Skybox;
 
 	CLight * m_Light;
 private: // Fonts

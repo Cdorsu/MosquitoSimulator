@@ -242,11 +242,18 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 
 	D3D11_RASTERIZER_DESC rastDesc;
 	ZeroMemory( &rastDesc, sizeof( D3D11_RASTERIZER_DESC ) );
-	rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+	rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 	rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	hr = m_d3d11Device->CreateRasterizerState( &rastDesc, &m_NoCulling );
 	IFFAILED( hr, L"Couldn't create rasterizer state" );
-	m_d3d11DeviceContext->RSSetState( m_NoCulling );
+	D3D11_DEPTH_STENCIL_DESC dsDesc;
+	ZeroMemory( &dsDesc, sizeof( D3D11_DEPTH_STENCIL_DESC ) );
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+	hr = m_d3d11Device->CreateDepthStencilState( &dsDesc, &m_DSLessEqual );
+	IFFAILED( hr, L"Couldn't create a depth stencil state" );
+
 
 	m_OrthoMatrix = DirectX::XMMatrixOrthographicLH( ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight, Near, Far );
 

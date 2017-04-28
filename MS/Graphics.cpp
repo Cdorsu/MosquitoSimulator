@@ -23,6 +23,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_2DShader = new C2DShader( );
 	if ( !m_2DShader->Initialize( m_D3D11->GetDevice( ) ) )
 		return false;
+	m_SkyboxShader = new CSkyboxShader( );
+	if ( !m_SkyboxShader->Initialize( m_D3D11->GetDevice( ) ) )
+		return false;
 
 	m_Camera = new CCamera( );
 	if ( !m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
@@ -52,9 +55,13 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		20, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
 
+	m_Skybox = new CSkybox( );
+	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\City.dds" ) )
+		return false;
+
 	m_Light = new CLight( );
 	m_Light->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	m_Light->SetAmbient( utility::SColor( 0.0, 0.0f, 0.0f, 1.0f ) );
+	m_Light->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	m_Light->SetDirection( 0.0f, 0.0f, 1.0f );
 	m_Light->SetSpecularColor( m_Light->GetDiffuse( ) );
 	m_Light->SetSpecularPower( 128.0f );
@@ -71,6 +78,7 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 		Rotation = 0.0f;
 
 	m_Camera->Update( );
+	m_Skybox->Update( m_Camera );
 
 	m_Cube->Identity( );
 	m_Cube->RotateY( -Rotation );
@@ -104,6 +112,13 @@ void CGraphics::Render( )
 
 	m_D3D11->DisableCulling( );
 
+	m_D3D11->EnableDSLessEqual( );
+
+	m_Skybox->Render( m_D3D11->GetImmediateContext( ) );
+	m_SkyboxShader->Render( m_D3D11->GetImmediateContext( ), 36, m_Skybox->GetWorld( ), m_Camera, m_Skybox->GetTexture( ) );
+
+	m_D3D11->EnableDefaultDSState( );
+
 	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FPSText->GetTexture( ),
@@ -121,6 +136,12 @@ CGraphics::~CGraphics( )
 	{
 		delete m_Light;
 		m_Light = 0;
+	}
+	if ( m_Skybox )
+	{
+		m_Skybox->Shutdown( );
+		delete m_Skybox;
+		m_Skybox = 0;
 	}
 	if ( m_FrameTimeText )
 	{
@@ -163,6 +184,12 @@ CGraphics::~CGraphics( )
 		m_Camera->Shutdown( );
 		delete m_Camera;
 		m_Camera = 0;
+	}
+	if ( m_SkyboxShader )
+	{
+		m_SkyboxShader->Shutdown( );
+		delete m_SkyboxShader;
+		m_SkyboxShader = 0;
 	}
 	if ( m_2DShader )
 	{

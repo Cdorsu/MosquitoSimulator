@@ -29,6 +29,7 @@ bool CCamera::Initialize( DirectX::FXMVECTOR& Forward, DirectX::FXMVECTOR& Right
 
 void CCamera::Update( )
 {
+	static DirectX::XMMATRIX RotationMatrix;
 	m_fCamYaw += m_InputInstance->GetHorizontalMouseMove( ) * 0.001f;
 	m_fCamPitch += m_InputInstance->GetVerticalMouseMove( ) * 0.001f;
 	if ( m_fCamPitch > 1.5f )
@@ -43,11 +44,7 @@ void CCamera::Update( )
 		m_fMoveRightLeft += 5 * 0.02f;
 	if ( m_InputInstance->isKeyPressed( DIK_A ) )
 		m_fMoveRightLeft -= 5 * 0.02f;
-}
 
-void CCamera::Render( )
-{
-	static DirectX::XMMATRIX RotationMatrix;
 	RotationMatrix = DirectX::XMMatrixRotationRollPitchYaw( m_fCamPitch, m_fCamYaw, m_fCamRoll );
 	m_Direction = DirectX::XMVector3TransformCoord( m_ForwardDirection, RotationMatrix );
 	m_Right = DirectX::XMVector3TransformCoord( m_RightDirection, RotationMatrix );
@@ -57,7 +54,10 @@ void CCamera::Render( )
 
 	m_fMoveForwardBackward = 0;
 	m_fMoveRightLeft = 0;
+}
 
+void CCamera::Render( )
+{
 	m_ViewMatrix = DirectX::XMMatrixLookToLH( m_Position, m_Direction, m_UpDirection );
 }
 
