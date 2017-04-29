@@ -15,7 +15,7 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 		L"WorldVertexShader.hlsl", L"Shaders\\WorldVertexShader.cso",
 		&m_VertexShader, &VertexShaderBlob ) )
 		return false;
-	D3D11_INPUT_ELEMENT_DESC layout[ 3 ];
+	D3D11_INPUT_ELEMENT_DESC layout[ 5 ];
 	layout[ 0 ].SemanticName = "POSITION";
 	layout[ 0 ].SemanticIndex = 0;
 	layout[ 0 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
@@ -37,6 +37,20 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 	layout[ 2 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
 	layout[ 2 ].InstanceDataStepRate = 0;
 	layout[ 2 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	layout[ 3 ].SemanticName = "TANGENT";
+	layout[ 3 ].SemanticIndex = 0;
+	layout[ 3 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
+	layout[ 3 ].InputSlot = 0;
+	layout[ 3 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
+	layout[ 3 ].InstanceDataStepRate = 0;
+	layout[ 3 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	layout[ 4 ].SemanticName = "BINORMAL";
+	layout[ 4 ].SemanticIndex = 0;
+	layout[ 4 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
+	layout[ 4 ].InputSlot = 0;
+	layout[ 4 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
+	layout[ 4 ].InstanceDataStepRate = 0;
+	layout[ 4 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	UINT numElements = sizeof( layout ) / sizeof( layout[ 0 ] );
 	hr = device->CreateInputLayout( layout, numElements, // Info about the layout
 		VertexShaderBlob->GetBufferPointer( ), VertexShaderBlob->GetBufferSize( ), // Info about the vertex shader
@@ -108,20 +122,22 @@ void CWorldShader::SetLightData( ID3D11DeviceContext * context, CLight * Light )
 }
 
 void CWorldShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-	CCamera * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Specular, CLight * Light )
+	CCamera * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Specular,
+	ID3D11ShaderResourceView * Bumpmap, CLight * Light )
 {
 	SetLightData( context, Light );
 	SetData( context, World, Camera );
-	SetTextures( context, Texture, Specular );
+	SetTextures( context, Texture, Specular, Bumpmap );
 	SetShaders( context );
 	DrawIndexed( context, indexCount );
 }
 
 void CWorldShader::SetTextures( ID3D11DeviceContext * context, ID3D11ShaderResourceView * Texture,
-	ID3D11ShaderResourceView * Specular )
+	ID3D11ShaderResourceView * Specular, ID3D11ShaderResourceView * Bumpmap )
 {
 	context->PSSetShaderResources( 0, 1, &Texture );
 	context->PSSetShaderResources( 1, 1, &Specular );
+	context->PSSetShaderResources( 2, 1, &Bumpmap );
 }
 
 void CWorldShader::SetShaders( ID3D11DeviceContext * context )

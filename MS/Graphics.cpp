@@ -56,12 +56,12 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 
 	m_Skybox = new CSkybox( );
-	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\City.dds" ) )
+	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
 		return false;
 
 	m_Light = new CLight( );
 	m_Light->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	m_Light->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 1.0f ) );
+	m_Light->SetAmbient( utility::SColor( 0.2f, 0.2f, 0.2f, 1.0f ) );
 	m_Light->SetDirection( 0.0f, 0.0f, 1.0f );
 	m_Light->SetSpecularColor( m_Light->GetDiffuse( ) );
 	m_Light->SetSpecularPower( 128.0f );
@@ -81,10 +81,10 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_Skybox->Update( m_Camera );
 
 	m_Cube->Identity( );
-	m_Cube->RotateY( -Rotation );
+	//m_Cube->RotateY( -Rotation );
 
 	m_Torus->Identity( );
-	m_Torus->RotateY( Rotation * 2 );
+	//m_Torus->RotateY( Rotation / 2 );
 	m_Torus->Scale( 2.f, 2.f, 2.f );
 
 	char buffer[ 10 ] = { 0 };
@@ -104,11 +104,11 @@ void CGraphics::Render( )
 
 	m_Cube->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
-		m_Camera, m_Cube->GetTexture( ), m_Cube->GetSpecularMap( ), m_Light );
+		m_Camera, m_Cube->GetTexture( ), m_Cube->GetSpecularMap( ), m_Cube->GetBumpmap( ), m_Light );
 
 	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
-		m_Camera, m_Torus->GetTexture( ), m_Torus->GetSpecularMap( ), m_Light );
+		m_Camera, m_Torus->GetTexture( ), m_Torus->GetSpecularMap( ), m_Torus->GetBumpmap( ), m_Light );
 
 	m_D3D11->DisableCulling( );
 

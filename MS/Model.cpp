@@ -62,7 +62,7 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 	std::wstring word;
 	ifCitire >> word;
 	std::vector<std::wstring> Objects;
-	bool bHasTexture = false, bHasNormals = false;
+	bool bHasTexture = false, bHasNormals = false, bHasTangents = false, bHasBinormals = false;
 	/* Read file */
 	if ( word == L"Objects:" )
 	{
@@ -97,6 +97,24 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 						bHasNormals = true;
 				}
 				else break;
+				ifCitire >> word;
+				if ( word == L"Tangents:" )
+				{
+					ifCitire >> word;
+					if ( word == L"ENABLED" )
+						bHasTangents = true;
+				}
+				else
+					break;
+				ifCitire >> word;
+				if ( word == L"Binormals:" )
+				{
+					ifCitire >> word;
+					if ( word == L"ENABLED" )
+						bHasBinormals = true;
+				}
+				else
+					break;
 				ifCitire.get( ch );
 				while ( ch != '\n' )
 					ifCitire.get( ch );
@@ -113,6 +131,10 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 					ifCitire >> vertex.Texture.x >> vertex.Texture.y;
 				if ( bHasNormals )
 					ifCitire >> vertex.Normal.x >> vertex.Normal.y >> vertex.Normal.z;
+				if ( bHasTangents )
+					ifCitire >> vertex.Tangent.x >> vertex.Tangent.y >> vertex.Tangent.z;
+				if ( bHasBinormals )
+					ifCitire >> vertex.Binormal.x >> vertex.Binormal.y >> vertex.Binormal.z;
 				m_vecVertices.push_back( vertex );
 			}
 			ifCitire.get( ch );
@@ -223,9 +245,17 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 					if ( word == L"ump" )
 					{
 						ifCitire >> word;
-						if ( word == L"map" )
+						if ( word == L"map:" )
 						{
 							ifCitire >> word;
+							m_Bumpmap = new CTexture( );
+							if ( !m_Bumpmap->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
+							{
+								wchar_t buffer[ 500 ];
+								swprintf_s( buffer, L"Couldn't open file %ws\n", word.c_str( ) );
+								OutputDebugString( buffer );
+								return false;
+							}
 						}
 					}
 					break;
@@ -284,6 +314,12 @@ void CModel::Shutdown( )
 		m_Specularmap->Shutdown( );
 		delete m_Specularmap;
 		m_Specularmap = 0;
+	}
+	if ( m_Bumpmap )
+	{
+		m_Bumpmap->Shutdown( );
+		delete m_Bumpmap;
+		m_Bumpmap = 0;
 	}
 	SAFE_RELEASE( m_VertexBuffer );
 	SAFE_RELEASE( m_IndexBuffer );

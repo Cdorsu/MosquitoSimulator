@@ -33,12 +33,12 @@ public:
 	bool Initialize( ID3D11Device * device );
 	void Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
 		CCamera * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Specular,
-		CLight * Light );
+		ID3D11ShaderResourceView * Bumpmap, CLight * Light );
 	void SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World, CCamera * Camera );
 	void SetLightData( ID3D11DeviceContext * context, CLight * Light );
 	void SetShaders( ID3D11DeviceContext * context );
 	void SetTextures( ID3D11DeviceContext * context, ID3D11ShaderResourceView * Texture,
-		ID3D11ShaderResourceView * Specular );
+		ID3D11ShaderResourceView * Specular, ID3D11ShaderResourceView * Bumpmap );
 	void Shutdown( );
 };
 

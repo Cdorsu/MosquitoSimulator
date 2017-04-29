@@ -11,6 +11,8 @@ bool CApplication::InitWindow( HINSTANCE hInstance, bool bFullscreen )
 	WNDCLASSEX wndClass = { 0 };
 	wndClass.cbSize = sizeof( wndClass );
 	wndClass.hbrBackground = ( HBRUSH ) ( GetStockObject( LTGRAY_BRUSH ) );
+	wndClass.hIcon = ( HICON ) LoadIcon( hInstance, MAKEINTRESOURCE( IDI_ICON1 ) );
+	wndClass.hIconSm = ( HICON ) LoadIcon( hInstance, MAKEINTRESOURCE( IDI_ICON1 ) );
 	wndClass.hInstance = hInstance;
 	wndClass.lpfnWndProc = CApplication::WndProc;
 	wndClass.lpszClassName = ENGINE_NAME;

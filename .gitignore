@@ -214,3 +214,6 @@ ModelManifest.xml
 # Useless files
 *.VC.opendb
 *.VC.db
+/MS/2DArt/silvertextureSpecular.jpg
+/MS/2DArt/AnaNormals.png
+/MS/2DArt/Ana.jpg

@@ -13,10 +13,15 @@ ALIGN16 class CModel sealed
 		SVertex( float x = 0.0f, float y = 0.0f, float z = 0.0f,
 			float u = 0.0f, float v = 0.0f,
 			float nx = 0.0f, float ny = 0.0f, float nz = 0.0f )
-			: Position( x, y, z ), Texture( u, v ), Normal( nx, ny, nz ) { };
+			: Position( x, y, z ), Texture( u, v ), Normal( nx, ny, nz )
+		{
+			ZeroMemory( this, sizeof( SVertex ) );
+		};
 		DirectX::XMFLOAT3 Position;
 		DirectX::XMFLOAT2 Texture;
 		DirectX::XMFLOAT3 Normal;
+		DirectX::XMFLOAT3 Tangent;
+		DirectX::XMFLOAT3 Binormal;
 	};
 protected:
 	ID3D11Buffer * m_VertexBuffer;
@@ -45,6 +50,7 @@ public:
 	inline DirectX::XMMATRIX& GetWorld( ) { return m_World; };
 	inline ID3D11ShaderResourceView* GetTexture( ) { return m_Texture->GetTexture( ); };
 	inline ID3D11ShaderResourceView* GetSpecularMap( ) { return m_Specularmap->GetTexture( ); };
+	inline ID3D11ShaderResourceView* GetBumpmap( ) { return m_Bumpmap->GetTexture( ); };
 	inline UINT GetIndexCount( ) { return m_IndexCount; };
 	inline UINT GetVertexCount( ) { return m_VertexCount; };
 	inline float GetSpecularPower( ) { return m_fSpecularPower; };

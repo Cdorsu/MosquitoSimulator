@@ -6,6 +6,7 @@
 #include "Graphics.h"
 #include "Input.h"
 #include "HRTimer.h"
+#include "resource.h"
 
 class CApplication sealed
 {
