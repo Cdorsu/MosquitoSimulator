@@ -10,12 +10,14 @@
 #include "Camera.h"
 #include "Text.h"
 #include "Skybox.h"
+#include "RenderTexture.h"
 
 class CGraphics sealed
 {
 public:
-	static constexpr float CamNear = 0.1f;
+	static constexpr float CamNear = 1.0f;
 	static constexpr float CamFar = 100.0f;
+	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
 private:
 	CD3D11 * m_D3D11;
 	CDefaultShader * m_DefaultShader;
@@ -28,6 +30,8 @@ private:
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CSkybox * m_Skybox;
+	CTextureWindow * m_TextureWindow;
+	CRenderTexture * m_RenderTexture;
 
 	CLight * m_Light;
 private: // Fonts

@@ -30,7 +30,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Camera = new CCamera( );
 	if ( !m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
 		DirectX::XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f ), DirectX::XMVectorSet( 0.0f, 0.0f, -5.0f, 1.0f ),
-		( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, 0.5f * ( FLOAT ) D3DX_PI, 0.1f, 100.0f, m_Input ) )
+		( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, FOV, 0.1f, 100.0f, m_Input ) )
 		return false;
 
 	m_Cube = new CModel( );
@@ -59,6 +59,16 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
 		return false;
 
+	m_TextureWindow = new CTextureWindow( );
+	if ( !m_TextureWindow->Initialize( m_D3D11->GetDevice( ), L"", WindowWidth, WindowHeight, 500, 300 ) )
+		return false;
+
+	m_RenderTexture = new CRenderTexture( );
+	if ( !m_RenderTexture->Initialize( m_D3D11->GetDevice( ), WindowWidth, WindowHeight,
+		CamNear, CamFar, FOV, ( FLOAT ) WindowWidth / WindowHeight ) )
+		return false;
+	
+
 	m_Light = new CLight( );
 	m_Light->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	m_Light->SetAmbient( utility::SColor( 0.2f, 0.2f, 0.2f, 1.0f ) );
@@ -81,10 +91,10 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_Skybox->Update( m_Camera );
 
 	m_Cube->Identity( );
-	//m_Cube->RotateY( -Rotation );
+	m_Cube->RotateY( -Rotation );
 
 	m_Torus->Identity( );
-	//m_Torus->RotateY( Rotation / 2 );
+	m_Torus->RotateY( Rotation / 2 );
 	m_Torus->Scale( 2.f, 2.f, 2.f );
 
 	char buffer[ 10 ] = { 0 };
@@ -99,6 +109,9 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 void CGraphics::Render( )
 {
 	m_Camera->Render( );
+
+	m_RenderTexture->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
+	m_RenderTexture->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0xFFFF00 ) );
 
 	m_D3D11->EnableBackFaceCulling( );
 
@@ -119,6 +132,8 @@ void CGraphics::Render( )
 
 	m_D3D11->EnableDefaultDSState( );
 
+	m_D3D11->EnableBackBuffer( );
+
 	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FPSText->GetTexture( ),
@@ -128,6 +143,10 @@ void CGraphics::Render( )
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FrameTimeText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
 		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
+
+	m_TextureWindow->Render( m_D3D11->GetImmediateContext( ), 50, 50 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_TextureWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_RenderTexture->GetTexture( ) );
 }
 
 CGraphics::~CGraphics( )
@@ -136,6 +155,18 @@ CGraphics::~CGraphics( )
 	{
 		delete m_Light;
 		m_Light = 0;
+	}
+	if ( m_RenderTexture )
+	{
+		m_RenderTexture->Shutdown( );
+		delete m_RenderTexture;
+		m_RenderTexture = 0;
+	}
+	if ( m_TextureWindow )
+	{
+		m_TextureWindow->Shutdown( );
+		delete m_TextureWindow;
+		m_TextureWindow = 0;
 	}
 	if ( m_Skybox )
 	{

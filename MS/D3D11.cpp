@@ -118,8 +118,6 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 	IFFAILED( hr, L"Couln't get parent from DXGI Adapter" );
 	hr = SwapChainFactory->CreateSwapChain( m_d3d11Device, &swapDesc, &m_SwapChain );
 	IFFAILED( hr, L"Couldn't create swap chain" );
-	hr = Factory->MakeWindowAssociation( hWnd, DXGI_MWA_NO_WINDOW_CHANGES );
-	IFFAILED( hr, L"Couldnt make a window association" );
 
 #if _DEBUG // just a homework
 	wchar_t buffer[ 500 ];

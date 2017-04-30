@@ -46,8 +46,9 @@ void CCamera::Update( )
 		m_fMoveRightLeft -= 5 * 0.02f;
 
 	RotationMatrix = DirectX::XMMatrixRotationRollPitchYaw( m_fCamPitch, m_fCamYaw, m_fCamRoll );
-	m_Direction = DirectX::XMVector3TransformCoord( m_ForwardDirection, RotationMatrix );
-	m_Right = DirectX::XMVector3TransformCoord( m_RightDirection, RotationMatrix );
+	m_Direction = DirectX::XMVector3TransformNormal( m_ForwardDirection, RotationMatrix );
+	m_Right = DirectX::XMVector3TransformNormal( m_RightDirection, RotationMatrix );
+	m_UpDirection = DirectX::XMVector3Cross( m_Direction, m_Right );
 
 	m_Position = DirectX::XMVectorAdd( m_Position, DirectX::XMVectorScale( m_Direction, m_fMoveForwardBackward ) );
 	m_Position = DirectX::XMVectorAdd( m_Position, DirectX::XMVectorScale( m_Right, m_fMoveRightLeft ) );

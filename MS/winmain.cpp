@@ -6,7 +6,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	try
 	{
 		game = new CApplication( );
-		if ( !game->Initialize( hInstance, true ) )
+		if ( !game->Initialize( hInstance, false ) )
 		{
 			delete game;
 			return 1;
