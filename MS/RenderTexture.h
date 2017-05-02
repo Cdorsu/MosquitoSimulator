@@ -25,6 +25,10 @@ public:
 public:
 	inline void SetRenderTarget( ID3D11DeviceContext * context )
 	{
+		ID3D11RenderTargetView * RTVS = nullptr;
+		ID3D11ShaderResourceView * SRVS = nullptr;
+		context->OMSetRenderTargets( 1, &RTVS, nullptr );
+		context->PSSetShaderResources( 0, 1, &SRVS );
 		context->OMSetRenderTargets( 1, &m_RenderTargetView, m_DSView );
 	}
 	inline void BeginScene( ID3D11DeviceContext * context, utility::SColor Color )
