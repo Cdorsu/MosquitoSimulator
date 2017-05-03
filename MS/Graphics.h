@@ -24,19 +24,20 @@ private:
 	CWorldShader * m_WorldShader;
 	C2DShader * m_2DShader;
 	CSkyboxShader * m_SkyboxShader;
-	CCamera * m_Camera;
+	CCamera * m_FirstPersonCamera;
+	CCamera * m_ThirdPersonCamera;
 	CModel * m_Cube;
 	CModel * m_Torus;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CSkybox * m_Skybox;
-	CTextureWindow * m_TextureWindow;
-	CRenderTexture * m_RenderTexture;
 
 	CLight * m_Light;
 private: // Fonts
 	FontClass * m_Font;
 	FontClass * m_Font01;
+private: // Just pointers, do not create, do not destroy
+	CCamera * m_ActiveCamera;
 private: // Do not create, do not destroy, just take it from an upper level (CApplication)
 	CInput * m_Input;
 public:

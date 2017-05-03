@@ -10,6 +10,9 @@ CGraphics::CGraphics( )
 bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen, CInput * Input )
 {
 	m_Input = Input;
+
+	m_Input->addSpecialKey( DIK_V );
+
 	m_D3D11 = new CD3D11( );
 	if ( !m_D3D11->Initialize( hWnd, WindowWidth, WindowHeight, CamNear, CamFar, bFullscreen ) )
 		return false;
@@ -27,11 +30,17 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_SkyboxShader->Initialize( m_D3D11->GetDevice( ) ) )
 		return false;
 
-	m_Camera = new CCamera( );
-	if ( !m_Camera->Initialize( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
-		DirectX::XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f ), DirectX::XMVectorSet( 0.0f, 0.0f, -5.0f, 1.0f ),
+	m_FirstPersonCamera = new CCamera( );
+	if ( !m_FirstPersonCamera->InitializeFirstPersonCamera( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
+		DirectX::XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f ), DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 1.0f ),
 		( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, FOV, 0.1f, 100.0f, m_Input ) )
 		return false;
+	m_ThirdPersonCamera = new CCamera( );
+	if ( !m_ThirdPersonCamera->InitializeThirdPersonCamera( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
+		DirectX::XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f ), DirectX::XMVectorZero( ), DirectX::XMVectorSet( 0.0f, 3.0f, -3.0f, 1.0f ),
+		10.0f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, FOV, 0.1f, 100.0f, m_Input ) )
+		return false;
+	m_ActiveCamera = m_FirstPersonCamera;
 
 	m_Cube = new CModel( );
 	if ( !m_Cube->Initialize( m_D3D11->GetDevice( ), L"Assets\\Cube.aba" ) )
@@ -58,15 +67,6 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Skybox = new CSkybox( );
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
 		return false;
-
-	m_TextureWindow = new CTextureWindow( );
-	if ( !m_TextureWindow->Initialize( m_D3D11->GetDevice( ), L"", WindowWidth, WindowHeight, 500, 300 ) )
-		return false;
-
-	m_RenderTexture = new CRenderTexture( );
-	if ( !m_RenderTexture->Initialize( m_D3D11->GetDevice( ), WindowWidth, WindowHeight,
-		CamNear, CamFar, FOV, ( FLOAT ) WindowWidth / WindowHeight ) )
-		return false;
 	
 
 	m_Light = new CLight( );
@@ -83,12 +83,16 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 {
 	static float Rotation = 0.0f;
 
+	if ( m_Input->isSpecialKeyPressed( DIK_V ) )
+		m_ActiveCamera = m_ActiveCamera == m_FirstPersonCamera ? m_ThirdPersonCamera : m_FirstPersonCamera;
+
 	Rotation += fFrameTime * 0.2f;
 	if ( Rotation >= 4 * ( FLOAT ) D3DX_PI )
 		Rotation = 0.0f;
 
-	m_Camera->Update( );
-	m_Skybox->Update( m_Camera );
+	m_FirstPersonCamera->Update( );
+	m_ThirdPersonCamera->Update( );
+	m_Skybox->Update( m_ActiveCamera );
 
 	m_Cube->Identity( );
 	m_Cube->RotateY( -Rotation );
@@ -108,31 +112,27 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 
 void CGraphics::Render( )
 {
-	m_Camera->Render( );
-
-	m_RenderTexture->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
-	m_RenderTexture->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0xFFFF00 ) );
+	m_D3D11->EnableBackBuffer( );
 
 	m_D3D11->EnableBackFaceCulling( );
 
 	m_Cube->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
-		m_Camera, m_Cube->GetTexture( ), m_Cube->GetSpecularMap( ), m_Cube->GetBumpmap( ), m_Light );
+		m_ActiveCamera, m_Cube->GetTexture( ), m_Cube->GetSpecularMap( ), m_Cube->GetBumpmap( ), m_Light );
 
 	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
 	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
-		m_Camera, m_Torus->GetTexture( ), m_Torus->GetSpecularMap( ), m_Torus->GetBumpmap( ), m_Light );
+		m_ActiveCamera, m_Torus->GetTexture( ), m_Torus->GetSpecularMap( ), m_Torus->GetBumpmap( ), m_Light );
 
 	m_D3D11->DisableCulling( );
 
 	m_D3D11->EnableDSLessEqual( );
 
 	m_Skybox->Render( m_D3D11->GetImmediateContext( ) );
-	m_SkyboxShader->Render( m_D3D11->GetImmediateContext( ), 36, m_Skybox->GetWorld( ), m_Camera, m_Skybox->GetTexture( ) );
+	m_SkyboxShader->Render( m_D3D11->GetImmediateContext( ), 36, m_Skybox->GetWorld( ), m_ActiveCamera, m_Skybox->GetTexture( ) );
 
 	m_D3D11->EnableDefaultDSState( );
 
-	m_D3D11->EnableBackBuffer( );
 
 	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
@@ -143,10 +143,6 @@ void CGraphics::Render( )
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FrameTimeText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
 		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
-
-	m_TextureWindow->Render( m_D3D11->GetImmediateContext( ), 50, 50 );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_TextureWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_RenderTexture->GetTexture( ) );
 }
 
 CGraphics::~CGraphics( )
@@ -155,18 +151,6 @@ CGraphics::~CGraphics( )
 	{
 		delete m_Light;
 		m_Light = 0;
-	}
-	if ( m_RenderTexture )
-	{
-		m_RenderTexture->Shutdown( );
-		delete m_RenderTexture;
-		m_RenderTexture = 0;
-	}
-	if ( m_TextureWindow )
-	{
-		m_TextureWindow->Shutdown( );
-		delete m_TextureWindow;
-		m_TextureWindow = 0;
 	}
 	if ( m_Skybox )
 	{
@@ -210,11 +194,17 @@ CGraphics::~CGraphics( )
 		delete m_Cube;
 		m_Cube = 0;
 	}
-	if ( m_Camera )
+	if ( m_ThirdPersonCamera )
 	{
-		m_Camera->Shutdown( );
-		delete m_Camera;
-		m_Camera = 0;
+		m_ThirdPersonCamera->Shutdown( );
+		delete m_ThirdPersonCamera;
+		m_ThirdPersonCamera = 0;
+	}
+	if ( m_FirstPersonCamera )
+	{
+		m_FirstPersonCamera->Shutdown( );
+		delete m_FirstPersonCamera;
+		m_FirstPersonCamera = 0;
 	}
 	if ( m_SkyboxShader )
 	{

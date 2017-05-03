@@ -36,5 +36,9 @@ public:
 	{
 		return ( float ) m_currentMouseState.lY;
 	}
+	float GetMouseWheelMove( )
+	{
+		return ( float ) m_currentMouseState.lZ;
+	}
 };
 
