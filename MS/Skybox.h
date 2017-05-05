@@ -4,7 +4,7 @@
 #include "common\DirectXIncludes.h"
 #include "Camera.h"
 
-ALIGN16 class CSkybox
+ALIGN16 class CSkybox sealed
 {
 private:
 	struct SVertex

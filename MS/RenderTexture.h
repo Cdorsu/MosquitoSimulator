@@ -5,7 +5,7 @@
 #include "common\DirectXIncludes.h"
 
 
-ALIGN16 class CRenderTexture
+ALIGN16 class CRenderTexture sealed
 {
 	ID3D11Texture2D * m_Texture2D;
 	ID3D11Texture2D * m_DSBuffer;

@@ -4,7 +4,7 @@
 #include "common\windowsIncludes.h"
 #include "FontClass.h"
 
-class CText
+class CText sealed
 {
 	ID3D11Buffer * m_VertexBuffer;
 	ID3D11Buffer * m_IndexBuffer;

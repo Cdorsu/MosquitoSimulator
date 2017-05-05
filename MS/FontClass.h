@@ -6,7 +6,7 @@
 
 class CText;
 
-class FontClass
+class FontClass sealed
 {
 	friend class CText;
 private:

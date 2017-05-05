@@ -4,7 +4,7 @@
 #include "common\windowsIncludes.h"
 #include "common\DirectXIncludes.h"
 
-class CTextureWindow
+class CTextureWindow sealed
 {
 	struct SVertex
 	{

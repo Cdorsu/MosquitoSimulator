@@ -3,7 +3,7 @@
 #include "common\DirectXIncludes.h"
 #include "common\utility.h"
 
-class CLight
+class CLight sealed
 {
 	DirectX::XMFLOAT3 m_Direction;
 	utility::SColor m_Diffuse;
