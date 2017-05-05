@@ -20,8 +20,8 @@ public:
 public:
 	bool Initialize( ID3D11Device * device );
 	void Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-		CCamera * Camera, ID3D11ShaderResourceView * Texture );
-	void SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World, CCamera * Camera );
+		CViewInterface * Camera, ID3D11ShaderResourceView * Texture );
+	void SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World, CViewInterface * Camera );
 	void SetShaders( ID3D11DeviceContext * context );
 	void SetTextures( ID3D11DeviceContext * context, ID3D11ShaderResourceView * Texture );
 	void Shutdown( );

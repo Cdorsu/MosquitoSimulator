@@ -163,6 +163,7 @@
     <ClInclude Include="Text.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureWindow.h" />
+    <ClInclude Include="ViewInterface.h" />
     <ClInclude Include="WorldShader.h" />
   </ItemGroup>
   <ItemGroup>

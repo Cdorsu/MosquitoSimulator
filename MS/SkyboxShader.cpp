@@ -56,7 +56,7 @@ bool CSkyboxShader::Initialize( ID3D11Device * device )
 }
 
 void CSkyboxShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World,
-	CCamera * Camera )
+	CViewInterface * Camera )
 {
 	static HRESULT hr;
 	static DirectX::XMMATRIX WVP;
@@ -74,7 +74,7 @@ void CSkyboxShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& 
 
 
 void CSkyboxShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-	CCamera * Camera, ID3D11ShaderResourceView * Texture )
+	CViewInterface * Camera, ID3D11ShaderResourceView * Texture )
 {
 	SetData( context, World, Camera );
 	SetTextures( context, Texture );

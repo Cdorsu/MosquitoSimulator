@@ -87,7 +87,7 @@ bool CWorldShader::Initialize( ID3D11Device * device )
 }
 
 void CWorldShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World,
-	CCamera * Camera )
+	CViewInterface * Camera )
 {
 	static HRESULT hr;
 	static DirectX::XMMATRIX WVP;
@@ -122,7 +122,7 @@ void CWorldShader::SetLightData( ID3D11DeviceContext * context, CLight * Light )
 }
 
 void CWorldShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-	CCamera * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Specular,
+	CViewInterface * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Specular,
 	ID3D11ShaderResourceView * Bumpmap, CLight * Light )
 {
 	SetLightData( context, Light );

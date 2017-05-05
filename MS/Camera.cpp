@@ -4,7 +4,6 @@
 
 CCamera::CCamera( )
 {
-	ZeroMemory( this, sizeof( CCamera ) );
 }
 
 bool CCamera::InitializeFirstPersonCamera( DirectX::FXMVECTOR& Forward, DirectX::FXMVECTOR& Right,

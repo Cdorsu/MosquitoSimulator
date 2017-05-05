@@ -89,13 +89,6 @@ bool CSkybox::Initialize( ID3D11Device * device, LPWSTR lpTexture )
 
 void CSkybox::Update( CCamera * Camera )
 {
-#ifdef _DEBUG
-	wchar_t buffer[ 500 ];
-	swprintf_s( buffer, L"Cam Pos: %.2lf, %.2lf, %.2lf\n",
-		DirectX::XMVectorGetX( Camera->GetPosition( ) ), DirectX::XMVectorGetY( Camera->GetPosition( ) ),
-		DirectX::XMVectorGetZ( Camera->GetPosition( ) ) );
-	OutputDebugString( buffer );
-#endif
 	m_World = DirectX::XMMatrixTranslationFromVector( Camera->GetPosition( ) );
 }
 

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Windows.h>
-#include <DirectXMath.h>
+#include "ViewInterface.h"
 #include "Input.h"
 
-__declspec( align( 16 ) ) class CCamera
+__declspec( align( 16 ) ) class CCamera sealed : public CViewInterface
 {
 public:
 	enum class EType
@@ -51,10 +51,10 @@ public:
 	void Shutdown( );
 public:
 	inline void SetPosition( DirectX::FXMVECTOR& Position ) { m_Position = Position; };
-	inline DirectX::XMMATRIX& GetView( ) { return m_ViewMatrix; };
-	inline DirectX::XMMATRIX& GetProjection( ) { return m_ProjectionMatrix; };
+	virtual DirectX::XMMATRIX& GetView( ) override { return m_ViewMatrix; };
+	virtual DirectX::XMMATRIX& GetProjection( ) override { return m_ProjectionMatrix; };
 	inline DirectX::XMVECTOR& GetPosition( ) { return m_Position; };
-	inline DirectX::XMFLOAT3 GetCamPos()
+	virtual DirectX::XMFLOAT3 GetCamPos() override
 	{
 		DirectX::XMFLOAT3 Result;
 		DirectX::XMStoreFloat3( &Result, m_Position );

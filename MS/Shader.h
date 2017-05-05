@@ -4,7 +4,7 @@
 #include "common\DirectXIncludes.h"
 #include "common\standardIncludes.h"
 #include "Light.h"
-#include "Camera.h"
+#include "ViewInterface.h"
 
 class CShader
 {

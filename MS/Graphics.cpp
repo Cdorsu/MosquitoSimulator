@@ -53,7 +53,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_Cube->Initialize( m_D3D11->GetDevice( ), L"Assets\\Cube.aba" ) )
 		return false;
 	m_Torus = new CModel( );
-	if ( !m_Torus->Initialize( m_D3D11->GetDevice( ), L"Assets\\Torus.aba" ) )
+	if ( !m_Torus->Initialize( m_D3D11->GetDevice( ), L"Assets\\Cube.aba" ) )
 		return false;
 	m_Ground = new CModel( );
 	if ( !m_Ground->Initialize( m_D3D11->GetDevice( ), L"Assets\\Ground.aba" ) )
