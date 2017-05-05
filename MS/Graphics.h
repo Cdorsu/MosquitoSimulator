@@ -6,6 +6,7 @@
 #include "WorldShader.h"
 #include "C2DShader.h"
 #include "SkyboxShader.h"
+#include "DepthShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
 #include "Text.h"
@@ -24,10 +25,13 @@ private:
 	CWorldShader * m_WorldShader;
 	C2DShader * m_2DShader;
 	CSkyboxShader * m_SkyboxShader;
+	CDepthShader * m_DepthShader;
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
+	CTextureWindow * m_DebugWindow;
 	CModel * m_Cube;
 	CModel * m_Torus;
+	CModel * m_Ground;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CSkybox * m_Skybox;
