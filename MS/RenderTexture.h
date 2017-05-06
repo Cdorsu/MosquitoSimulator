@@ -13,6 +13,8 @@ ALIGN16 class CRenderTexture sealed
 	ID3D11RenderTargetView * m_RenderTargetView;
 	ID3D11DepthStencilView * m_DSView;
 
+	D3D11_VIEWPORT m_Viewport;
+
 	DirectX::XMMATRIX m_OrthoMatrix;
 	DirectX::XMMATRIX m_ProjectionMatrix;
 public:
@@ -30,6 +32,7 @@ public:
 		context->OMSetRenderTargets( 1, &RTVS, nullptr );
 		context->PSSetShaderResources( 0, 1, &SRVS );
 		context->OMSetRenderTargets( 1, &m_RenderTargetView, m_DSView );
+		context->RSSetViewports( 1, &m_Viewport );
 	}
 	inline void BeginScene( ID3D11DeviceContext * context, utility::SColor Color )
 	{

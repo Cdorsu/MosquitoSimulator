@@ -99,6 +99,9 @@
     <ClCompile Include="DepthShader.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\windowsIncludes.h">
@@ -180,7 +183,13 @@
       <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="ViewInterface.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="LightView.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -212,6 +221,12 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="DepthPixelShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

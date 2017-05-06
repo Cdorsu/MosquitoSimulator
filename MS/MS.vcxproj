@@ -129,6 +129,7 @@
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
+    <ClCompile Include="ShadowShader.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="SkyboxShader.cpp" />
     <ClCompile Include="Text.cpp" />
@@ -154,10 +155,12 @@
     <ClInclude Include="HRTimer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="LightView.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShadowShader.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="SkyboxShader.h" />
     <ClInclude Include="Text.h" />
@@ -203,6 +206,18 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)Shaders/%(Filename).cso</ObjectFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0_level_9_3</ShaderModel>
       <FileType>Document</FileType>
+    </FxCompile>
+    <FxCompile Include="ShadowPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="ShadowVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="SkyPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

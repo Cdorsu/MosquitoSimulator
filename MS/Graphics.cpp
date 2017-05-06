@@ -32,28 +32,31 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_DepthShader = new CDepthShader( );
 	if ( !m_DepthShader->Initialize( m_D3D11->GetDevice( ) ) )
 		return false;
+	m_ShadowShader = new CShadowShader( );
+	if ( !m_ShadowShader->Initialize( m_D3D11->GetDevice( ) ) )
+		return false;
 
 	m_FirstPersonCamera = new CCamera( );
 	if ( !m_FirstPersonCamera->InitializeFirstPersonCamera( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
 		DirectX::XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f ), DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 1.0f ),
-		( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, FOV, 0.1f, 100.0f, m_Input ) )
+		( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, FOV, CamNear, CamFar, m_Input ) )
 		return false;
 	m_ThirdPersonCamera = new CCamera( );
 	if ( !m_ThirdPersonCamera->InitializeThirdPersonCamera( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
 		DirectX::XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f ), DirectX::XMVectorZero( ), DirectX::XMVectorSet( 0.0f, 3.0f, -3.0f, 1.0f ),
-		10.0f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, FOV, 0.1f, 100.0f, m_Input ) )
+		10.0f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, FOV, CamNear, CamFar, m_Input ) )
 		return false;
 	m_ActiveCamera = m_FirstPersonCamera;
 
 	m_DebugWindow = new CTextureWindow( );
-	if ( !m_DebugWindow->Initialize( m_D3D11->GetDevice( ), L"", WindowWidth, WindowHeight, 300, 300 ) )
+	if ( !m_DebugWindow->Initialize( m_D3D11->GetDevice( ), L"", WindowWidth, WindowHeight, 100, 100 ) )
 		return false;
 
 	m_Cube = new CModel( );
 	if ( !m_Cube->Initialize( m_D3D11->GetDevice( ), L"Assets\\Cube.aba" ) )
 		return false;
 	m_Torus = new CModel( );
-	if ( !m_Torus->Initialize( m_D3D11->GetDevice( ), L"Assets\\Cube.aba" ) )
+	if ( !m_Torus->Initialize( m_D3D11->GetDevice( ), L"Assets\\Torus.aba" ) )
 		return false;
 	m_Ground = new CModel( );
 	if ( !m_Ground->Initialize( m_D3D11->GetDevice( ), L"Assets\\Ground.aba" ) )
@@ -77,7 +80,11 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Skybox = new CSkybox( );
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
 		return false;
-	
+
+	m_Depthmap = new CRenderTexture( );
+	if ( !m_Depthmap->Initialize( m_D3D11->GetDevice( ), SHADOW_WIDTH, SHADOW_HEIGHT,
+		0.1f, 1.0f, 1, ( FLOAT ) 1 / ( FLOAT ) 1 ) )
+		return false;
 
 	m_Light = new CLight( );
 	m_Light->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
@@ -85,6 +92,17 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Light->SetDirection( 0.0f, -0.5f, 0.5f );
 	m_Light->SetSpecularColor( m_Light->GetDiffuse( ) );
 	m_Light->SetSpecularPower( 128.0f );
+
+	m_LightView = new CLightView( );
+	m_LightView->SetLookAt( DirectX::XMVectorZero( ) );
+	m_LightView->SetPosition( DirectX::XMVectorSet( 3.0f, 6.0f, 0.0f, 1.0f ) );
+	m_LightView->SetAmbient( utility::SColor( 0.2f, 0.2f, 0.2f, 1.0f ) );
+	m_LightView->SetDiffuse( utility::hexToRGB( 0xFFFFFF ) );
+	m_LightView->GenerateProjectionMatrix( FOV, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
+	m_LightView->GenerateViewMatrix( );
+
+	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 1.0f ) );
+	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 1.0f ) );
 
 	return true;
 }
@@ -105,15 +123,16 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_Skybox->Update( m_ActiveCamera );
 
 	m_Cube->Identity( );
+	m_Cube->Translate( 0.0f, 1.0f, 0.0f );
 	m_Cube->RotateY( -Rotation );
 
 	m_Torus->Identity( );
-	m_Torus->RotateY( Rotation / 2 );
-	m_Torus->Scale( 2.f, 2.f, 2.f );
+	m_Torus->RotateX( ( FLOAT ) D3DX_PI / 2.f );
+	m_Torus->RotateY( Rotation );
+	m_Torus->Translate( 0.0f, 3.2f, 0.0f );
 
 	m_Ground->Identity( );
 	m_Ground->Scale( 50.f, 50.f, 50.f );
-	m_Ground->Translate( 0.0f, -1.0f, 0.0f );
 
 	char buffer[ 10 ] = { 0 };
 	sprintf_s( buffer, "FPS: %d", FPS );
@@ -126,28 +145,50 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 
 void CGraphics::Render( )
 {
-	m_D3D11->EnableBackBuffer( );
+	m_Depthmap->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
+	m_Depthmap->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
 
 	m_D3D11->EnableBackFaceCulling( );
 
 	m_Ground->Render( m_D3D11->GetImmediateContext( ) );
-	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetWorld( ),
-		m_ActiveCamera, m_Ground->GetTexture( ), nullptr, nullptr, m_Light );
+	m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetWorld( ),
+		m_LightView, m_Ground->GetTexture( ) );
 
 	m_Cube->Render( m_D3D11->GetImmediateContext( ) );
-	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
-		m_ActiveCamera, m_Cube->GetTexture( ), m_Cube->GetSpecularMap( ), m_Cube->GetBumpmap( ), m_Light );
+	m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
+		m_LightView, m_Cube->GetTexture( ) );
 
 	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
-	m_WorldShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
-		m_ActiveCamera, m_Torus->GetTexture( ), m_Torus->GetSpecularMap( ), m_Torus->GetBumpmap( ), m_Light );
+	m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
+		m_LightView, m_Torus->GetTexture( ) );
+
+	m_D3D11->EnableBackBuffer( );
+	m_D3D11->EnableDefaultViewPort( );
+	BeginScene( );
+
+	m_Ground->Render( m_D3D11->GetImmediateContext( ) );
+	m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetWorld( ),
+		m_ActiveCamera, m_Ground->GetTexture( ), m_Depthmap->GetTexture( ), m_LightView );
+
+	m_Cube->Render( m_D3D11->GetImmediateContext( ) );
+	m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
+		m_ActiveCamera, m_Cube->GetTexture( ), m_Depthmap->GetTexture( ), m_LightView );
+
+	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
+	m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
+		m_ActiveCamera, m_Torus->GetTexture( ), m_Depthmap->GetTexture( ), m_LightView );
 
 	m_D3D11->DisableCulling( );
+
+	m_DebugWindow->Render( m_D3D11->GetImmediateContext( ), 10, 70 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_Depthmap->GetTexture( ) );
 
 	m_D3D11->EnableDSLessEqual( );
 
 	m_Skybox->Render( m_D3D11->GetImmediateContext( ) );
-	m_SkyboxShader->Render( m_D3D11->GetImmediateContext( ), 36, m_Skybox->GetWorld( ), m_ActiveCamera, m_Skybox->GetTexture( ) );
+	m_SkyboxShader->Render( m_D3D11->GetImmediateContext( ), m_Skybox->GetIndexCount( ),
+		m_Skybox->GetWorld( ), m_ActiveCamera, m_Skybox->GetTexture( ) );
 
 	m_D3D11->EnableDefaultDSState( );
 
@@ -161,14 +202,27 @@ void CGraphics::Render( )
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FrameTimeText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
 		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
+	
+	EndScene( );
 }
 
 CGraphics::~CGraphics( )
 {
+	if ( m_LightView )
+	{
+		delete m_LightView;
+		m_LightView = 0;
+	}
 	if ( m_Light )
 	{
 		delete m_Light;
 		m_Light = 0;
+	}
+	if ( m_Depthmap )
+	{
+		m_Depthmap->Shutdown( );
+		delete m_Depthmap;
+		m_Depthmap = 0;
 	}
 	if ( m_Skybox )
 	{
@@ -235,6 +289,12 @@ CGraphics::~CGraphics( )
 		m_FirstPersonCamera->Shutdown( );
 		delete m_FirstPersonCamera;
 		m_FirstPersonCamera = 0;
+	}
+	if ( m_ShadowShader )
+	{
+		m_ShadowShader->Shutdown( );
+		delete m_ShadowShader;
+		m_ShadowShader = 0;
 	}
 	if ( m_DepthShader )
 	{

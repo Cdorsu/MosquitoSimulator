@@ -21,9 +21,9 @@ namespace utility
 	{
 		// Shift bits, use a mask to make sure that there are only bits for current channel
 		// Divide the color
-		float red = ( ( color >> 8 ) & 0xFF ) / 255.0f;
-		float green = ( ( color >> 16 ) & 0xFF ) / 255.0f;
-		float blue = ( ( color >> 24 ) & 0xFF ) / 255.0f;
+		float red = ( ( color ) & 0xFF ) / 255.0f;
+		float green = ( ( color >> 8 ) & 0xFF ) / 255.0f;
+		float blue = ( ( color >> 16 ) & 0xFF ) / 255.0f;
 		return SColor( red, green, blue, 1.0f );
 	}
 }

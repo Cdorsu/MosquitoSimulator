@@ -51,6 +51,7 @@ public:
 	void Shutdown( );
 public:
 	inline void SetPosition( DirectX::FXMVECTOR& Position ) { m_Position = Position; };
+	inline void SetDirection( DirectX::FXMVECTOR& Direction ) { m_Direction = Direction; }
 	virtual DirectX::XMMATRIX& GetView( ) override { return m_ViewMatrix; };
 	virtual DirectX::XMMATRIX& GetProjection( ) override { return m_ProjectionMatrix; };
 	inline DirectX::XMVECTOR& GetPosition( ) { return m_Position; };

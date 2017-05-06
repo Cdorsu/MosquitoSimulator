@@ -38,6 +38,7 @@ bool CSkybox::Initialize( ID3D11Device * device, LPWSTR lpTexture )
 		SVertex( +1.0f, +1.0f, +1.0f ),
 		SVertex( +1.0f, -1.0f, +1.0f ),
 	};
+	m_VertexCount = sizeof( vertices ) / sizeof( vertices[ 0 ] );
 
 	DWORD indices[] = 
 	{
@@ -65,6 +66,7 @@ bool CSkybox::Initialize( ID3D11Device * device, LPWSTR lpTexture )
 		4, 0, 3,
 		4, 3, 7,
 	};
+	m_IndexCount = sizeof( indices ) / sizeof( indices[ 0 ] );
 
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA buffData = { 0 };

@@ -18,6 +18,8 @@ private:
 	ID3D11Buffer * m_VertexBuffer;
 	ID3D11Buffer * m_IndexBuffer;
 	DirectX::XMMATRIX m_World;
+	UINT m_IndexCount;
+	UINT m_VertexCount;
 public:
 	CSkybox( );
 	~CSkybox( );
@@ -29,6 +31,8 @@ public:
 public:
 	inline DirectX::XMMATRIX& GetWorld( ) { return m_World; };
 	inline ID3D11ShaderResourceView* GetTexture( ) { return m_Texture; };
+	inline UINT GetIndexCount( ) { return m_IndexCount; };
+	inline UINT GetVertexCount( ) { return m_VertexCount; };
 public:
 	inline void* operator new ( size_t size )
 	{

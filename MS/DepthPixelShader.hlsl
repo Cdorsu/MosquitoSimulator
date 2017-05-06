@@ -14,5 +14,6 @@ float4 main(PSIn input) : SV_TARGET
     float4 color = ObjTexture.Sample(ObjWrapSampler, input.TexCoord);
     if (color.a < 0.3f)
         discard;
-    return input.DepthPosition.z / input.DepthPosition.w;
+    float depth = input.DepthPosition.z / input.DepthPosition.w;
+    return float4 ( depth, depth, depth, 1.0f );
 }

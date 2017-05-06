@@ -70,6 +70,13 @@ bool CRenderTexture::Initialize( ID3D11Device * device, UINT WindowWidth, UINT W
 		XMMatrixOrthographicLH( ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight, camNear, camFar );
 	m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH( FOV, AspectRatio, camNear, camFar );
 
+	m_Viewport.Width = ( FLOAT ) WindowWidth;
+	m_Viewport.Height = ( FLOAT ) WindowHeight;
+	m_Viewport.MinDepth = 0.0f;
+	m_Viewport.MaxDepth = 1.0f;
+	m_Viewport.TopLeftY = 0;
+	m_Viewport.TopLeftX = 0;
+
 	return true;
 }
 

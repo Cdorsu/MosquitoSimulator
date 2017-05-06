@@ -7,18 +7,22 @@
 #include "C2DShader.h"
 #include "SkyboxShader.h"
 #include "DepthShader.h"
+#include "ShadowShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
 #include "Text.h"
 #include "Skybox.h"
 #include "RenderTexture.h"
+#include "LightView.h"
 
 class CGraphics sealed
 {
 public:
 	static constexpr float CamNear = 1.0f;
-	static constexpr float CamFar = 100.0f;
+	static constexpr float CamFar = 200.0f;
 	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
+	static constexpr UINT SHADOW_WIDTH = 1024;
+	static constexpr UINT SHADOW_HEIGHT = 1024;
 private:
 	CD3D11 * m_D3D11;
 	CDefaultShader * m_DefaultShader;
@@ -26,6 +30,7 @@ private:
 	C2DShader * m_2DShader;
 	CSkyboxShader * m_SkyboxShader;
 	CDepthShader * m_DepthShader;
+	CShadowShader * m_ShadowShader;
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
 	CTextureWindow * m_DebugWindow;
@@ -35,6 +40,10 @@ private:
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CSkybox * m_Skybox;
+
+	/*Light*/
+	CRenderTexture * m_Depthmap;
+	CLightView * m_LightView;
 
 	CLight * m_Light;
 private: // Fonts

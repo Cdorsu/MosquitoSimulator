@@ -41,6 +41,7 @@ public:
 	inline void EnableDefaultDSState( ) { m_d3d11DeviceContext->OMSetDepthStencilState( nullptr, 0 ); };
 	inline void EnableDSLessEqual( ) { m_d3d11DeviceContext->OMSetDepthStencilState( m_DSLessEqual, 0 ); };
 	inline void EnableBackBuffer( ) { m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_d3d11RenderTargetView, m_d3d11DSView ); };
+	inline void EnableDefaultViewPort( ) { m_d3d11DeviceContext->RSSetViewports( 1, &m_DefaultViewport ); };
 	inline DirectX::XMMATRIX& GetOrthoMatrix( ) { return m_OrthoMatrix; };
 public:
 	void * operator new ( size_t size );
