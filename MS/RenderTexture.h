@@ -31,6 +31,7 @@ public:
 		ID3D11ShaderResourceView * SRVS = nullptr;
 		context->OMSetRenderTargets( 1, &RTVS, nullptr );
 		context->PSSetShaderResources( 0, 1, &SRVS );
+		context->PSSetShaderResources( 1, 1, &SRVS );
 		context->OMSetRenderTargets( 1, &m_RenderTargetView, m_DSView );
 		context->RSSetViewports( 1, &m_Viewport );
 	}
