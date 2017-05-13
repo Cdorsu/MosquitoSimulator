@@ -264,6 +264,14 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 					}
 				}
 			}
+			ifCitire.get( ch );
+			while ( ch != '}' )
+				ifCitire.get( ch );
+			ifCitire >> word;
+			if ( word == L"Physics" )
+			{
+
+			}
 			ObjectCount--;
 		}
 	}

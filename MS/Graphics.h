@@ -24,6 +24,8 @@ public:
 	static constexpr UINT SHADOW_WIDTH = 1024;
 	static constexpr UINT SHADOW_HEIGHT = 1024;
 private:
+	bool m_bFullscreen;
+private:
 	CD3D11 * m_D3D11;
 	CDefaultShader * m_DefaultShader;
 	CWorldShader * m_WorldShader;
@@ -39,6 +41,9 @@ private:
 	CModel * m_Ground;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
+#if _DEBUG || DEBUG
+	CText * m_DebugText;
+#endif
 	CSkybox * m_Skybox;
 
 	/*Light*/
@@ -61,6 +66,12 @@ public:
 	void Update( float fFrameTime, UINT FPS );
 	void Render( );
 	void Shutdown( );
+public:
+	inline void SwitchFullScreenState( )
+	{
+		m_D3D11->SwitchFullscreenState( m_bFullscreen ?
+			( FALSE, m_bFullscreen = false ) : ( TRUE, m_bFullscreen = true ) );
+	}
 public:
 	inline void BeginScene( )
 	{

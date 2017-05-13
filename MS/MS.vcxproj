@@ -135,6 +135,7 @@
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureWindow.cpp" />
+    <ClCompile Include="ViewInterface.cpp" />
     <ClCompile Include="winmain.cpp" />
     <ClCompile Include="WorldShader.cpp" />
   </ItemGroup>

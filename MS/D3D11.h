@@ -43,6 +43,7 @@ public:
 	inline void EnableBackBuffer( ) { m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_d3d11RenderTargetView, m_d3d11DSView ); };
 	inline void EnableDefaultViewPort( ) { m_d3d11DeviceContext->RSSetViewports( 1, &m_DefaultViewport ); };
 	inline DirectX::XMMATRIX& GetOrthoMatrix( ) { return m_OrthoMatrix; };
+	inline void SwitchFullscreenState( BOOL bState ) { m_SwapChain->SetFullscreenState( bState, nullptr ); };
 public:
 	void * operator new ( size_t size );
 	void operator delete ( void* object );

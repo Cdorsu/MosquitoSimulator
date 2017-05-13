@@ -23,16 +23,8 @@ bool CApplication::InitWindow( HINSTANCE hInstance, bool bFullscreen )
 		return false;
 	}
 
-	if ( bFullscreen )
-	{
-		m_WindowWidth = GetSystemMetrics( SM_CXSCREEN );
-		m_WindowHeight = GetSystemMetrics( SM_CYSCREEN );
-	}
-	else
-	{
-		m_WindowWidth = 800;
-		m_WindowHeight = 600;
-	}
+	m_WindowWidth = GetSystemMetrics( SM_CXSCREEN );
+	m_WindowHeight = GetSystemMetrics( SM_CYSCREEN );
 
 	m_hWnd = CreateWindowEx( WS_EX_CLIENTEDGE, ENGINE_NAME, GAME_NAME, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, m_WindowWidth, m_WindowHeight, nullptr, nullptr, hInstance, nullptr );

@@ -9,6 +9,7 @@ CGraphics::CGraphics( )
 
 bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen, CInput * Input )
 {
+	m_bFullscreen = bFullscreen;
 	m_Input = Input;
 
 	m_Input->addSpecialKey( DIK_V );
@@ -76,6 +77,12 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_FrameTimeText->Initialize( m_D3D11->GetDevice( ), m_Font01,
 		20, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
+#if _DEBUG || DEBUG
+	m_DebugText = new CText( );
+	if ( !m_DebugText->Initialize( m_D3D11->GetDevice( ), m_Font01,
+		300, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
+		return false;
+#endif
 
 	m_Skybox = new CSkybox( );
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
@@ -119,7 +126,9 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 		Rotation = 0.0f;
 
 	m_FirstPersonCamera->Update( );
+	m_FirstPersonCamera->ConstructFrustum( );
 	m_ThirdPersonCamera->Update( );
+	m_ThirdPersonCamera->ConstructFrustum( );
 	m_Skybox->Update( m_ActiveCamera );
 
 	m_Cube->Identity( );
@@ -140,6 +149,13 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	char buffer2[ 20 ] = { 0 };
 	sprintf_s( buffer2, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ), buffer2 );
+	char buffer3[ 300 ] = { 0 };
+	if ( m_ActiveCamera->isPointInFrustum( 0.0f, 3.0f, 0.0f ) )
+		sprintf_s( buffer3, "Point in frustum" );
+	else
+		sprintf_s( buffer3, "Point not in frustum" );
+	m_DebugText->Update( m_D3D11->GetImmediateContext( ), 0,
+		m_FPSText->GetHeight( ) + m_FrameTimeText->GetHeight( ), buffer3 );
 
 }
 
@@ -180,10 +196,6 @@ void CGraphics::Render( )
 
 	m_D3D11->DisableCulling( );
 
-	m_DebugWindow->Render( m_D3D11->GetImmediateContext( ), 10, 70 );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_Depthmap->GetTexture( ) );
-
 	m_D3D11->EnableDSLessEqual( );
 
 	m_Skybox->Render( m_D3D11->GetImmediateContext( ) );
@@ -202,6 +214,11 @@ void CGraphics::Render( )
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FrameTimeText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
 		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
+
+	m_DebugText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
+		utility::SColor( 0.0f, 1.0f, 0.0f, 1.0f ) );
 	
 	EndScene( );
 }
@@ -229,6 +246,12 @@ CGraphics::~CGraphics( )
 		m_Skybox->Shutdown( );
 		delete m_Skybox;
 		m_Skybox = 0;
+	}
+	if ( m_DebugText )
+	{
+		m_DebugText->Shutdown( );
+		delete m_DebugText;
+		m_DebugText = 0;
 	}
 	if ( m_FrameTimeText )
 	{

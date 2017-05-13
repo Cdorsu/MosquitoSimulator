@@ -35,6 +35,11 @@ protected:
 
 	std::vector<SVertex> m_vecVertices;
 	std::vector<DWORD> m_vecIndices;
+
+#ifndef PHYSICS
+	DirectX::XMFLOAT3 m_AABBMin;
+	DirectX::XMFLOAT3 m_AABBMax;
+#endif
 public:
 	float m_fSpecularPower;
 	utility::SColor m_SpecularColor;

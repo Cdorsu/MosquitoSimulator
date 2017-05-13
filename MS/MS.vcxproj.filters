@@ -40,6 +40,9 @@
     <Filter Include="Header Files\Interfaces">
       <UniqueIdentifier>{f613747d-994d-4feb-961f-43d3d576be78}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Interfaces">
+      <UniqueIdentifier>{e7e58be4-91b3-4c53-8b83-c69e742ff06f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -101,6 +104,9 @@
     </ClCompile>
     <ClCompile Include="ShadowShader.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewInterface.cpp">
+      <Filter>Source Files\Interfaces</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
