@@ -9,8 +9,9 @@ CModel::CModel( )
 
 bool CModel::Initialize( ID3D11Device * device )
 {
-	m_Texture = new CTexture( );
-	if ( !m_Texture->Initialize( device, L"2DArt\\Ana.jpeg" ) )
+	m_Material = new SMaterial;
+	m_Material->Texture = new CTexture( );
+	if ( !m_Material->Texture->Initialize( device, L"2DArt\\Ana.jpeg" ) )
 		return false;
 	HRESULT hr;
 	SVertex vertices[ ] =
@@ -46,7 +47,10 @@ bool CModel::Initialize( ID3D11Device * device )
 	return true;
 }
 
-bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
+bool CModel::ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
+	UINT& VertexCount, UINT& IndexCount,
+	std::vector<SVertex>& Vertices, std::vector<DWORD>& Indices,
+	SMaterial* Material )
 {
 	size_t length = lstrlen( lpFilepath );
 	wchar_t *extension;
@@ -57,6 +61,8 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 		return false;
 	}
 	std::wifstream ifCitire( lpFilepath );
+	if ( !ifCitire.is_open( ) )
+		return false;
 	UINT ObjectCount;
 	wchar_t ch = ( wchar_t ) 255;
 	std::wstring word;
@@ -79,7 +85,7 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 			ifCitire >> word;
 			if ( word == L"Vertices:" ) // Read info about vertices
 			{
-				ifCitire >> m_VertexCount;
+				ifCitire >> VertexCount;
 				ifCitire >> word;
 				if ( word == L"Texture:" )
 				{
@@ -124,7 +130,7 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 			// After we read data about vertices
 			// We should read vertices
 			SVertex vertex;
-			for ( UINT i = 0; i < m_VertexCount; ++i )
+			for ( UINT i = 0; i < VertexCount; ++i )
 			{
 				ifCitire >> vertex.Position.x >> vertex.Position.y >> vertex.Position.z;
 				if ( bHasTexture )
@@ -135,7 +141,7 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 					ifCitire >> vertex.Tangent.x >> vertex.Tangent.y >> vertex.Tangent.z;
 				if ( bHasBinormals )
 					ifCitire >> vertex.Binormal.x >> vertex.Binormal.y >> vertex.Binormal.z;
-				m_vecVertices.push_back( vertex );
+				Vertices.push_back( vertex );
 			}
 			ifCitire.get( ch );
 			while ( ch != '}' )
@@ -143,17 +149,17 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 			ifCitire >> word;
 			if ( word == L"Indices:" )
 			{
-				ifCitire >> m_IndexCount;
+				ifCitire >> IndexCount;
 				ifCitire.get( ch );
 				while ( ch != '\n' )
 					ifCitire.get( ch );
 				UINT index;
-				m_vecIndices.resize( m_IndexCount );
-				for ( UINT i = 0; i < m_IndexCount; ++i )
+				Indices.resize( IndexCount );
+				for ( UINT i = 0; i < IndexCount; ++i )
 				{
 					ifCitire >> index;
 					//m_vecIndices.push_back( index );
-					m_vecIndices[ m_vecIndices.size( ) - 1 - i ] = index;
+					Indices[ Indices.size( ) - 1 - i ] = index;
 				}
 			}
 			ifCitire.get( ch );
@@ -192,7 +198,7 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 					if ( word == L"iffuse" )
 					{
 						ifCitire >> word;
-						if ( word == L"Color:" )
+						if ( word == L"color:" )
 						{
 							float r, g, b;
 							ifCitire >> r >> g >> b;
@@ -200,8 +206,8 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 						else if ( word == L"map:" )
 						{
 							ifCitire >> word;
-							m_Texture = new CTexture( );
-							if ( !m_Texture->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
+							Material->Texture = new CTexture( );
+							if ( !Material->Texture->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
 							{
 								wchar_t buffer[ 500 ];
 								swprintf_s( buffer, L"Couldn't open file %ws\n", word.c_str( ) );
@@ -218,19 +224,19 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 						ifCitire >> word;
 						if ( word == L"power:" )
 						{
-							ifCitire >> m_fSpecularPower;
+							ifCitire >> Material->SpecularPower;
 						}
 						else if ( word == L"color:" )
 						{
 							float r, g, b;
 							ifCitire >> r >> g >> b;
-							m_SpecularColor = utility::SColor( r, g, b, 1.0f );
+							Material->SpecularColor = utility::SColor( r, g, b, 1.0f );
 						}
 						else if ( word == L"map:" )
 						{
 							ifCitire >> word;
-							m_Specularmap = new CTexture( );
-							if ( !m_Specularmap->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
+							Material->Specularmap = new CTexture( );
+							if ( !Material->Specularmap->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
 							{
 								wchar_t buffer[ 500 ];
 								swprintf_s( buffer, L"Couldn't open file %ws\n", word.c_str( ) );
@@ -248,8 +254,8 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 						if ( word == L"map:" )
 						{
 							ifCitire >> word;
-							m_Bumpmap = new CTexture( );
-							if ( !m_Bumpmap->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
+							Material->Bumpmap = new CTexture( );
+							if ( !Material->Bumpmap->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
 							{
 								wchar_t buffer[ 500 ];
 								swprintf_s( buffer, L"Couldn't open file %ws\n", word.c_str( ) );
@@ -276,6 +282,15 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 		}
 	}
 	ifCitire.close( );
+	
+	return true;
+}
+
+bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
+{
+	m_Material = new SMaterial( );
+	ReadFile( device, lpFilepath, m_VertexCount,
+		m_IndexCount, m_vecVertices, m_vecIndices, m_Material );
 
 
 	/* Create buffers */
@@ -311,23 +326,28 @@ void CModel::Render( ID3D11DeviceContext * context )
 
 void CModel::Shutdown( )
 {
-	if ( m_Texture )
+	if ( m_Material->Texture )
 	{
-		m_Texture->Shutdown( );
-		delete m_Texture;
-		m_Texture = 0;
+		m_Material->Texture->Shutdown( );
+		delete m_Material->Texture;
+		m_Material->Texture = 0;
 	}
-	if ( m_Specularmap )
+	if ( m_Material->Specularmap )
 	{
-		m_Specularmap->Shutdown( );
-		delete m_Specularmap;
-		m_Specularmap = 0;
+		m_Material->Specularmap->Shutdown( );
+		delete m_Material->Specularmap;
+		m_Material->Specularmap = 0;
 	}
-	if ( m_Bumpmap )
+	if ( m_Material->Bumpmap )
 	{
-		m_Bumpmap->Shutdown( );
-		delete m_Bumpmap;
-		m_Bumpmap = 0;
+		m_Material->Bumpmap->Shutdown( );
+		delete m_Material->Bumpmap;
+		m_Material->Bumpmap = 0;
+	}
+	if ( m_Material )
+	{
+		delete m_Material;
+		m_Material = 0;
 	}
 	SAFE_RELEASE( m_VertexBuffer );
 	SAFE_RELEASE( m_IndexBuffer );

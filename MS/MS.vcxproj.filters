@@ -57,9 +57,6 @@
     <ClCompile Include="Input.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DefaultShader.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
@@ -107,6 +104,9 @@
     </ClCompile>
     <ClCompile Include="ViewInterface.cpp">
       <Filter>Source Files\Interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

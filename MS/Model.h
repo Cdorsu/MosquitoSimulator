@@ -23,26 +23,20 @@ ALIGN16 class CModel sealed
 		DirectX::XMFLOAT3 Tangent;
 		DirectX::XMFLOAT3 Binormal;
 	};
-protected:
+	struct SMaterial
+	{
+		CTexture * Texture;
+		CTexture * Bumpmap;
+		CTexture * Specularmap;
+		utility::SColor DiffuseColor;
+		utility::SColor SpecularColor;
+		float SpecularPower;
+	};
+private:
 	ID3D11Buffer * m_VertexBuffer;
 	ID3D11Buffer * m_IndexBuffer;
-	CTexture * m_Texture;
-	CTexture * m_Bumpmap;
-	CTexture * m_Specularmap;
-	UINT m_VertexCount;
-	UINT m_IndexCount;
-	DirectX::XMMATRIX m_World;
+	SMaterial * m_Material;
 
-	std::vector<SVertex> m_vecVertices;
-	std::vector<DWORD> m_vecIndices;
-
-#ifndef PHYSICS
-	DirectX::XMFLOAT3 m_AABBMin;
-	DirectX::XMFLOAT3 m_AABBMax;
-#endif
-public:
-	float m_fSpecularPower;
-	utility::SColor m_SpecularColor;
 public:
 	CModel( );
 	~CModel( );
@@ -52,14 +46,29 @@ public:
 	void Render( ID3D11DeviceContext * context );
 	void Shutdown( );
 public:
+	static bool ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
+		UINT& VertexCount, UINT& IndexCount,
+		std::vector<SVertex>& Vertices, std::vector<DWORD>& Indices,
+		SMaterial* Material );
+protected:
+	std::vector<SVertex> m_vecVertices;
+	std::vector<DWORD> m_vecIndices;
+	UINT m_VertexCount;
+	UINT m_IndexCount;
+	DirectX::XMMATRIX m_World;
+#ifndef PHYSICS
+	DirectX::XMFLOAT3 m_AABBMin;
+	DirectX::XMFLOAT3 m_AABBMax;
+#endif
+public:
 	inline DirectX::XMMATRIX& GetWorld( ) { return m_World; };
-	inline ID3D11ShaderResourceView* GetTexture( ) { return m_Texture->GetTexture( ); };
-	inline ID3D11ShaderResourceView* GetSpecularMap( ) { return m_Specularmap->GetTexture( ); };
-	inline ID3D11ShaderResourceView* GetBumpmap( ) { return m_Bumpmap->GetTexture( ); };
+	inline ID3D11ShaderResourceView* GetTexture( ) { return m_Material->Texture->GetTexture( ); };
+	inline ID3D11ShaderResourceView* GetSpecularMap( ) { return m_Material->Specularmap->GetTexture( ); };
+	inline ID3D11ShaderResourceView* GetBumpmap( ) { return m_Material->Bumpmap->GetTexture( ); };
 	inline UINT GetIndexCount( ) { return m_IndexCount; };
 	inline UINT GetVertexCount( ) { return m_VertexCount; };
-	inline float GetSpecularPower( ) { return m_fSpecularPower; };
-	inline utility::SColor GetSpecularColor( ) { return m_SpecularColor; };
+	inline float GetSpecularPower( ) { return m_Material->SpecularPower; };
+	inline utility::SColor GetSpecularColor( ) { return m_Material->SpecularColor; };
 public:
 	inline void Identity( ) { m_World = DirectX::XMMatrixIdentity( ); };
 	inline void Translate( float x, float y, float z ) { m_World *= DirectX::XMMatrixTranslation( x, y, z ); };

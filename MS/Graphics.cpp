@@ -103,7 +103,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_LightView = new CLightView( );
 	m_LightView->SetLookAt( DirectX::XMVectorZero( ) );
 	m_LightView->SetPosition( DirectX::XMVectorSet( 3.0f, 6.0f, 0.0f, 1.0f ) );
-	m_LightView->SetAmbient( utility::SColor( 0.2f, 0.2f, 0.2f, 1.0f ) );
+	m_LightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	m_LightView->SetDiffuse( utility::hexToRGB( 0xFFFFFF ) );
 	m_LightView->GenerateProjectionMatrix( FOV, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
 	m_LightView->GenerateViewMatrix( );
@@ -150,10 +150,7 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	sprintf_s( buffer2, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ), buffer2 );
 	char buffer3[ 300 ] = { 0 };
-	if ( m_ActiveCamera->isAABBInFrustum( -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f ) )
-		sprintf_s( buffer3, "Point in frustum" );
-	else
-		sprintf_s( buffer3, "Point not in frustum" );
+	sprintf_s( buffer3, "DEBUG MODE" );
 	m_DebugText->Update( m_D3D11->GetImmediateContext( ), 0,
 		m_FPSText->GetHeight( ) + m_FrameTimeText->GetHeight( ), buffer3 );
 
@@ -218,7 +215,7 @@ void CGraphics::Render( )
 	m_DebugText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
-		utility::SColor( 0.0f, 1.0f, 0.0f, 1.0f ) );
+		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
 	
 	EndScene( );
 }

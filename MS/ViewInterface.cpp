@@ -88,7 +88,7 @@ bool CViewInterface::isAABBCompletelyInFrustum( float minX, float minY, float mi
 		Points[ 5 ] = XMVectorSet( maxX, minY, maxZ, 1.0f );
 		Points[ 6 ] = XMVectorSet( minX, maxY, maxZ, 1.0f );
 		Points[ 7 ] = XMVectorSet( maxX, maxY, maxZ, 1.0f );
-		for ( int i = 0; i < Points.size( ); ++i )
+		for ( unsigned int i = 0; i < Points.size( ); ++i )
 			if ( XMVectorGetX( XMVector3Dot( Points[ i ], planeNormal ) ) + planeConstant < 0 )
 				return false;
 	}
