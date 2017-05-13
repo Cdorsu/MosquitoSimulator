@@ -72,10 +72,10 @@ bool CViewInterface::isPointInFrustum( float x, float y, float z )
 	return true;
 }
 
-bool CViewInterface::isAABBInFrustum( float minX, float minY, float minZ, float maxX, float maxY, float maxZ )
+bool CViewInterface::isAABBCompletelyInFrustum( float minX, float minY, float minZ, float maxX, float maxY, float maxZ )
 {
 	using namespace DirectX;
-	static std::array<XMVECTOR&, 8> Points;
+	static std::array<XMVECTOR, 8> Points;
 	for ( UINT i = 0; i < m_ViewFrustumPlanes.size( ); ++i )
 	{
 		XMVECTOR planeNormal = XMVectorSet( m_ViewFrustumPlanes[ i ].x, m_ViewFrustumPlanes[ i ].y, m_ViewFrustumPlanes[ i ].z, 0.0f );
@@ -93,4 +93,25 @@ bool CViewInterface::isAABBInFrustum( float minX, float minY, float minZ, float 
 				return false;
 	}
 	return true;
+}
+
+bool CViewInterface::isAABBPartialInFrustum( float minX, float minY, float minZ, float maxX, float maxY, float maxZ )
+{
+	if ( isPointInFrustum( minX, minY, minZ ) )
+		return true;
+	if ( isPointInFrustum( minX, minY, maxZ ) )
+		return true;
+	if ( isPointInFrustum( minX, maxY, minZ ) )
+		return true;
+	if ( isPointInFrustum( maxX, minY, minZ ) )
+		return true;
+	if ( isPointInFrustum( maxX, maxY, minZ ) )
+		return true;
+	if ( isPointInFrustum( maxX, minY, maxZ ) )
+		return true;
+	if ( isPointInFrustum( minX, maxY, maxZ ) )
+		return true;
+	if ( isPointInFrustum( maxX, maxY, maxZ ) )
+		return true;
+	return false;
 }

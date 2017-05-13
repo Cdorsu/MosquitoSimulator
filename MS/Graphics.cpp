@@ -150,7 +150,7 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	sprintf_s( buffer2, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ), buffer2 );
 	char buffer3[ 300 ] = { 0 };
-	if ( m_ActiveCamera->isPointInFrustum( 0.0f, 3.0f, 0.0f ) )
+	if ( m_ActiveCamera->isAABBInFrustum( -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f ) )
 		sprintf_s( buffer3, "Point in frustum" );
 	else
 		sprintf_s( buffer3, "Point not in frustum" );

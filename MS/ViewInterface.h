@@ -15,7 +15,9 @@ public:
 public:
 	void ConstructFrustum( );
 	bool isPointInFrustum( float x, float y, float z );
-	bool isAABBInFrustum( float minX, float minY, float minZ,
+	bool isAABBCompletelyInFrustum( float minX, float minY, float minZ,
+		float maxX, float maxY, float maxZ );
+	bool isAABBPartialInFrustum( float minX, float minY, float minZ,
 		float maxX, float maxY, float maxZ );
 };
 
