@@ -1,7 +1,7 @@
 Mosquito {
 	Static: 5 {
-		Assets\\ComplexModels\\Eyes.aba # to be drawn with no culling
 		Assets\\ComplexModels\\Head.aba
+		Assets\\ComplexModels\\Eyes.aba # to be drawn with no culling
 		Assets\\ComplexModels\\Legs.aba
 		Assets\\ComplexModels\\MainBody.aba
 		Assets\\ComplexModels\\TailCover.aba

@@ -87,6 +87,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Skybox = new CSkybox( );
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
 		return false;
+	m_Mosquito = new CMosquito( );
+	if ( !m_Mosquito->Initialize( m_D3D11->GetDevice( ), L"Assets\\ComplexModels\\Mosquito.abal" ) )
+		return false;
 
 	m_Depthmap = new CRenderTexture( );
 	if ( !m_Depthmap->Initialize( m_D3D11->GetDevice( ), SHADOW_WIDTH, SHADOW_HEIGHT,
@@ -132,16 +135,19 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_Skybox->Update( m_ActiveCamera );
 
 	m_Cube->Identity( );
-	m_Cube->Translate( 0.0f, 1.0f, 0.0f );
 	m_Cube->RotateY( -Rotation );
+	m_Cube->Translate( 0.0f, 1.0f, 4.0f );
 
 	m_Torus->Identity( );
 	m_Torus->RotateX( ( FLOAT ) D3DX_PI / 2.f );
 	m_Torus->RotateY( Rotation );
-	m_Torus->Translate( 0.0f, 3.2f, 0.0f );
+	m_Torus->Translate( 0.0f, 3.2f, 4.0f );
 
 	m_Ground->Identity( );
 	m_Ground->Scale( 50.f, 50.f, 50.f );
+
+	m_Mosquito->Identity( );
+	m_Mosquito->Translate( 0.0f, 3.0f, 0.0f );
 
 	char buffer[ 10 ] = { 0 };
 	sprintf_s( buffer, "FPS: %d", FPS );
@@ -175,6 +181,13 @@ void CGraphics::Render( )
 	m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
 		m_LightView, m_Torus->GetTexture( ) );
 
+	for ( UINT i = 0; i < m_Mosquito->GetNumberOfObjects( ); ++i )
+	{
+		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+		m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+			m_Mosquito->GetModelWorld( i ), m_LightView, m_Mosquito->GetModel( i )->GetTexture( ) );
+	}
+
 	m_D3D11->EnableBackBuffer( );
 	m_D3D11->EnableDefaultViewPort( );
 	BeginScene( );
@@ -190,8 +203,17 @@ void CGraphics::Render( )
 	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
 	m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
 		m_ActiveCamera, m_Torus->GetTexture( ), m_Depthmap->GetTexture( ), m_LightView );
-
+	
 	m_D3D11->DisableCulling( );
+
+	for ( UINT i = 0; i < m_Mosquito->GetNumberOfObjects( ); ++i )
+	{
+		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+		m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+			m_Mosquito->GetModelWorld( i ), m_ActiveCamera, m_Mosquito->GetModel( i )->GetTexture( ), m_Depthmap->GetTexture( ),
+			m_LightView );
+	}
+	
 
 	m_D3D11->EnableDSLessEqual( );
 
@@ -243,6 +265,12 @@ CGraphics::~CGraphics( )
 		m_Skybox->Shutdown( );
 		delete m_Skybox;
 		m_Skybox = 0;
+	}
+	if ( m_Mosquito )
+	{
+		m_Mosquito->Shutdown( );
+		delete m_Mosquito;
+		m_Mosquito = 0;
 	}
 	if ( m_DebugText )
 	{

@@ -14,6 +14,7 @@
 #include "Skybox.h"
 #include "RenderTexture.h"
 #include "LightView.h"
+#include "Mosquito.h"
 
 class CGraphics sealed
 {
@@ -45,6 +46,7 @@ private:
 	CText * m_DebugText;
 #endif
 	CSkybox * m_Skybox;
+	CMosquito * m_Mosquito;
 
 	/*Light*/
 	CRenderTexture * m_Depthmap;

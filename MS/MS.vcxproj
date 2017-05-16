@@ -128,6 +128,7 @@
     <ClCompile Include="HRTimer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Mosquito.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="ShadowShader.cpp" />
     <ClCompile Include="Skybox.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightView.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Mosquito.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />

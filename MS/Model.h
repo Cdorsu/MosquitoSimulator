@@ -8,6 +8,7 @@
 
 ALIGN16 class CModel sealed
 {
+public:
 	struct SVertex
 	{
 		SVertex( float x = 0.0f, float y = 0.0f, float z = 0.0f,
@@ -49,17 +50,13 @@ public:
 	static bool ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 		UINT& VertexCount, UINT& IndexCount,
 		std::vector<SVertex>& Vertices, std::vector<DWORD>& Indices,
-		SMaterial* Material );
+		SMaterial* Material, UINT toAddToIndices = 0 );
 protected:
 	std::vector<SVertex> m_vecVertices;
 	std::vector<DWORD> m_vecIndices;
 	UINT m_VertexCount;
 	UINT m_IndexCount;
 	DirectX::XMMATRIX m_World;
-#ifndef PHYSICS
-	DirectX::XMFLOAT3 m_AABBMin;
-	DirectX::XMFLOAT3 m_AABBMax;
-#endif
 public:
 	inline DirectX::XMMATRIX& GetWorld( ) { return m_World; };
 	inline ID3D11ShaderResourceView* GetTexture( ) { return m_Material->Texture->GetTexture( ); };

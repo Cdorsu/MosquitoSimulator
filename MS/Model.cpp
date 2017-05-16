@@ -50,7 +50,7 @@ bool CModel::Initialize( ID3D11Device * device )
 bool CModel::ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 	UINT& VertexCount, UINT& IndexCount,
 	std::vector<SVertex>& Vertices, std::vector<DWORD>& Indices,
-	SMaterial* Material )
+	SMaterial* Material, UINT toAdd )
 {
 	size_t length = lstrlen( lpFilepath );
 	wchar_t *extension;
@@ -159,7 +159,7 @@ bool CModel::ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 				{
 					ifCitire >> index;
 					//m_vecIndices.push_back( index );
-					Indices[ Indices.size( ) - 1 - i ] = index;
+					Indices[ Indices.size( ) - 1 - i ] = index + toAdd;
 				}
 			}
 			ifCitire.get( ch );
