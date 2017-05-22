@@ -12,11 +12,17 @@ cbuffer cbPerLight : register( b1 )
 	float3 g_LightPos;
 };
 
+cbuffer cbPerFrame : register(b2)
+{
+    float3 g_CamPos;
+};
+
 struct VSOut
 {
 	float4 Position : SV_Position;
 	float4 LightViewPosition : POSITION0;
 	float3 VertexToLightVector : POSITION1;
+    float3 VertexToCamVector : POSITION2;
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEXCOORD;
 };
@@ -38,6 +44,9 @@ VSOut main ( float4 inPos : POSITION, float3 inNor : NORMAL, float2 inTex : TEXC
 
 	output.VertexToLightVector = g_LightPos.xyz - WorldPos.xyz;
 	output.VertexToLightVector = normalize ( output.VertexToLightVector );
+
+    output.VertexToCamVector = g_CamPos.xyz - WorldPos.xyz;
+    output.VertexToCamVector = normalize(output.VertexToCamVector);
 
 	output.TexCoord = inTex;
 

@@ -6,8 +6,7 @@ Mosquito {
 		Assets\\ComplexModels\\MainBody.aba
 		Assets\\ComplexModels\\TailCover.aba
 	}
-	Dynamic: 2 {
+	Dynamic: 1 {
 		Assets\\ComplexModels\\RWing.aba
-		Assets\\ComplexModels\\LWing.aba
 	}
 }

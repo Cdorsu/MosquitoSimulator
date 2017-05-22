@@ -2,6 +2,7 @@
 
 #include "Shader.h"
 #include "LightView.h"
+#include "Model.h"
 
 class CShadowShader sealed : public CShader
 {
@@ -17,16 +18,32 @@ class CShadowShader sealed : public CShader
 		DirectX::XMFLOAT3 LightPos;
 		float pad;
 	};
+	struct SCameraInfo
+	{
+		DirectX::XMFLOAT3 CameraPos;
+		float pad;
+	};
 	struct SLightPixelBuffer
 	{
 		utility::SColor Diffuse;
 		utility::SColor Ambient;
+		utility::SColor SpecularColor;
+	};
+	struct SMaterialInfo
+	{
+		utility::SColor Color; 
+		BOOL HasTexture; 
+		BOOL HasSpecularMap;
+		float SpecularPower; 
+		float pad;
 	};
 private:
 	ID3D11VertexShader * m_VertexShader;
 	ID3D11PixelShader * m_PixelShader;
 	ID3D11InputLayout * m_InputLayout;
 	ID3D11Buffer * m_Buffer;
+	ID3D11Buffer * m_MaterialBuffer;
+	ID3D11Buffer * m_CameraBuffer;
 	ID3D11Buffer * m_LightBufferVS;
 	ID3D11Buffer * m_LightBufferPS;
 	ID3D11SamplerState * m_WrapSampler;
@@ -37,12 +54,12 @@ public:
 public:
 	bool Initialize( ID3D11Device * device );
 	void Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-		CViewInterface * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Depthmap,
+		CViewInterface * Camera, CModel::SMaterial * MaterialInfo, ID3D11ShaderResourceView * Depthmap,
 		CLightView * LightView );
 	void SetLightData( ID3D11DeviceContext * context, CLightView * LightView,
 		ID3D11ShaderResourceView * Depthmap );
 	void SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World, CViewInterface * Camera );
-	void SetTextures( ID3D11DeviceContext * context, ID3D11ShaderResourceView * Texture );
+	void SetMaterialData( ID3D11DeviceContext * context, CModel::SMaterial * Material );
 	void SetShaders( ID3D11DeviceContext * context );
 	void Shutdown( );
 };

@@ -48,6 +48,24 @@ bool CMosquito::Initialize( ID3D11Device * device, LPWSTR lpList )
 		}
 		else if ( word == L"Dynamic:" )
 		{
+			ifCitire >> m_numDynamicObjects;
+			ifCitire >> word;
+			OutputDebugString( L"Dynamic objects:\n" );
+			for ( unsigned int i = 0; i < m_numDynamicObjects; ++i )
+			{
+				ifCitire >> word;
+				if ( word.size( ) < 4 || word == L"#" )
+				{
+					std::getline( ifCitire, word );
+					i--;
+					continue;
+				}
+				CModel* newModel = new CModel( );
+				if ( !newModel->Initialize( device,
+					const_cast< LPWSTR >( word.c_str( ) ) ) )
+					return false;
+				m_vecModels.push_back( newModel );
+			}
 			ifCitire.get( ch );
 			while ( ch != '}' )
 				ifCitire.get( ch );
@@ -61,8 +79,20 @@ bool CMosquito::Initialize( ID3D11Device * device, LPWSTR lpList )
 		/// Maybe do something with other data
 	}
 	ifCitire.close( );
-	m_StaticWorld = DirectX::XMMatrixScaling( 0.3f, 0.3, 0.3f ) * DirectX::XMMatrixTranslation( 0.05f, -0.5f, -0.5f );
+	//m_StaticWorld = DirectX::XMMatrixScaling( 0.3f, 0.3f, 0.3f ) * DirectX::XMMatrixTranslation( 0.05f, -0.5f, -0.5f );
+	m_StaticWorld = DirectX::XMMatrixIdentity( );
+	m_IdentityMatrix = DirectX::XMMatrixScaling( 0.3f, 0.3f, 0.3f );
+	for ( unsigned int i = m_numStaticObjects; i < m_vecModels.size( ); ++i )
+	{
+		m_vecModels[ i ]->m_World = m_IdentityMatrix;
+	}
 	return true;
+}
+
+void CMosquito::UpdateWings( )
+{
+	
+	CModel *RWing = m_vecModels[ m_numStaticObjects ];
 }
 
 void CMosquito::Render( ID3D11DeviceContext * context, UINT objectIndex )

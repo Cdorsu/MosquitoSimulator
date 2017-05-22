@@ -13,6 +13,7 @@ ALIGN16 class CLightView sealed :
 
 	utility::SColor m_DiffuseColor;
 	utility::SColor m_AmbientColor;
+	utility::SColor m_SpecularColor;
 public:
 	CLightView( ) { };
 	~CLightView( ) { };
@@ -21,6 +22,7 @@ public:
 	inline void SetPosition( DirectX::FXMVECTOR& Position ) { m_Position = Position; };
 	inline void SetDiffuse( utility::SColor newDiffuse ) { m_DiffuseColor = newDiffuse; };
 	inline void SetAmbient( utility::SColor newAmbient ) { m_AmbientColor = newAmbient; };
+	inline void SetSpecularColor( utility::SColor newSpecular ) { m_SpecularColor = newSpecular; };
 	inline void GenerateProjectionMatrix( float FOV, float AspectRatio, float CamNear, float CamFar )
 	{
 		m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH( FOV, AspectRatio, CamNear, CamFar );
@@ -32,6 +34,7 @@ public:
 public:
 	inline utility::SColor GetDiffuse( ) { return m_DiffuseColor; };
 	inline utility::SColor GetAmbient( ) { return m_AmbientColor; };
+	inline utility::SColor GetSpecular( ) { return m_SpecularColor; };
 public:
 	virtual inline DirectX::XMMATRIX& GetView( ) override { return m_ViewMatrix; };
 	virtual inline DirectX::XMMATRIX& GetProjection( ) override { return m_ProjectionMatrix; };

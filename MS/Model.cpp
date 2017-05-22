@@ -202,10 +202,12 @@ bool CModel::ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 						{
 							float r, g, b;
 							ifCitire >> r >> g >> b;
+							Material->DiffuseColor = utility::SColor( r, g, b, 1.0f );
 						}
 						else if ( word == L"map:" )
 						{
 							ifCitire >> word;
+							Material->bHasTexture = true;
 							Material->Texture = new CTexture( );
 							if ( !Material->Texture->Initialize( device, ( LPWSTR ) word.c_str( ) ) )
 							{

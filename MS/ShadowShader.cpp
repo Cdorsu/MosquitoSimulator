@@ -59,6 +59,12 @@ bool CShadowShader::Initialize( ID3D11Device * device )
 	buffDesc.ByteWidth = sizeof( SLightPixelBuffer );
 	hr = device->CreateBuffer( &buffDesc, nullptr, &m_LightBufferPS );
 	IFFAILED( hr, L"Couldn't create a constant buffer" );
+	buffDesc.ByteWidth = sizeof( SCameraInfo );
+	hr = device->CreateBuffer( &buffDesc, nullptr, &m_CameraBuffer );
+	IFFAILED( hr, L"Couldn't create a constatn buffer" );
+	buffDesc.ByteWidth = sizeof( SMaterialInfo );
+	hr = device->CreateBuffer( &buffDesc, nullptr, &m_MaterialBuffer );
+	IFFAILED( hr, L"Couldn't create a constatn buffer" );
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory( &sampDesc, sizeof( D3D11_SAMPLER_DESC ) );
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
@@ -80,13 +86,41 @@ bool CShadowShader::Initialize( ID3D11Device * device )
 	return true;
 }
 
-void CShadowShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX & World, CViewInterface * Camera, ID3D11ShaderResourceView * Texture, ID3D11ShaderResourceView * Depthmap, CLightView * LightView )
+void CShadowShader::Render( ID3D11DeviceContext * context, UINT indexCount,
+	DirectX::FXMMATRIX & World, CViewInterface * Camera,
+	CModel::SMaterial * MaterialInfo, ID3D11ShaderResourceView * Depthmap, CLightView * LightView )
 {
 	SetShaders( context );
 	SetLightData( context, LightView, Depthmap );
+	SetMaterialData( context, MaterialInfo );
 	SetData( context, World, Camera );
-	SetTextures( context, Texture );
 	DrawIndexed( context, indexCount );
+}
+
+void CShadowShader::SetMaterialData( ID3D11DeviceContext * context, CModel::SMaterial * MaterialInfo )
+{
+	static HRESULT hr;
+	static D3D11_MAPPED_SUBRESOURCE MappedResource;
+
+	hr = context->Map( m_MaterialBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	if ( FAILED( hr ) )
+		return;
+	( ( SMaterialInfo* ) MappedResource.pData )->HasTexture = MaterialInfo->bHasTexture;
+	( ( SMaterialInfo* ) MappedResource.pData )->HasSpecularMap = MaterialInfo->Specularmap ? 1 : 0;
+	( ( SMaterialInfo* ) MappedResource.pData )->Color = MaterialInfo->DiffuseColor;
+	( ( SMaterialInfo* ) MappedResource.pData )->SpecularPower = MaterialInfo->SpecularPower;
+	context->Unmap( m_MaterialBuffer, 0 );
+	context->PSSetConstantBuffers( 1, 1, &m_MaterialBuffer );
+	if ( MaterialInfo->Texture != nullptr )
+	{
+		ID3D11ShaderResourceView * SRV = ( MaterialInfo->Texture->GetTexture( ) );
+		context->PSSetShaderResources( 0, 1, &SRV );
+		if ( MaterialInfo->Specularmap != nullptr )
+		{
+			SRV = MaterialInfo->Specularmap->GetTexture( );
+			context->PSSetShaderResources( 2, 1, &SRV );
+		}
+	}
 }
 
 void CShadowShader::SetLightData( ID3D11DeviceContext * context, CLightView * LightView,
@@ -108,6 +142,7 @@ void CShadowShader::SetLightData( ID3D11DeviceContext * context, CLightView * Li
 		return;
 	( ( SLightPixelBuffer* ) MappedResource.pData )->Diffuse = LightView->GetDiffuse( );
 	( ( SLightPixelBuffer* ) MappedResource.pData )->Ambient = LightView->GetAmbient( );
+	( ( SLightPixelBuffer* ) MappedResource.pData )->SpecularColor = LightView->GetSpecular( );
 	context->Unmap( m_LightBufferPS, 0 );
 	context->PSSetConstantBuffers( 0, 1, &m_LightBufferPS );
 	context->PSSetShaderResources( 1, 1, &Depthmap );
@@ -130,12 +165,12 @@ void CShadowShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX &
 	( ( SMatrices* ) MappedResource.pData )->World = DirectX::XMMatrixTranspose( World );
 	context->Unmap( m_Buffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &m_Buffer );
-}
-
-void CShadowShader::SetTextures( ID3D11DeviceContext * context,
-	ID3D11ShaderResourceView * Texture )
-{
-	context->PSSetShaderResources( 0, 1, &Texture );
+	hr = context->Map( m_CameraBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	if ( FAILED( hr ) )
+		return;
+	( ( SCameraInfo* ) MappedResource.pData )->CameraPos = Camera->GetCamPos( );
+	context->Unmap( m_CameraBuffer, 0 );
+	context->VSSetConstantBuffers( 2, 1, &m_CameraBuffer );
 }
 
 void CShadowShader::SetShaders( ID3D11DeviceContext * context )
@@ -151,6 +186,8 @@ void CShadowShader::Shutdown( )
 	SAFE_RELEASE( m_PixelShader );
 	SAFE_RELEASE( m_InputLayout );
 	SAFE_RELEASE( m_Buffer );
+	SAFE_RELEASE( m_MaterialBuffer );
+	SAFE_RELEASE( m_CameraBuffer );
 	SAFE_RELEASE( m_LightBufferVS );
 	SAFE_RELEASE( m_LightBufferPS );
 	SAFE_RELEASE( m_WrapSampler );

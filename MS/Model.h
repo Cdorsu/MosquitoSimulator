@@ -6,8 +6,11 @@
 #include "common\utility.h"
 #include "Texture.h"
 
+ALIGN16 class CMosquito sealed;
+
 ALIGN16 class CModel sealed
 {
+	friend class CMosquito;
 public:
 	struct SVertex
 	{
@@ -32,6 +35,7 @@ public:
 		utility::SColor DiffuseColor;
 		utility::SColor SpecularColor;
 		float SpecularPower;
+		bool bHasTexture = false;
 	};
 private:
 	ID3D11Buffer * m_VertexBuffer;
@@ -59,9 +63,10 @@ protected:
 	DirectX::XMMATRIX m_World;
 public:
 	inline DirectX::XMMATRIX& GetWorld( ) { return m_World; };
-	inline ID3D11ShaderResourceView* GetTexture( ) { return m_Material->Texture->GetTexture( ); };
+	inline ID3D11ShaderResourceView* GetTexture( ) { if ( m_Material->Texture != nullptr ) return m_Material->Texture->GetTexture( ); else return nullptr; };
 	inline ID3D11ShaderResourceView* GetSpecularMap( ) { return m_Material->Specularmap->GetTexture( ); };
 	inline ID3D11ShaderResourceView* GetBumpmap( ) { return m_Material->Bumpmap->GetTexture( ); };
+	inline SMaterial* GetMaterial( ) { return m_Material; };
 	inline UINT GetIndexCount( ) { return m_IndexCount; };
 	inline UINT GetVertexCount( ) { return m_VertexCount; };
 	inline float GetSpecularPower( ) { return m_Material->SpecularPower; };

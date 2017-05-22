@@ -7,8 +7,9 @@ CDepthShader::CDepthShader( )
 	ZeroMemory( this, sizeof( CDepthShader ) );
 }
 
-bool CDepthShader::Initialize( ID3D11Device * device )
+bool CDepthShader::Initialize( ID3D11Device * device, bool bUseExplicit )
 {
+	m_Type = bUseExplicit ? EType::Explicit : EType::Nonexplicit;
 	HRESULT hr;
 	ID3DBlob * VertexShaderBlob;
 	if ( !CompileAndCreateVertexShader( device,
@@ -35,10 +36,20 @@ bool CDepthShader::Initialize( ID3D11Device * device )
 		VertexShaderBlob->GetBufferPointer( ), VertexShaderBlob->GetBufferSize( ), // Info about the vertex shader
 		&m_InputLayout ); // The input layout
 	IFFAILED( hr, L"Couldn't create a input layout" );
-	if ( !CompileAndCreatePixelShader( device,
-		L"DepthPixelShader.hlsl", L"Shaders\\DepthPixelShader.cso",
-		&m_PixelShader ) )
-		return false;
+	if ( bUseExplicit )
+	{
+		if ( !CompileAndCreatePixelShader( device,
+			L"DepthPixelShaderEx.hlsl", L"Shaders\\DepthPixelShaderEx.cso",
+			&m_PixelShader ) )
+			return false;
+	}
+	else
+	{
+		if ( !CompileAndCreatePixelShader( device,
+			L"DepthPixelShader.hlsl", L"Shaders\\DepthPixelShader.cso",
+			&m_PixelShader ) )
+			return false;
+	}
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;
 	buffDesc.ByteWidth = sizeof( SMatrices );
@@ -83,7 +94,8 @@ void CDepthShader::Render( ID3D11DeviceContext * context, UINT indexCount, Direc
 	CViewInterface * Camera, ID3D11ShaderResourceView * Texture )
 {
 	SetData( context, World, Camera );
-	SetTextures( context, Texture );
+	if (m_Type == EType::Explicit )
+		SetTextures( context, Texture );
 	SetShaders( context );
 	DrawIndexed( context, indexCount );
 }

@@ -8,6 +8,11 @@ class CDepthShader sealed : public CShader
 	{
 		DirectX::XMMATRIX WVP;
 	};
+protected:
+	enum class EType
+	{
+		Explicit,Nonexplicit,
+	} m_Type;
 private:
 	ID3D11VertexShader * m_VertexShader;
 	ID3D11PixelShader * m_PixelShader;
@@ -18,7 +23,7 @@ public:
 	CDepthShader( );
 	~CDepthShader( );
 public:
-	bool Initialize( ID3D11Device * device );
+	bool Initialize( ID3D11Device * device, bool bUseExplicit = false );
 	void Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
 		CViewInterface * Camera, ID3D11ShaderResourceView * Texture );
 	void SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World, CViewInterface * Camera );

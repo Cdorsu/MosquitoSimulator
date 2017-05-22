@@ -7,13 +7,16 @@ ALIGN16 class CMosquito sealed
 {
 	std::vector<CModel*> m_vecModels;
 	UINT m_numStaticObjects;
+	UINT m_numDynamicObjects;
 	bool m_bAABBCalculated = false;
 	DirectX::XMMATRIX m_StaticWorld;
+	DirectX::XMMATRIX m_IdentityMatrix;
 public:
 	CMosquito( );
 	~CMosquito( );
 public:
 	bool Initialize( ID3D11Device * device, LPWSTR lpList );
+	void UpdateWings( );
 	void Render( ID3D11DeviceContext * context, UINT objectIndex );
 	void Shutdown( );
 public:
@@ -28,7 +31,7 @@ public:
 			return m_StaticWorld;
 		return m_vecModels[ index ]->GetWorld( );
 	}
-	inline void Identity( ) { m_StaticWorld = DirectX::XMMatrixScaling( 0.3f, 0.3f, 0.3f ) * DirectX::XMMatrixTranslation( 0.05f, -0.5f, -0.5f ); };
+	inline void Identity( ) { m_StaticWorld = m_IdentityMatrix; };
 	inline void Translate( float x, float y, float z ) { m_StaticWorld *= DirectX::XMMatrixTranslation( x, y, z ); };
 	inline void RotateX( float theta ) { m_StaticWorld *= DirectX::XMMatrixRotationX( theta ); };
 	inline void RotateY( float theta ) { m_StaticWorld *= DirectX::XMMatrixRotationY( theta ); };
@@ -41,6 +44,6 @@ public:
 	inline void operator delete ( void* object )
 	{
 		_aligned_free( object );
-	}
+	};
 };
 
