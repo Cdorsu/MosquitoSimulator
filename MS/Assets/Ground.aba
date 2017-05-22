@@ -16,5 +16,6 @@ Ground {
         Specular color: 0.8 0.8 0.8
         Specular power: 100
 		Diffuse map: 2DArt\\earth.jpg
+        Bump map: 2DArt\\earthNormals.png
     }
 }

@@ -67,7 +67,7 @@ float4 main ( PSIn input) : SV_TARGET
     {
         TextureColor = Color;
     }
-    float4 Color = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    float4 Color = Ambient;
 	float2 projTexCoord;
     float4 Specular = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	float bias = 0.005f;

@@ -33,6 +33,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_DepthShader = new CDepthShader( );
 	if ( !m_DepthShader->Initialize( m_D3D11->GetDevice( ) ) )
 		return false;
+	m_DepthShaderEx = new CDepthShader( );
+	if ( !m_DepthShaderEx->Initialize( m_D3D11->GetDevice( ), true ) )
+		return false;
 	m_ShadowShader = new CShadowShader( );
 	if ( !m_ShadowShader->Initialize( m_D3D11->GetDevice( ) ) )
 		return false;
@@ -356,6 +359,12 @@ CGraphics::~CGraphics( )
 		m_ShadowShader->Shutdown( );
 		delete m_ShadowShader;
 		m_ShadowShader = 0;
+	}
+	if ( m_DepthShaderEx )
+	{
+		m_DepthShaderEx->Shutdown( );
+		delete m_DepthShaderEx;
+		m_DepthShaderEx = 0;
 	}
 	if ( m_DepthShader )
 	{

@@ -33,6 +33,7 @@ private:
 	C2DShader * m_2DShader;
 	CSkyboxShader * m_SkyboxShader;
 	CDepthShader * m_DepthShader;
+	CDepthShader * m_DepthShaderEx;
 	CShadowShader * m_ShadowShader;
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
