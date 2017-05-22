@@ -19,7 +19,7 @@
 class CGraphics sealed
 {
 public:
-	static constexpr float CamNear = 1.0f;
+	static constexpr float CamNear = 0.1f;
 	static constexpr float CamFar = 200.0f;
 	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
 	static constexpr UINT SHADOW_WIDTH = 1024;

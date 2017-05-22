@@ -15,7 +15,7 @@ bool CShadowShader::Initialize( ID3D11Device * device )
 		L"ShadowVertexShader.hlsl", L"Shaders\\ShadowVertexShader.cso",
 		&m_VertexShader, &VertexShaderBlob ) )
 		return false;
-	D3D11_INPUT_ELEMENT_DESC layout[ 3 ];
+	D3D11_INPUT_ELEMENT_DESC layout[ 5 ];
 	layout[ 0 ].SemanticName = "POSITION";
 	layout[ 0 ].SemanticIndex = 0;
 	layout[ 0 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
@@ -37,6 +37,20 @@ bool CShadowShader::Initialize( ID3D11Device * device )
 	layout[ 2 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
 	layout[ 2 ].InstanceDataStepRate = 0;
 	layout[ 2 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	layout[ 3 ].SemanticName = "TANGENT";
+	layout[ 3 ].SemanticIndex = 0;
+	layout[ 3 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
+	layout[ 3 ].InputSlot = 0;
+	layout[ 3 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
+	layout[ 3 ].InstanceDataStepRate = 0;
+	layout[ 3 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	layout[ 4 ].SemanticName = "BINORMAL";
+	layout[ 4 ].SemanticIndex = 0;
+	layout[ 4 ].Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT;
+	layout[ 4 ].InputSlot = 0;
+	layout[ 4 ].InputSlotClass = D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA;
+	layout[ 4 ].InstanceDataStepRate = 0;
+	layout[ 4 ].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	UINT numElements = sizeof( layout ) / sizeof( layout[ 0 ] );
 	hr = device->CreateInputLayout( layout, numElements, // Info about the layout
 		VertexShaderBlob->GetBufferPointer( ), VertexShaderBlob->GetBufferSize( ), // Info about the vertex shader
@@ -107,6 +121,7 @@ void CShadowShader::SetMaterialData( ID3D11DeviceContext * context, CModel::SMat
 		return;
 	( ( SMaterialInfo* ) MappedResource.pData )->HasTexture = MaterialInfo->bHasTexture;
 	( ( SMaterialInfo* ) MappedResource.pData )->HasSpecularMap = MaterialInfo->Specularmap ? 1 : 0;
+	( ( SMaterialInfo* ) MappedResource.pData )->HasNormalMap = MaterialInfo->Bumpmap ? 1 : 0;
 	( ( SMaterialInfo* ) MappedResource.pData )->Color = MaterialInfo->DiffuseColor;
 	( ( SMaterialInfo* ) MappedResource.pData )->SpecularPower = MaterialInfo->SpecularPower;
 	context->Unmap( m_MaterialBuffer, 0 );
@@ -119,6 +134,11 @@ void CShadowShader::SetMaterialData( ID3D11DeviceContext * context, CModel::SMat
 		{
 			SRV = MaterialInfo->Specularmap->GetTexture( );
 			context->PSSetShaderResources( 2, 1, &SRV );
+		}
+		if ( MaterialInfo->Bumpmap != nullptr )
+		{
+			SRV = MaterialInfo->Bumpmap->GetTexture( );
+			context->PSSetShaderResources( 3, 1, &SRV );
 		}
 	}
 }

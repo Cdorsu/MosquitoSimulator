@@ -34,8 +34,8 @@ class CShadowShader sealed : public CShader
 		utility::SColor Color; 
 		BOOL HasTexture; 
 		BOOL HasSpecularMap;
-		float SpecularPower; 
-		float pad;
+		BOOL HasNormalMap;
+		float SpecularPower;
 	};
 private:
 	ID3D11VertexShader * m_VertexShader;

@@ -24,10 +24,12 @@ struct VSOut
 	float3 VertexToLightVector : POSITION1;
     float3 VertexToCamVector : POSITION2;
 	float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
+    float3 Binormal : BINORMAL;
 	float2 TexCoord : TEXCOORD;
 };
 
-VSOut main ( float4 inPos : POSITION, float3 inNor : NORMAL, float2 inTex : TEXCOORD )
+VSOut main(float4 inPos : POSITION, float3 inNor : NORMAL, float2 inTex : TEXCOORD, float3 inTag : TANGENT, float3 inBin : BINORMAL)
 {
 	VSOut output = ( VSOut ) 0;
 
@@ -41,6 +43,12 @@ VSOut main ( float4 inPos : POSITION, float3 inNor : NORMAL, float2 inTex : TEXC
 	
 	output.Normal = mul ( inNor, ( float3x3 ) g_World );
 	output.Normal = normalize ( output.Normal );
+
+    output.Tangent = mul(inTag, (float3x3) g_World);
+    output.Tangent = normalize(output.Tangent);
+
+    output.Binormal = mul(inBin, (float3x3) g_World);
+    output.Binormal = normalize(output.Binormal);
 
 	output.VertexToLightVector = g_LightPos.xyz - WorldPos.xyz;
 	output.VertexToLightVector = normalize ( output.VertexToLightVector );
