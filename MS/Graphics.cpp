@@ -143,12 +143,12 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 #endif
 	m_Cube->Identity( );
 	m_Cube->RotateY( -Rotation );
-	m_Cube->Translate( 0.0f, 1.0f, 0.0f );
+	m_Cube->Translate( 0.0f, 1.0f, 3.0f );
 
 	m_Torus->Identity( );
 	m_Torus->RotateX( ( FLOAT ) D3DX_PI / 2.f );
 	m_Torus->RotateY( Rotation );
-	m_Torus->Translate( 0.0f, 3.2f, 0.0f );
+	m_Torus->Translate( 0.0f, 3.2f, 3.0f );
 
 	m_Ground->Identity( );
 	m_Ground->Scale( 50.f, 50.f, 50.f );

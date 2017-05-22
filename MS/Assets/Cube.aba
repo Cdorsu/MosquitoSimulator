@@ -44,7 +44,7 @@ Cube {
         Ambient color: 0.0 0.0 0.0
         Diffuse color: 1 1 0
         Specular color: 0.8 0.8 0.8
-        Specular power: 64
+        Specular power: 3
         Specular map: 2DArt\\silvertextureSpecular.jpg
         Diffuse map: 2DArt\\silvertexture.jpg
         Bump map: 2DArt\\silvertextureNormals.png
