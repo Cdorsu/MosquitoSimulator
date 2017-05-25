@@ -177,15 +177,15 @@ void CGraphics::Render( )
 	m_D3D11->EnableBackFaceCulling( );
 
 	m_Ground->Render( m_D3D11->GetImmediateContext( ) );
-	m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetWorld( ),
+	m_DepthShaderEx->Render( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ), m_Ground->GetWorld( ),
 		m_LightView, m_Ground->GetTexture( ) );
 
 	m_Cube->Render( m_D3D11->GetImmediateContext( ) );
-	m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
+	m_DepthShaderEx->Render( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ), m_Cube->GetWorld( ),
 		m_LightView, m_Cube->GetTexture( ) );
 
 	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
-	m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
+	m_DepthShaderEx->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
 		m_LightView, m_Torus->GetTexture( ) );
 
 	m_D3D11->DisableCulling( );
@@ -248,6 +248,10 @@ void CGraphics::Render( )
 		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
 
 #if DEBUG || _DEBUG
+	m_DebugWindow->Render( m_D3D11->GetImmediateContext( ), 64, 64 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_Depthmap->GetTexture( ) );
+
 	m_DebugText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),

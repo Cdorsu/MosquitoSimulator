@@ -14,7 +14,7 @@ cbuffer cbPerLight : register( b1 )
 
 cbuffer cbPerFrame : register(b2)
 {
-    float3 g_CamPos;
+	float3 g_CamPos;
 };
 
 struct VSOut
@@ -22,10 +22,10 @@ struct VSOut
 	float4 Position : SV_Position;
 	float4 LightViewPosition : POSITION0;
 	float3 VertexToLightVector : POSITION1;
-    float3 VertexToCamVector : POSITION2;
+	float3 VertexToCamVector : POSITION2;
 	float3 Normal : NORMAL;
-    float3 Tangent : TANGENT;
-    float3 Binormal : BINORMAL;
+	float3 Tangent : TANGENT;
+	float3 Binormal : BINORMAL;
 	float2 TexCoord : TEXCOORD;
 };
 
@@ -44,17 +44,17 @@ VSOut main(float4 inPos : POSITION, float3 inNor : NORMAL, float2 inTex : TEXCOO
 	output.Normal = mul ( inNor, ( float3x3 ) g_World );
 	output.Normal = normalize ( output.Normal );
 
-    output.Tangent = mul(inTag, (float3x3) g_World);
-    output.Tangent = normalize(output.Tangent);
+	output.Tangent = mul(inTag, (float3x3) g_World);
+	output.Tangent = normalize(output.Tangent);
 
-    output.Binormal = mul(inBin, (float3x3) g_World);
-    output.Binormal = normalize(output.Binormal);
+	output.Binormal = mul(inBin, (float3x3) g_World);
+	output.Binormal = normalize(output.Binormal);
 
 	output.VertexToLightVector = g_LightPos.xyz - WorldPos.xyz;
 	output.VertexToLightVector = normalize ( output.VertexToLightVector );
 
-    output.VertexToCamVector = g_CamPos.xyz - WorldPos.xyz;
-    output.VertexToCamVector = normalize(output.VertexToCamVector);
+	output.VertexToCamVector = g_CamPos.xyz - WorldPos.xyz;
+	output.VertexToCamVector = normalize(output.VertexToCamVector);
 
 	output.TexCoord = inTex;
 
