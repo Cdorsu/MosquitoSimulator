@@ -75,7 +75,7 @@ bool CModel::ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 	if ( bCalculateAABB )
 	{
 		*minAABB = DirectX::XMFLOAT3( FLT_MAX, FLT_MAX, FLT_MAX );
-		*maxAABB = DirectX::XMFLOAT3( FLT_MIN, FLT_MIN, FLT_MIN );
+		*maxAABB = DirectX::XMFLOAT3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	}
 	/* Read file */
 	if ( word == L"Objects:" )
@@ -315,7 +315,8 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 {
 	m_Material = new SMaterial( );
 	ReadFile( device, lpFilepath, m_VertexCount,
-		m_IndexCount, m_vecVertices, m_vecIndices, m_Material );
+		m_IndexCount, m_vecVertices, m_vecIndices, m_Material,
+		0, true, &m_3fMinAABB, &m_3fMaxAABB );
 
 
 	/* Create buffers */

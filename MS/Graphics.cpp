@@ -90,11 +90,11 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Skybox = new CSkybox( );
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
 		return false;
-#if  !(_DEBUG || DEBUG)
 	m_Mosquito = new CMosquito( );
 	if ( !m_Mosquito->Initialize( m_D3D11->GetDevice( ), L"Assets\\ComplexModels\\Mosquito.abal" ) )
 		return false;
-#endif
+	m_Mosquito->CalculateAABB( );
+	m_Mosquito->CalculateCenter( );
 	m_Depthmap = new CRenderTexture( );
 	if ( !m_Depthmap->Initialize( m_D3D11->GetDevice( ), SHADOW_WIDTH, SHADOW_HEIGHT,
 		0.1f, 1.0f, 1, ( FLOAT ) 1 / ( FLOAT ) 1 ) )
@@ -116,8 +116,10 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_LightView->GenerateProjectionMatrix( FOV, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
 	m_LightView->GenerateViewMatrix( );
 
-	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 1.0f ) );
-	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( 0.0f, 1.0f, 0.0f, 1.0f ) );
+	auto Center = m_Mosquito->GetCenter( );
+
+	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( Center.x, Center.y, Center.z, 1.0f ) );
+	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Center.x, Center.y, Center.z, 1.0f ) );
 
 	return true;
 }
@@ -138,9 +140,9 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_ThirdPersonCamera->Update( );
 	m_ThirdPersonCamera->ConstructFrustum( );
 	m_Skybox->Update( m_ActiveCamera );
-#if !(DEBUG || _DEBUG)
+
 	m_Mosquito->UpdateWings( );
-#endif
+
 	m_Cube->Identity( );
 	m_Cube->RotateY( -Rotation );
 	m_Cube->Translate( 0.0f, 1.0f, 5.0f );
@@ -152,9 +154,9 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 
 	m_Ground->Identity( );
 	m_Ground->Scale( 50.f, 50.f, 50.f );
-#if !(DEBUG || _DEBUG)
+
 	m_Mosquito->Identity( );
-#endif
+
 	char buffer[ 10 ] = { 0 };
 	sprintf_s( buffer, "FPS: %d", FPS );
 	m_FPSText->Update( m_D3D11->GetImmediateContext( ), 0, 0, buffer );
@@ -188,7 +190,6 @@ void CGraphics::Render( )
 	m_DepthShaderEx->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
 		m_LightView, m_Torus->GetTexture( ) );
 
-#if !(DEBUG || _DEBUG)
 	/*for ( UINT i = 0; i < m_Mosquito->GetNumberOfObjects( ); ++i )
 	{
 		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
@@ -220,7 +221,6 @@ void CGraphics::Render( )
 		m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
 			m_Mosquito->GetModelWorld( i ), m_LightView, m_Mosquito->GetModel( i )->GetTexture( ) );
 	}
-#endif
 
 	m_D3D11->EnableBackFaceCulling( );
 
@@ -240,7 +240,6 @@ void CGraphics::Render( )
 	m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
 		m_ActiveCamera, m_Torus->GetMaterial( ), m_Depthmap->GetTexture( ), m_LightView );
 	
-#if !(DEBUG || _DEBUG)
 	/*for ( UINT i = 0; i < m_Mosquito->GetNumberOfObjects( ); ++i )
 	{
 		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
@@ -276,7 +275,6 @@ void CGraphics::Render( )
 			m_Mosquito->GetModelWorld( i ), m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_Depthmap->GetTexture( ),
 			m_LightView );
 	}
-#endif
 
 	m_D3D11->EnableDSLessEqual( );
 

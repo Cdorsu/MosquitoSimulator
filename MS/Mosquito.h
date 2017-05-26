@@ -11,7 +11,6 @@ ALIGN16 class CMosquito sealed
 	UINT m_numDynamicObjects;
 	bool m_bAABBCalculated = false;
 	DirectX::XMMATRIX m_StaticWorld;
-	DirectX::XMMATRIX m_IdentityMatrix;
 	DirectX::XMFLOAT3 m_3fMinAABB;
 	DirectX::XMFLOAT3 m_3fMaxAABB;
 	DirectX::XMFLOAT3 m_3fCenter;

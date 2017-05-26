@@ -78,9 +78,6 @@ bool CMosquito::Initialize( ID3D11Device * device, LPWSTR lpList )
 		/// Maybe do something with other data
 	}
 	ifCitire.close( );
-	//m_StaticWorld = DirectX::XMMatrixScaling( 0.3f, 0.3f, 0.3f ) * DirectX::XMMatrixTranslation( 0.05f, -0.5f, -0.5f );
-	m_StaticWorld = DirectX::XMMatrixIdentity( );
-	m_IdentityMatrix = DirectX::XMMatrixScaling( 0.3f, 0.3f, 0.3f );
 	for ( unsigned int i = 0; i < m_vecModels.size( ); ++i )
 	{
 		m_vecModels[ i ]->m_World = DirectX::XMMatrixIdentity( );;
@@ -91,21 +88,23 @@ bool CMosquito::Initialize( ID3D11Device * device, LPWSTR lpList )
 void CMosquito::CalculateAABB( )
 {
 	m_3fMinAABB = DirectX::XMFLOAT3( FLT_MAX, FLT_MAX, FLT_MAX );
-	m_3fMaxAABB = DirectX::XMFLOAT3( FLT_MIN, FLT_MIN, FLT_MIN );
+	m_3fMaxAABB = DirectX::XMFLOAT3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	for ( UINT i = 0; i < m_vecModels.size( ); ++i )
 	{
 		if ( m_vecModels[ i ]->m_3fMinAABB.x < m_3fMinAABB.x )
 			m_3fMinAABB.x = m_vecModels[ i ]->m_3fMinAABB.x;
-		else if ( m_vecModels[ i ]->m_3fMaxAABB.x > m_3fMaxAABB.x )
-			m_3fMaxAABB.x = m_vecModels[ i ]->m_3fMinAABB.x;
+		if ( m_vecModels[ i ]->m_3fMaxAABB.x > m_3fMaxAABB.x )
+			m_3fMaxAABB.x = m_vecModels[ i ]->m_3fMaxAABB.x;
+
 		if ( m_vecModels[ i ]->m_3fMinAABB.y < m_3fMinAABB.y )
 			m_3fMinAABB.y = m_vecModels[ i ]->m_3fMinAABB.y;
-		else if ( m_vecModels[ i ]->m_3fMaxAABB.y > m_3fMaxAABB.y )
-			m_3fMaxAABB.y = m_vecModels[ i ]->m_3fMinAABB.y;
+		if ( m_vecModels[ i ]->m_3fMaxAABB.y > m_3fMaxAABB.y )
+			m_3fMaxAABB.y = m_vecModels[ i ]->m_3fMaxAABB.y;
+
 		if ( m_vecModels[ i ]->m_3fMinAABB.z < m_3fMinAABB.z )
 			m_3fMinAABB.z = m_vecModels[ i ]->m_3fMinAABB.z;
-		else if ( m_vecModels[ i ]->m_3fMaxAABB.z > m_3fMaxAABB.z )
-			m_3fMaxAABB.z = m_vecModels[ i ]->m_3fMinAABB.z;
+		if ( m_vecModels[ i ]->m_3fMaxAABB.z > m_3fMaxAABB.z )
+			m_3fMaxAABB.z = m_vecModels[ i ]->m_3fMaxAABB.z;
 	}
 }
 
