@@ -4109,11 +4109,10 @@ polySurface2_polySurface1.002 {
     }
     Material phong2SG.002 {
         Ambient color: 0.0 0.0 0.0
-        Diffuse color: 0.5 0.5 0.5
+        Diffuse color: 0 0 0
         Specular color: 1.0 1.0 1.0
         Specular power: 99.039215
         Emissive color: 0.0 0.0 0.0 # probably won't use this
-        Diffuse map: 2DArt\\silvertexture.jpg
     }
     Physics: {
         Name: polySurface2_polySurface1.002

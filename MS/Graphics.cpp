@@ -109,7 +109,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 
 	m_LightView = new CLightView( );
 	m_LightView->SetLookAt( DirectX::XMVectorZero( ) );
-	m_LightView->SetPosition( DirectX::XMVectorSet( 0.1f, 6.0f, 0.0f, 1.0f ) );
+	m_LightView->SetPosition( DirectX::XMVectorSet( -3.0f, 6.0f, -4.0f, 1.0f ) );
 	m_LightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	m_LightView->SetDiffuse( utility::hexToRGB( 0xFFFFFF ) );
 	m_LightView->SetSpecularColor( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
@@ -143,12 +143,12 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 #endif
 	m_Cube->Identity( );
 	m_Cube->RotateY( -Rotation );
-	m_Cube->Translate( 0.0f, 1.0f, 3.0f );
+	m_Cube->Translate( 0.0f, 1.0f, 5.0f );
 
 	m_Torus->Identity( );
 	m_Torus->RotateX( ( FLOAT ) D3DX_PI / 2.f );
 	m_Torus->RotateY( Rotation );
-	m_Torus->Translate( 0.0f, 3.2f, 3.0f );
+	m_Torus->Translate( 0.0f, 3.2f, 5.0f );
 
 	m_Ground->Identity( );
 	m_Ground->Scale( 50.f, 50.f, 50.f );
@@ -188,9 +188,33 @@ void CGraphics::Render( )
 	m_DepthShaderEx->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
 		m_LightView, m_Torus->GetTexture( ) );
 
-	m_D3D11->DisableCulling( );
 #if !(DEBUG || _DEBUG)
-	for ( UINT i = 0; i < m_Mosquito->GetNumberOfObjects( ); ++i )
+	/*for ( UINT i = 0; i < m_Mosquito->GetNumberOfObjects( ); ++i )
+	{
+		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+		m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+			m_Mosquito->GetModelWorld( i ), m_LightView, m_Mosquito->GetModel( i )->GetTexture( ) );
+	}*/ /// Simple draw
+	m_D3D11->DisableCulling( );
+	UINT NoCulling = m_Mosquito->GetNumberOfStaticObjectsDrawnWithNoCulling( );
+	for ( UINT i = 0; i < NoCulling; ++i )
+	{
+		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+		m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+			m_Mosquito->GetModelWorld( i ), m_LightView, m_Mosquito->GetModel( i )->GetTexture( ) );
+	}
+	m_D3D11->EnableBackFaceCulling( );
+	UINT StaticObjects = m_Mosquito->GetNumberOfStaticObjects( );
+	for ( UINT i = NoCulling; i < StaticObjects; ++i )
+	{
+		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+		m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+			m_Mosquito->GetModelWorld( i ), m_LightView, m_Mosquito->GetModel( i )->GetTexture( ) );
+	}
+	m_D3D11->DisableCulling( );
+	UINT DynamicObjects = m_Mosquito->GetNumberOfDynamicObjects( );
+	UINT TotalObjects = m_Mosquito->GetNumberOfObjects( );
+	for ( UINT i = StaticObjects; i < TotalObjects; ++i )
 	{
 		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
 		m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
@@ -216,9 +240,36 @@ void CGraphics::Render( )
 	m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ), m_Torus->GetWorld( ),
 		m_ActiveCamera, m_Torus->GetMaterial( ), m_Depthmap->GetTexture( ), m_LightView );
 	
-	m_D3D11->DisableCulling( );
 #if !(DEBUG || _DEBUG)
-	for ( UINT i = 0; i < m_Mosquito->GetNumberOfObjects( ); ++i )
+	/*for ( UINT i = 0; i < m_Mosquito->GetNumberOfObjects( ); ++i )
+	{
+		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+		m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+			m_Mosquito->GetModelWorld( i ), m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_Depthmap->GetTexture( ),
+			m_LightView );
+	}*/ /// Simple draw
+	m_D3D11->DisableCulling( );
+	NoCulling = m_Mosquito->GetNumberOfStaticObjectsDrawnWithNoCulling( );
+	for ( UINT i = 0; i < NoCulling; ++i )
+	{
+		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+		m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+			m_Mosquito->GetModelWorld( i ), m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_Depthmap->GetTexture( ),
+			m_LightView );
+	}
+	m_D3D11->EnableBackFaceCulling( );
+	StaticObjects = m_Mosquito->GetNumberOfStaticObjects( );
+	for ( UINT i = NoCulling; i < StaticObjects; ++i )
+	{
+		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+		m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+			m_Mosquito->GetModelWorld( i ), m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_Depthmap->GetTexture( ),
+			m_LightView );
+	}
+	m_D3D11->DisableCulling( );
+	DynamicObjects = m_Mosquito->GetNumberOfDynamicObjects( );
+	TotalObjects = m_Mosquito->GetNumberOfObjects( );
+	for ( UINT i = StaticObjects; i < TotalObjects; ++i )
 	{
 		m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
 		m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
@@ -226,7 +277,6 @@ void CGraphics::Render( )
 			m_LightView );
 	}
 #endif
-	
 
 	m_D3D11->EnableDSLessEqual( );
 
@@ -248,10 +298,6 @@ void CGraphics::Render( )
 		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
 
 #if DEBUG || _DEBUG
-	m_DebugWindow->Render( m_D3D11->GetImmediateContext( ), 64, 64 );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_Depthmap->GetTexture( ) );
-
 	m_DebugText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),

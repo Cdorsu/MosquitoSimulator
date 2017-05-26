@@ -21,6 +21,8 @@ bool CModel::Initialize( ID3D11Device * device )
 		SVertex( 1.0f,-1.0f, 0.5f, 1.0f, 1.0f ),
 		SVertex(-1.0f,-1.0f, 0.5f, 0.0f, 1.0f ),
 	};
+	m_3fMinAABB = DirectX::XMFLOAT3( -1, -1, -1 );
+	m_3fMaxAABB = DirectX::XMFLOAT3( 1, 1, 1 );
 	m_VertexCount = sizeof( vertices ) / sizeof( vertices[ 0 ] );
 	DWORD indices[ ] =
 	{
@@ -50,7 +52,8 @@ bool CModel::Initialize( ID3D11Device * device )
 bool CModel::ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 	UINT& VertexCount, UINT& IndexCount,
 	std::vector<SVertex>& Vertices, std::vector<DWORD>& Indices,
-	SMaterial* Material, UINT toAdd )
+	SMaterial* Material, UINT toAdd, bool bCalculateAABB,
+	DirectX::XMFLOAT3* minAABB, DirectX::XMFLOAT3* maxAABB )
 {
 	size_t length = lstrlen( lpFilepath );
 	wchar_t *extension;
@@ -69,6 +72,11 @@ bool CModel::ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 	ifCitire >> word;
 	std::vector<std::wstring> Objects;
 	bool bHasTexture = false, bHasNormals = false, bHasTangents = false, bHasBinormals = false;
+	if ( bCalculateAABB )
+	{
+		*minAABB = DirectX::XMFLOAT3( FLT_MAX, FLT_MAX, FLT_MAX );
+		*maxAABB = DirectX::XMFLOAT3( FLT_MIN, FLT_MIN, FLT_MIN );
+	}
 	/* Read file */
 	if ( word == L"Objects:" )
 	{
@@ -142,6 +150,21 @@ bool CModel::ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 				if ( bHasBinormals )
 					ifCitire >> vertex.Binormal.x >> vertex.Binormal.y >> vertex.Binormal.z;
 				Vertices.push_back( vertex );
+				if ( bCalculateAABB )
+				{
+					if ( vertex.Position.x > maxAABB->x )
+						maxAABB->x = vertex.Position.x;
+					else if ( vertex.Position.x < minAABB->x )
+						minAABB->x = vertex.Position.x;
+					if ( vertex.Position.y > maxAABB->y )
+						maxAABB->y = vertex.Position.y;
+					else if ( vertex.Position.y < minAABB->y )
+						minAABB->y = vertex.Position.y;
+					if ( vertex.Position.z > maxAABB->z )
+						maxAABB->z = vertex.Position.z;
+					else if ( vertex.Position.z < minAABB->z )
+						minAABB->z = vertex.Position.z;
+				}
 			}
 			ifCitire.get( ch );
 			while ( ch != '}' )
@@ -296,6 +319,19 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 
 
 	/* Create buffers */
+	if ( !ReconstructVertexBuffer( device ) )
+		return false;
+	if ( !ReconstructIndexBuffer( device ) )
+		return false;
+
+	m_World = DirectX::XMMatrixIdentity( );
+
+	return true;
+}
+
+bool CModel::ReconstructVertexBuffer( ID3D11Device * device )
+{
+	SAFE_RELEASE( m_VertexBuffer );
 	HRESULT hr;
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	D3D11_SUBRESOURCE_DATA buffData = { 0 };
@@ -305,15 +341,21 @@ bool CModel::Initialize( ID3D11Device * device, LPWSTR lpFilepath )
 	buffData.pSysMem = &m_vecVertices[ 0 ];
 	hr = device->CreateBuffer( &buffDesc, &buffData, &m_VertexBuffer );
 	IFFAILED( hr, L"Couldn't create a vertex buffer" );
+	return true;
+}
+
+bool CModel::ReconstructIndexBuffer( ID3D11Device * device )
+{
+	SAFE_RELEASE( m_IndexBuffer );
+	HRESULT hr;
+	D3D11_BUFFER_DESC buffDesc = { 0 };
+	D3D11_SUBRESOURCE_DATA buffData = { 0 };
 	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
 	buffDesc.ByteWidth = sizeof( DWORD ) * m_vecIndices.size( );
 	buffData.pSysMem = &m_vecIndices[ 0 ];
 	hr = device->CreateBuffer( &buffDesc, &buffData, &m_IndexBuffer );
 	IFFAILED( hr, L"Couldn't create a index buffer" );
-
-	m_World = DirectX::XMMatrixIdentity( );
-
 	return true;
 }
 

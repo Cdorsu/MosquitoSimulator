@@ -1,12 +1,13 @@
 Mosquito {
-	Static: 5 {
+	Static: 6 3 {
+		Assets\\ComplexModels\\Eyes.aba
+		Assets\\ComplexModels\\Support.aba
 		Assets\\ComplexModels\\Head.aba
-		Assets\\ComplexModels\\Eyes.aba # to be drawn with no culling
 		Assets\\ComplexModels\\Legs.aba
 		Assets\\ComplexModels\\MainBody.aba
 		Assets\\ComplexModels\\TailCover.aba
 	}
 	Dynamic: 1 {
-		Assets\\ComplexModels\\RWing.aba
+		Assets\\ComplexModels\\Wing.aba
 	}
 }

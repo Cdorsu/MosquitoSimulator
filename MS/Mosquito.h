@@ -7,10 +7,14 @@ ALIGN16 class CMosquito sealed
 {
 	std::vector<CModel*> m_vecModels;
 	UINT m_numStaticObjects;
+	UINT m_numStaticNoCulledObjects;
 	UINT m_numDynamicObjects;
 	bool m_bAABBCalculated = false;
 	DirectX::XMMATRIX m_StaticWorld;
 	DirectX::XMMATRIX m_IdentityMatrix;
+	DirectX::XMFLOAT3 m_3fMinAABB;
+	DirectX::XMFLOAT3 m_3fMaxAABB;
+	DirectX::XMFLOAT3 m_3fCenter;
 public:
 	CMosquito( );
 	~CMosquito( );
@@ -21,9 +25,12 @@ public:
 	void Shutdown( );
 public:
 	void CalculateAABB( );
-	void CalculateCenter( );
+	void CalculateCenter( bool bReconstructBuffers = false );
 public:
 	inline UINT GetNumberOfObjects( ) { return m_vecModels.size( ); };
+	inline UINT GetNumberOfStaticObjects( ) { return m_numStaticObjects; };
+	inline UINT GetNumberOfStaticObjectsDrawnWithNoCulling( ) { return m_numStaticNoCulledObjects; };
+	inline UINT GetNumberOfDynamicObjects( ) { return m_numDynamicObjects; };
 	inline CModel* GetModel( UINT index ) { return m_vecModels[ index ]; };
 	inline DirectX::XMMATRIX GetModelWorld( UINT index )
 	{
@@ -31,7 +38,8 @@ public:
 			return m_StaticWorld;
 		return m_vecModels[ index ]->GetWorld( );
 	}
-	inline void Identity( ) { m_StaticWorld = m_IdentityMatrix; };
+	inline DirectX::XMFLOAT3 GetCenter( ) { return m_3fCenter; };
+	inline void Identity( ) { m_StaticWorld = DirectX::XMMatrixIdentity( ); };
 	inline void Translate( float x, float y, float z ) { m_StaticWorld *= DirectX::XMMatrixTranslation( x, y, z ); };
 	inline void RotateX( float theta ) { m_StaticWorld *= DirectX::XMMatrixRotationX( theta ); };
 	inline void RotateY( float theta ) { m_StaticWorld *= DirectX::XMMatrixRotationY( theta ); };

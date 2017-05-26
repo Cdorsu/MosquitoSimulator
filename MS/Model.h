@@ -18,9 +18,7 @@ public:
 			float u = 0.0f, float v = 0.0f,
 			float nx = 0.0f, float ny = 0.0f, float nz = 0.0f )
 			: Position( x, y, z ), Texture( u, v ), Normal( nx, ny, nz )
-		{
-			ZeroMemory( this, sizeof( SVertex ) );
-		};
+		{ };
 		DirectX::XMFLOAT3 Position;
 		DirectX::XMFLOAT2 Texture;
 		DirectX::XMFLOAT3 Normal;
@@ -48,19 +46,25 @@ public:
 public:
 	bool Initialize( ID3D11Device * device );
 	bool Initialize( ID3D11Device * device, LPWSTR lpFile );
+	bool ReconstructVertexBuffer( ID3D11Device * device );
+	bool ReconstructIndexBuffer( ID3D11Device * device );
 	void Render( ID3D11DeviceContext * context );
 	void Shutdown( );
 public:
 	static bool ReadFile( ID3D11Device * device, LPWSTR lpFilepath,
 		UINT& VertexCount, UINT& IndexCount,
 		std::vector<SVertex>& Vertices, std::vector<DWORD>& Indices,
-		SMaterial* Material, UINT toAddToIndices = 0 );
+		SMaterial* Material, UINT toAddToIndices = 0,
+		bool bCalculateAABB = false,
+		DirectX::XMFLOAT3* minAABB = nullptr, DirectX::XMFLOAT3* maxAABB = nullptr);
 protected:
 	std::vector<SVertex> m_vecVertices;
 	std::vector<DWORD> m_vecIndices;
 	UINT m_VertexCount;
 	UINT m_IndexCount;
 	DirectX::XMMATRIX m_World;
+	DirectX::XMFLOAT3 m_3fMinAABB;
+	DirectX::XMFLOAT3 m_3fMaxAABB;
 public:
 	inline DirectX::XMMATRIX& GetWorld( ) { return m_World; };
 	inline ID3D11ShaderResourceView* GetTexture( ) { if ( m_Material->Texture != nullptr ) return m_Material->Texture->GetTexture( ); else return nullptr; };
@@ -69,6 +73,8 @@ public:
 	inline SMaterial* GetMaterial( ) { return m_Material; };
 	inline UINT GetIndexCount( ) { return m_IndexCount; };
 	inline UINT GetVertexCount( ) { return m_VertexCount; };
+	inline std::vector<SVertex>& GetVertices( ) { return m_vecVertices; };
+	inline std::vector<DWORD>& GetIndices( ) { return m_vecIndices; };
 	inline float GetSpecularPower( ) { return m_Material->SpecularPower; };
 	inline utility::SColor GetSpecularColor( ) { return m_Material->SpecularColor; };
 public:
