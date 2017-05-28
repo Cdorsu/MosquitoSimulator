@@ -25,6 +25,10 @@ public:
 	virtual void SetShaders( ID3D11DeviceContext * context ) = 0;
 	virtual void Shutdown( ) = 0;
 public:
+	inline void Draw( ID3D11DeviceContext * context, UINT VertexCount )
+	{
+		context->Draw( VertexCount, 0 );
+	}
 	inline void DrawIndexed( ID3D11DeviceContext * context, UINT indexCount )
 	{
 		context->DrawIndexed( indexCount, 0, 0 );

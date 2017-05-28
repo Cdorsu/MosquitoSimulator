@@ -5,6 +5,7 @@
 #include "DefaultShader.h"
 #include "WorldShader.h"
 #include "C2DShader.h"
+#include "C3DShader.h"
 #include "SkyboxShader.h"
 #include "DepthShader.h"
 #include "ShadowShader.h"
@@ -14,10 +15,21 @@
 #include "Skybox.h"
 #include "RenderTexture.h"
 #include "LightView.h"
+#include "LineManager.h"
 #include "Mosquito.h"
 
 class CGraphics sealed
 {
+private:
+	struct SObjectToDraw
+	{
+		CModel * ModelToDraw;
+		float * World;
+		DirectX::XMMATRIX WorldMatrix;
+		SObjectToDraw( CModel * Model, float* World )
+			:ModelToDraw( Model ), World( World )
+		{};
+	};
 public:
 	static constexpr float CamNear = 0.1f;
 	static constexpr float CamFar = 200.0f;
@@ -31,6 +43,7 @@ private:
 	CDefaultShader * m_DefaultShader;
 	CWorldShader * m_WorldShader;
 	C2DShader * m_2DShader;
+	C3DShader * m_3DShader;
 	CSkyboxShader * m_SkyboxShader;
 	CDepthShader * m_DepthShader;
 	CDepthShader * m_DepthShaderEx;
@@ -38,6 +51,7 @@ private:
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
 	CTextureWindow * m_DebugWindow;
+	CLineManager * m_LineManager;
 	CModel * m_Cube;
 	CModel * m_Torus;
 	CModel * m_Ground;
@@ -54,6 +68,8 @@ private:
 	CLightView * m_LightView;
 
 	CLight * m_Light;
+private:
+	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
 private: // Fonts
 	FontClass * m_Font;
 	FontClass * m_Font01;
@@ -67,21 +83,46 @@ public:
 public:
 	bool Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen = true, CInput * Input = nullptr );
 	void Update( float fFrameTime, UINT FPS );
+	void RenderUI( );
 	void Render( );
+	void RenderPlane( float* World );
+	void RenderCube( float* World );
+	void RenderTorus( float* World );
+	void RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color );
 	void Shutdown( );
+private:
+	void RenderScene( );
 public:
 	inline void SwitchFullScreenState( )
 	{
 		m_D3D11->SwitchFullscreenState( m_bFullscreen ?
 			( FALSE, m_bFullscreen = false ) : ( TRUE, m_bFullscreen = true ) );
 	}
+	inline void AddObjectToRenderList( std::wstring Name, CModel * Model, float* World )
+	{
+		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World );
+		m_mwvecObjectsToDraw[ Name ][ m_mwvecObjectsToDraw[ Name ].size( ) - 1 ]
+			.WorldMatrix = DirectX::XMMATRIX( World );
+	}
+public:
+	inline CModel * GetTorus( )
+	{
+		return m_Torus;
+	}
+	inline CModel * GetCube( )
+	{
+		return m_Cube;
+	}
 public:
 	inline void BeginScene( )
 	{
+		m_D3D11->EnableDefaultViewPort( );
+		m_D3D11->EnableBackBuffer( );
 		m_D3D11->BeginScene( );
 	}
 	inline void EndScene( )
 	{
+		RenderScene( );
 		m_D3D11->EndScene( );
 	}
 };

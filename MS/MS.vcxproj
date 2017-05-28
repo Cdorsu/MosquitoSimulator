@@ -81,6 +81,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>D:\bullet3-2.85.1\bullet3-2.85.1\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -97,6 +99,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>D:\bullet3-2.85.1\bullet3-2.85.1\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -119,6 +123,7 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="C2DShader.cpp" />
+    <ClCompile Include="C3DShader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="D3D11.cpp" />
     <ClCompile Include="DefaultShader.cpp" />
@@ -127,8 +132,10 @@
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="HRTimer.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="LineManager.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Mosquito.cpp" />
+    <ClCompile Include="Physics.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="ShadowShader.cpp" />
     <ClCompile Include="Skybox.cpp" />
@@ -143,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="C2DShader.h" />
+    <ClInclude Include="C3DShader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="common\definitions.h" />
     <ClInclude Include="common\DirectXIncludes.h" />
@@ -158,8 +166,10 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightView.h" />
+    <ClInclude Include="LineManager.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Mosquito.h" />
+    <ClInclude Include="Physics.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
@@ -181,6 +191,20 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)Shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="2DVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="3DPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="3DVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -272,6 +296,17 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="2DArt\Mosquito-Download-PNG.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\Stefan\Desktop\Bullet\src\BulletCollision\BulletCollision.vcxproj">
+      <Project>{46aa8e0e-523d-3927-959f-223b71da2df0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\Stefan\Desktop\Bullet\src\BulletDynamics\BulletDynamics.vcxproj">
+      <Project>{1d4e6e6e-e987-3516-a00b-cc954b604fc1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\Stefan\Desktop\Bullet\src\LinearMath\LinearMath.vcxproj">
+      <Project>{e93b3384-0029-3c0a-bd46-19714d4db020}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

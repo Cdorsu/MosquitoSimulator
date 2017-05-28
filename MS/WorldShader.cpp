@@ -92,13 +92,22 @@ void CWorldShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& W
 	static HRESULT hr;
 	static DirectX::XMMATRIX WVP;
 	static D3D11_MAPPED_SUBRESOURCE MappedResource;
+#ifdef _USE_TRANSPOSED_WORLD_MATRIX_
 	WVP = World * Camera->GetView( ) * Camera->GetProjection( );
+#else
+	WVP = DirectX::XMMatrixTranspose( World ) * Camera->GetView( ) * Camera->GetProjection( );
+#endif // _USE_TRANSPOSED_WORLD_MATRIX
+
 	WVP = DirectX::XMMatrixTranspose( WVP );
 	hr = context->Map( m_Buffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )
 		return;
 	( ( SMatrices* ) MappedResource.pData )->WVP = WVP;
+#ifdef _USE_TRANSPOSED_WORLD_MATRIX_
 	( ( SMatrices* ) MappedResource.pData )->World = DirectX::XMMatrixTranspose( World );
+#else
+	( ( SMatrices* ) MappedResource.pData )->World = World;
+#endif // _USE_TRANSPOSED_WORLD_MATRIX_
 	( ( SMatrices* ) MappedResource.pData )->CamPos = Camera->GetCamPos( );
 	context->Unmap( m_Buffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &m_Buffer );

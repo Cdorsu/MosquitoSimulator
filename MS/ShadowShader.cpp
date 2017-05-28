@@ -175,14 +175,23 @@ void CShadowShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX &
 	static HRESULT hr;
 	static D3D11_MAPPED_SUBRESOURCE MappedResource;
 	static DirectX::XMMATRIX WVP;
+#ifndef _USE_TRANSPOSED_WORLD_MATRIX_
 	WVP = World * Camera->GetView( ) * Camera->GetProjection( );
+#else
+	WVP = DirectX::XMMatrixTranspose( World ) * Camera->GetView( ) * Camera->GetProjection( );
+#endif // _USE_TRANSPOSED_WORLD_MATRIX
+
 	WVP = DirectX::XMMatrixTranspose( WVP );
 
 	hr = context->Map( m_Buffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )
 		return;
 	( ( SMatrices* ) MappedResource.pData )->WVP = WVP;
+#ifndef _USE_TRANSPOSED_WORLD_MATRIX_
 	( ( SMatrices* ) MappedResource.pData )->World = DirectX::XMMatrixTranspose( World );
+#else
+	( ( SMatrices* ) MappedResource.pData )->World = World;
+#endif // _USE_TRANSPOSED_WORLD_MATRIX_
 	context->Unmap( m_Buffer, 0 );
 	context->VSSetConstantBuffers( 0, 1, &m_Buffer );
 	hr = context->Map( m_CameraBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );

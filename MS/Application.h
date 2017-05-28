@@ -6,6 +6,7 @@
 #include "Graphics.h"
 #include "Input.h"
 #include "HRTimer.h"
+#include "Physics.h"
 #include "resource.h"
 
 class CApplication sealed
@@ -18,6 +19,7 @@ class CApplication sealed
 	UINT m_FPS;
 	CGraphics * m_Graphics = nullptr;
 	CInput * m_Input = nullptr;
+	CPhysics * m_Physics = nullptr;
 private:
 	bool InitWindow( HINSTANCE hInstance, bool bFullscreen );
 public:

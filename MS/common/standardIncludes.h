@@ -8,6 +8,8 @@
 #include <fstream>
 #include <sstream>
 #include <array>
+#include <chrono>
+#include <map>
 
 // C
 #include <cstring>

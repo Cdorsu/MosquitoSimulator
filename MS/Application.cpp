@@ -23,8 +23,8 @@ bool CApplication::InitWindow( HINSTANCE hInstance, bool bFullscreen )
 		return false;
 	}
 
-	m_WindowWidth = GetSystemMetrics( SM_CXSCREEN );
-	m_WindowHeight = GetSystemMetrics( SM_CYSCREEN );
+	m_WindowWidth = 800;
+	m_WindowHeight = 600;
 
 	m_hWnd = CreateWindowEx( WS_EX_CLIENTEDGE, ENGINE_NAME, GAME_NAME, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, m_WindowWidth, m_WindowHeight, nullptr, nullptr, hInstance, nullptr );
@@ -50,6 +50,10 @@ bool CApplication::Initialize( HINSTANCE hInstance, bool bFullscreen )
 
 	m_Graphics = new CGraphics( );
 	if ( !m_Graphics->Initialize( m_hWnd, m_WindowWidth, m_WindowHeight, bFullscreen, m_Input ) )
+		return false;
+
+	m_Physics = new CPhysics( );
+	if ( !m_Physics->Initialize( m_Graphics, m_Input ) )
 		return false;
 
 	return true;
@@ -80,7 +84,9 @@ void CApplication::Run( )
 			if ( m_Input->isKeyPressed( DIK_ESCAPE ) )
 				break;
 			m_Graphics->Update( m_Timer.GetFrameTime( ), m_FPS );
-			m_Graphics->Render( );
+			m_Graphics->BeginScene( );
+			m_Physics->Frame( m_Timer.GetFrameTime( ) );
+			m_Graphics->EndScene( );
 		}
 	}
 }
@@ -93,6 +99,8 @@ void CApplication::Shutdown( )
 		delete m_Graphics;
 	if ( m_Input )
 		delete m_Input;
+	if ( m_Physics )
+		delete m_Physics;
 }
 
 CApplication::~CApplication( )

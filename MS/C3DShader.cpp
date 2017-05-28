@@ -1,19 +1,18 @@
-#include "DepthShader.h"
+#include "C3DShader.h"
 
 
 
-CDepthShader::CDepthShader( )
+C3DShader::C3DShader( )
 {
-	ZeroMemory( this, sizeof( CDepthShader ) );
+	ZeroMemory( this, sizeof( C3DShader ) );
 }
 
-bool CDepthShader::Initialize( ID3D11Device * device, bool bUseExplicit )
+bool C3DShader::Initialize( ID3D11Device * device )
 {
-	m_Type = bUseExplicit ? EType::Explicit : EType::Nonexplicit;
 	HRESULT hr;
 	ID3DBlob * VertexShaderBlob;
 	if ( !CompileAndCreateVertexShader( device,
-		L"DepthVertexShader.hlsl", L"Shaders\\DepthVertexShader.cso",
+		L"3DVertexShader.hlsl", L"Shaders\\3DVertexShader.cso",
 		&m_VertexShader, &VertexShaderBlob ) )
 		return false;
 	D3D11_INPUT_ELEMENT_DESC layout[ 2 ];
@@ -36,26 +35,19 @@ bool CDepthShader::Initialize( ID3D11Device * device, bool bUseExplicit )
 		VertexShaderBlob->GetBufferPointer( ), VertexShaderBlob->GetBufferSize( ), // Info about the vertex shader
 		&m_InputLayout ); // The input layout
 	IFFAILED( hr, L"Couldn't create a input layout" );
-	if ( bUseExplicit )
-	{
-		if ( !CompileAndCreatePixelShader( device,
-			L"DepthPixelShaderEx.hlsl", L"Shaders\\DepthPixelShaderEx.cso",
-			&m_PixelShader ) )
-			return false;
-	}
-	else
-	{
-		if ( !CompileAndCreatePixelShader( device,
-			L"DepthPixelShader.hlsl", L"Shaders\\DepthPixelShader.cso",
-			&m_PixelShader ) )
-			return false;
-	}
+	if ( !CompileAndCreatePixelShader( device,
+		L"3DPixelShader.hlsl", L"Shaders\\3DPixelShader.cso",
+		&m_PixelShader ) )
+		return false;
 	D3D11_BUFFER_DESC buffDesc = { 0 };
 	buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;
 	buffDesc.ByteWidth = sizeof( SMatrices );
 	buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
 	buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
-	hr = device->CreateBuffer( &buffDesc, nullptr, &m_Buffer );
+	hr = device->CreateBuffer( &buffDesc, nullptr, &m_Matrices );
+	IFFAILED( hr, L"Couldn't create a constant buffer" );
+	buffDesc.ByteWidth = sizeof( SColor );
+	hr = device->CreateBuffer( &buffDesc, nullptr, &m_Texture );
 	IFFAILED( hr, L"Couldn't create a constant buffer" );
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory( &sampDesc, sizeof( D3D11_SAMPLER_DESC ) );
@@ -63,7 +55,7 @@ bool CDepthShader::Initialize( ID3D11Device * device, bool bUseExplicit )
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
-	sampDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
 	sampDesc.MaxAnisotropy = 16;
 	sampDesc.MaxLOD = 0;
 	sampDesc.MinLOD = 0;
@@ -73,8 +65,7 @@ bool CDepthShader::Initialize( ID3D11Device * device, bool bUseExplicit )
 	return true;
 }
 
-void CDepthShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World,
-	CViewInterface * Camera )
+void C3DShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& World, CViewInterface* Camera )
 {
 	static HRESULT hr;
 	static DirectX::XMMATRIX WVP;
@@ -85,46 +76,58 @@ void CDepthShader::SetData( ID3D11DeviceContext * context, DirectX::FXMMATRIX& W
 	WVP = DirectX::XMMatrixTranspose( World ) * Camera->GetView( ) * Camera->GetProjection( );
 #endif // _USE_TRANSPOSED_WORLD_MATRIX
 	WVP = DirectX::XMMatrixTranspose( WVP );
-	hr = context->Map( m_Buffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	hr = context->Map( m_Matrices, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
 	if ( FAILED( hr ) )
 		return;
 	( ( SMatrices* ) MappedResource.pData )->WVP = WVP;
-	context->Unmap( m_Buffer, 0 );
-	context->VSSetConstantBuffers( 0, 1, &m_Buffer );
+	context->Unmap( m_Matrices, 0 );
+	context->VSSetConstantBuffers( 0, 1, &m_Matrices );
+}
+
+void C3DShader::SetMaterialData( ID3D11DeviceContext * context, bool bHasTexture, utility::SColor Color,
+	ID3D11ShaderResourceView * Texture )
+{
+	static HRESULT hr;
+	static D3D11_MAPPED_SUBRESOURCE MappedResource;
+	hr = context->Map( m_Texture, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+	if ( FAILED( hr ) )
+		return;
+	( ( SColor* ) MappedResource.pData )->bHasTexture = bHasTexture ? TRUE : FALSE;
+	( ( SColor* ) MappedResource.pData )->Color = Color;
+	context->Unmap( m_Texture, 0 );
+	context->PSSetConstantBuffers( 0, 1, &m_Texture );
+	context->PSSetShaderResources( 0, 1, &Texture );
 	context->PSSetSamplers( 0, 1, &m_WrapSampler );
 }
 
-void CDepthShader::Render( ID3D11DeviceContext * context, UINT indexCount, DirectX::FXMMATRIX& World,
-	CViewInterface * Camera, ID3D11ShaderResourceView * Texture )
+void C3DShader::Render( ID3D11DeviceContext * context, UINT indexCount,
+	DirectX::FXMMATRIX& World, CViewInterface * Camera,
+	bool bHasTexture, utility::SColor Color,
+	ID3D11ShaderResourceView * Texture )
 {
 	SetData( context, World, Camera );
-	if (m_Type == EType::Explicit )
-		SetTextures( context, Texture );
+	SetMaterialData( context, bHasTexture, Color, Texture );
 	SetShaders( context );
 	DrawIndexed( context, indexCount );
 }
 
-void CDepthShader::SetTextures( ID3D11DeviceContext * context, ID3D11ShaderResourceView * Texture )
-{
-	context->PSSetShaderResources( 0, 1, &Texture );
-}
-
-void CDepthShader::SetShaders( ID3D11DeviceContext * context )
+void C3DShader::SetShaders( ID3D11DeviceContext * context )
 {
 	context->VSSetShader( m_VertexShader, nullptr, 0 );
 	context->PSSetShader( m_PixelShader, nullptr, 0 );
 	context->IASetInputLayout( m_InputLayout );
 }
 
-void CDepthShader::Shutdown( )
+void C3DShader::Shutdown( )
 {
 	SAFE_RELEASE( m_VertexShader );
 	SAFE_RELEASE( m_PixelShader );
 	SAFE_RELEASE( m_InputLayout );
-	SAFE_RELEASE( m_Buffer );
+	SAFE_RELEASE( m_Matrices );
+	SAFE_RELEASE( m_Texture );
 	SAFE_RELEASE( m_WrapSampler );
 }
 
-CDepthShader::~CDepthShader( )
+C3DShader::~C3DShader( )
 {
 }
