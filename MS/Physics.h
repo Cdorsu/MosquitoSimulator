@@ -11,10 +11,13 @@
 
 class CPhysics sealed : public btIDebugDraw
 {
+	static constexpr int CheckpointID = 69;
+	static constexpr int PlayerID = 169;
 	struct bulletObject
 	{
 		btRigidBody* Body;
 		std::wstring Name;
+		unsigned int Score;
 		bulletObject( )
 		{
 			ZeroMemory( this, sizeof( CPhysics::bulletObject ) );
@@ -33,6 +36,8 @@ private:
 private: // To be taken from an upper level (CApplication)
 	CGraphics * m_Graphics;
 	CInput * m_Input;
+private: // Deleted automatically
+	bulletObject * m_Player;
 public:
 	CPhysics( );
 	~CPhysics( );
@@ -40,6 +45,10 @@ public:
 	bool Initialize( CGraphics * GraphicsObject, CInput * InputObject );
 	void Frame( float fFrameTime );
 	void Shutdown( );
+public:
+	static bool Collision( btManifoldPoint& cp,
+		const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
+		const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1 );
 public: // Inherited
 	void drawLine( const btVector3& from, const btVector3& to, const btVector3& color )
 	{

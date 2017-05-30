@@ -86,6 +86,10 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_FrameTimeText->Initialize( m_D3D11->GetDevice( ), m_Font01,
 		20, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
+	m_ScoreText = new CText( );
+	if ( !m_ScoreText->Initialize( m_D3D11->GetDevice( ), m_Font01,
+		12, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
+		return false;
 #if _DEBUG || DEBUG
 	m_DebugText = new CText( );
 	if ( !m_DebugText->Initialize( m_D3D11->GetDevice( ), m_Font01,
@@ -178,11 +182,14 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	char buffer2[ 20 ] = { 0 };
 	sprintf_s( buffer2, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ), buffer2 );
+	char buffer3[ 12 ] = { 0 };
+	sprintf_s( buffer3, "Score: %d", m_iScore );
+	m_ScoreText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ) * 2, buffer3 );
 #if DEBUG || _DEBUG
-	char buffer3[ 300 ] = { 0 };
-	sprintf_s( buffer3, "DEBUG MODE" );
+	char buffer4[ 300 ] = { 0 };
+	sprintf_s( buffer4, "DEBUG MODE" );
 	m_DebugText->Update( m_D3D11->GetImmediateContext( ), 0,
-		m_FPSText->GetHeight( ) + m_FrameTimeText->GetHeight( ), buffer3 );
+		m_FPSText->GetHeight( ) * 3, buffer4 );
 #endif
 }
 
@@ -413,6 +420,12 @@ void CGraphics::RenderScene( )
 	RenderUI( );
 }
 
+void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position )
+{
+	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
+	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
+}
+
 void CGraphics::RenderPlane( float* World )
 {
 	AddObjectToRenderList( L"Plane", m_Ground, World );
@@ -449,6 +462,11 @@ void CGraphics::RenderUI( )
 	m_FrameTimeText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FrameTimeText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
+		utility::SColor( 1.0f, 1.0f, 0.0f, 1.0f ) );
+
+	m_ScoreText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_ScoreText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_ScoreText->GetTexture( ),
 		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
 
 #if DEBUG || _DEBUG
@@ -497,6 +515,12 @@ CGraphics::~CGraphics( )
 		m_DebugText = 0;
 	}
 #endif
+	if ( m_ScoreText )
+	{
+		m_ScoreText->Shutdown( );
+		delete m_ScoreText;
+		m_ScoreText = 0;
+	}
 	if ( m_FrameTimeText )
 	{
 		m_FrameTimeText->Shutdown( );

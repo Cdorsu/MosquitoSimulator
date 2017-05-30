@@ -57,6 +57,7 @@ private:
 	CModel * m_Ground;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
+	CText * m_ScoreText;
 #if _DEBUG || DEBUG
 	CText * m_DebugText;
 #endif
@@ -70,6 +71,7 @@ private:
 	CLight * m_Light;
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
+	UINT m_iScore;
 private: // Fonts
 	FontClass * m_Font;
 	FontClass * m_Font01;
@@ -89,9 +91,17 @@ public:
 	void RenderCube( float* World );
 	void RenderTorus( float* World );
 	void RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color );
+	void RenderPlayer( DirectX::XMFLOAT3 Position );
 	void Shutdown( );
 private:
 	void RenderScene( );
+public:
+	inline void SetScore( UINT score )
+	{
+		m_iScore = score;
+		if ( m_iScore > 9999 )
+			m_iScore = 9999;
+	}
 public:
 	inline void SwitchFullScreenState( )
 	{
@@ -103,6 +113,11 @@ public:
 		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World );
 		m_mwvecObjectsToDraw[ Name ][ m_mwvecObjectsToDraw[ Name ].size( ) - 1 ]
 			.WorldMatrix = DirectX::XMMATRIX( World );
+	}
+public:
+	inline CCamera * GetCamera( )
+	{
+		return m_ActiveCamera;
 	}
 public:
 	inline CModel * GetTorus( )

@@ -6,7 +6,7 @@
 #include "common\utility.h"
 #include "Texture.h"
 
-ALIGN16 class CMosquito sealed;
+ALIGN16 class CMosquito;
 
 ALIGN16 class CModel sealed
 {
@@ -77,6 +77,8 @@ public:
 	inline std::vector<DWORD>& GetIndices( ) { return m_vecIndices; };
 	inline float GetSpecularPower( ) { return m_Material->SpecularPower; };
 	inline utility::SColor GetSpecularColor( ) { return m_Material->SpecularColor; };
+	inline DirectX::XMFLOAT3 GetMinAABB( ) { return m_3fMinAABB; };
+	inline DirectX::XMFLOAT3 GetMaxAABB( ) { return m_3fMaxAABB; };
 public:
 	inline void Identity( ) { m_World = DirectX::XMMatrixIdentity( ); };
 	inline void Translate( float x, float y, float z ) { m_World *= DirectX::XMMatrixTranslation( x, y, z ); };

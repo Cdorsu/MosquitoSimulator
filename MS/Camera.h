@@ -55,6 +55,18 @@ public:
 	virtual DirectX::XMMATRIX& GetView( ) override { return m_ViewMatrix; };
 	virtual DirectX::XMMATRIX& GetProjection( ) override { return m_ProjectionMatrix; };
 	inline DirectX::XMVECTOR& GetPosition( ) { return m_Position; };
+	inline DirectX::XMFLOAT3 GetDirection( )
+	{
+		DirectX::XMFLOAT3 Result;
+		DirectX::XMStoreFloat3( &Result, m_Direction );
+		return Result;
+	}
+	inline DirectX::XMFLOAT3 GetRight( )
+	{
+		DirectX::XMFLOAT3 Result;
+		DirectX::XMStoreFloat3( &Result, m_Right );
+		return Result;
+	}
 	virtual DirectX::XMFLOAT3 GetCamPos() override
 	{
 		DirectX::XMFLOAT3 Result;
