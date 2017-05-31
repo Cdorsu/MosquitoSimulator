@@ -25,10 +25,12 @@ private:
 	{
 		CModel * ModelToDraw;
 		float * World;
-		DirectX::XMMATRIX WorldMatrix;
+		DirectX::XMFLOAT4X4 _4x4fWorld;
 		SObjectToDraw( CModel * Model, float* World )
 			:ModelToDraw( Model ), World( World )
-		{};
+		{
+			DirectX::XMStoreFloat4x4( &_4x4fWorld, DirectX::XMMATRIX( World ) );
+		};
 	};
 public:
 	static constexpr float CamNear = 0.1f;
@@ -111,13 +113,11 @@ public:
 	inline void AddObjectToRenderList( std::wstring Name, CModel * Model, float* World )
 	{
 		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World );
-		m_mwvecObjectsToDraw[ Name ][ m_mwvecObjectsToDraw[ Name ].size( ) - 1 ]
-			.WorldMatrix = DirectX::XMMATRIX( World );
 	}
 public:
 	inline CCamera * GetCamera( )
 	{
-		return m_ActiveCamera;
+		return m_FirstPersonCamera;
 	}
 public:
 	inline CModel * GetTorus( )

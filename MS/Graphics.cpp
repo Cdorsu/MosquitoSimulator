@@ -338,6 +338,7 @@ void CGraphics::Render( )
 
 void CGraphics::RenderScene( )
 {
+	static DirectX::XMMATRIX WorldMatrix;
 	m_D3D11->EnableBackFaceCulling( );
 	m_Depthmap->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
 	m_Depthmap->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
@@ -349,7 +350,8 @@ void CGraphics::RenderScene( )
 			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_LightView );
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ) );
 			}
 		}
@@ -358,7 +360,8 @@ void CGraphics::RenderScene( )
 			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_LightView );
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ) );
 			}
 		}
@@ -367,7 +370,8 @@ void CGraphics::RenderScene( )
 			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_LightView );
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
 			}
 		}
@@ -389,7 +393,8 @@ void CGraphics::RenderScene( )
 			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_ActiveCamera );
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Ground->GetMaterial( ) );
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ) );
 			}
@@ -399,7 +404,8 @@ void CGraphics::RenderScene( )
 			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_ActiveCamera );
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Cube->GetMaterial( ) );
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ) );
 			}
@@ -409,12 +415,12 @@ void CGraphics::RenderScene( )
 			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_ActiveCamera );
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Torus->GetMaterial( ) );
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
 			}
 		}
-
 	}
 	m_mwvecObjectsToDraw.clear( );
 	RenderUI( );
