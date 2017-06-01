@@ -26,6 +26,8 @@ private:
 		CModel * ModelToDraw;
 		float * World;
 		DirectX::XMFLOAT4X4 _4x4fWorld;
+		bool bRenderDepthMap;
+		bool bRenderBackBuffer;
 		SObjectToDraw( CModel * Model, float* World )
 			:ModelToDraw( Model ), World( World )
 		{
@@ -112,6 +114,17 @@ public:
 	}
 	inline void AddObjectToRenderList( std::wstring Name, CModel * Model, float* World )
 	{
+		static auto toIndex = [ ]
+			( int row, int col, int nCols = 4 )->int
+		{
+			return row * nCols + col;
+		};
+		float toAddX = World[ toIndex( 4, 0 ) ];
+		float toAddY = World[ toIndex( 4, 1 ) ];
+		float toAddZ = World[ toIndex( 4, 2 ) ];
+		auto minAABB = Model->GetMinAABB( );
+		auto maxAABB = Model->GetMaxAABB( );
+		
 		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World );
 	}
 public:
@@ -133,6 +146,8 @@ public:
 	{
 		m_D3D11->EnableDefaultViewPort( );
 		m_D3D11->EnableBackBuffer( );
+		m_LightView->ConstructFrustum( );
+		m_ActiveCamera->ConstructFrustum( );
 		m_D3D11->BeginScene( );
 	}
 	inline void EndScene( )

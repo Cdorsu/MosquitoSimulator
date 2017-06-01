@@ -1,5 +1,8 @@
 #pragma once
 
+#include "windowsIncludes.h"
+#include "standardIncludes.h"
+
 namespace utility
 {
 	struct SColor
@@ -25,5 +28,14 @@ namespace utility
 		float green = ( ( color >> 8 ) & 0xFF ) / 255.0f;
 		float blue = ( ( color >> 16 ) & 0xFF ) / 255.0f;
 		return SColor( red, green, blue, 1.0f );
+	}
+	inline void OutputVDebugString( const wchar_t * format, ... )
+	{
+		static wchar_t Sequence[ 1024 ];
+		va_list args;
+		va_start( args, format );
+		_vsnwprintf_s( Sequence, sizeof( Sequence ), format, args );
+		va_end( args );
+		OutputDebugStringW( Sequence );
 	}
 }

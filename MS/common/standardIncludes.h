@@ -10,6 +10,7 @@
 #include <array>
 #include <chrono>
 #include <map>
+#include <random>
 
 // C
 #include <cstring>

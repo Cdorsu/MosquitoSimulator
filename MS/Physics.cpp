@@ -1,9 +1,13 @@
 #include "Physics.h"
 
-
+btMatrix3x3 CPhysics::m_3x3RotationMatrix = btMatrix3x3( );
+std::random_device CPhysics::m_RandomDevice;
+std::mt19937 CPhysics::m_RandomGenerator = std::mt19937( CPhysics::m_RandomDevice( ) );
+std::uniform_real_distribution<float> CPhysics::m_FloatDistribution = std::uniform_real_distribution<float>( -50, 50 );
 
 CPhysics::CPhysics( )
 {
+	m_3x3RotationMatrix.setEulerYPR( 0, 0, SIMD_HALF_PI );
 }
 
 bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
@@ -48,13 +52,15 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 
 	auto TorusMaxAABB = m_Graphics->GetTorus( )->GetMaxAABB( );
 	btCollisionShape * TorusShape = new btBoxShape( btVector3( TorusMaxAABB.x, TorusMaxAABB.y, TorusMaxAABB.z ) );
-	btMotionState * TorusState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 15, 0 ) ) );
-	btRigidBody::btRigidBodyConstructionInfo TorusCI( 25, TorusState, TorusShape, localInertia );
+	btMotionState * TorusState = new btDefaultMotionState( btTransform( m_3x3RotationMatrix, btVector3( 0, 2, 0 ) ) );
+	btRigidBody::btRigidBodyConstructionInfo TorusCI( 0, TorusState, TorusShape, localInertia );
 	btRigidBody * Torus = new btRigidBody( TorusCI );
-	Torus->setCollisionFlags( Torus->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
+	Torus->setCollisionFlags( Torus->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_NO_CONTACT_RESPONSE |
+		btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
 	bulletObject * TorusPtr = new bulletObject( L"Torus", Torus );
 	Torus->setUserPointer( TorusPtr );
 	Torus->setUserIndex( CheckpointID );
+	Torus->setGravity( btVector3( 0, 0, 0 ) );
 	m_pWorld->addRigidBody( Torus );
 	m_vecRigidBodies.push_back( TorusPtr );
 
@@ -216,8 +222,19 @@ bool CPhysics::Collision( btManifoldPoint& cp,
 		User = Second->Body;
 	if ( Torus == nullptr || User == nullptr )
 		return false;
-	Torus->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 30, 0 ) ) );
+	float x;
+	float z;
+	/*std::random_device rd;
+	std::mt19937 generator( rd( ) );
+	std::uniform_int_distribution<> distribution( -50, 50 );*/
+	//x = distribution( generator );
+	//z = distribution( generator );
+	x = CPhysics::m_FloatDistribution( CPhysics::m_RandomGenerator );
+	z = CPhysics::m_FloatDistribution( CPhysics::m_RandomGenerator );
+	Torus->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, 2, z ) ) );
+	Torus->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, 2, z ) ) );
 	Torus->setLinearVelocity( btVector3( 0, 0, 0 ) );
+	Torus->setGravity( btVector3( 0, 0, 0 ) );
 	Torus->activate( );
 	( ( bulletObject* ) User->getUserPointer( ) )->Score = ( ( bulletObject* ) User->getUserPointer( ) )->Score + 1;
 	return true;

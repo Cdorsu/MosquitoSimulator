@@ -33,6 +33,10 @@ private:
 	btConstraintSolver * m_pSolver;
 	btDynamicsWorld * m_pWorld;
 	std::vector<bulletObject*> m_vecRigidBodies;
+protected:
+	static std::random_device m_RandomDevice;
+	static std::mt19937 m_RandomGenerator;
+	static std::uniform_real_distribution<float> m_FloatDistribution;
 private: // To be taken from an upper level (CApplication)
 	CGraphics * m_Graphics;
 	CInput * m_Input;
@@ -49,6 +53,8 @@ public:
 	static bool Collision( btManifoldPoint& cp,
 		const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
 		const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1 );
+protected:
+	static btMatrix3x3 m_3x3RotationMatrix;
 public: // Inherited
 	void drawLine( const btVector3& from, const btVector3& to, const btVector3& color )
 	{
