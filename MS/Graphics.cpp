@@ -480,12 +480,30 @@ void CGraphics::RenderTorus( float* World,
 	float minX, float minY, float minZ,
 	float maxX, float maxY, float maxZ )
 {
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+	{
 	//AddObjectToRenderList( L"Torus", m_Torus, World );
-	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
-	m_3DShader->SetData( m_D3D11->GetImmediateContext( ), DirectX::XMMATRIX( World ), m_ActiveCamera );
-	m_3DShader->SetMaterialData( m_D3D11->GetImmediateContext( ), false, utility::SColor( 1.0f ), nullptr );
-	m_3DShader->SetShaders( m_D3D11->GetImmediateContext( ) );
-	m_3DShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
+		m_Torus->Render( m_D3D11->GetImmediateContext( ) );
+		m_3DShader->SetData( m_D3D11->GetImmediateContext( ), DirectX::XMMATRIX( World ), m_ActiveCamera );
+		m_3DShader->SetMaterialData( m_D3D11->GetImmediateContext( ), false, utility::SColor( 1.0f ), nullptr );
+		m_3DShader->SetShaders( m_D3D11->GetImmediateContext( ) );
+		m_3DShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
+	}
+	else
+	{
+		bool bIsInViewFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		if ( bIsInViewFrustum )
+		{
+			m_Torus->Render( m_D3D11->GetImmediateContext( ) );
+			m_3DShader->SetData( m_D3D11->GetImmediateContext( ), DirectX::XMMATRIX( World ), m_ActiveCamera );
+			m_3DShader->SetMaterialData( m_D3D11->GetImmediateContext( ), false, utility::SColor( 1.0f ), nullptr );
+			m_3DShader->SetShaders( m_D3D11->GetImmediateContext( ) );
+			m_3DShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
+		}
+	}
+
 }
 
 void CGraphics::RenderUI( )
