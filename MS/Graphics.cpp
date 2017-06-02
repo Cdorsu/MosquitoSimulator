@@ -350,6 +350,8 @@ void CGraphics::RenderScene( )
 			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
+				if ( iter.second[ i ].bRenderDepthMap == false )
+					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ) );
@@ -360,6 +362,8 @@ void CGraphics::RenderScene( )
 			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
+				if ( iter.second[ i ].bRenderDepthMap == false )
+					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ) );
@@ -370,6 +374,8 @@ void CGraphics::RenderScene( )
 			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
+				if ( iter.second[ i ].bRenderDepthMap == false )
+					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
@@ -393,6 +399,8 @@ void CGraphics::RenderScene( )
 			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Ground->GetMaterial( ) );
@@ -404,6 +412,8 @@ void CGraphics::RenderScene( )
 			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Cube->GetMaterial( ) );
@@ -415,6 +425,8 @@ void CGraphics::RenderScene( )
 			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Torus->GetMaterial( ) );
@@ -432,19 +444,48 @@ void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position )
 	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
 }
 
-void CGraphics::RenderPlane( float* World )
+void CGraphics::RenderPlane( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
 {
-	AddObjectToRenderList( L"Plane", m_Ground, World );
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+		AddObjectToRenderList( L"Plane", m_Ground, World );
+	else
+	{
+		bool bIsInViewFrustum, bIsInLightFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Plane", m_Ground, World, bIsInLightFrustum, bIsInViewFrustum );
+	}
 }
 
-void CGraphics::RenderCube( float* World )
+void CGraphics::RenderCube( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
 {
-	AddObjectToRenderList( L"Cube", m_Cube, World );
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+		AddObjectToRenderList( L"Cube", m_Cube, World );
+	else
+	{
+		bool bIsInViewFrustum, bIsInLightFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Cube", m_Ground, World, bIsInLightFrustum, bIsInViewFrustum );
+	}
 }
 
-void CGraphics::RenderTorus( float* World )
+void CGraphics::RenderTorus( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
 {
-	AddObjectToRenderList( L"Torus", m_Torus, World );
+	//AddObjectToRenderList( L"Torus", m_Torus, World );
+	m_Torus->Render( m_D3D11->GetImmediateContext( ) );
+	m_3DShader->SetData( m_D3D11->GetImmediateContext( ), DirectX::XMMATRIX( World ), m_ActiveCamera );
+	m_3DShader->SetMaterialData( m_D3D11->GetImmediateContext( ), false, utility::SColor( 1.0f ), nullptr );
+	m_3DShader->SetShaders( m_D3D11->GetImmediateContext( ) );
+	m_3DShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
 }
 
 void CGraphics::RenderUI( )

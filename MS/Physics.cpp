@@ -120,7 +120,11 @@ void CPhysics::Frame( float fFrameTime )
 			btTransform trans;
 			motionState->getWorldTransform( trans );
 			trans.getOpenGLMatrix( matrix );
-			m_Graphics->RenderCube( matrix );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
+			m_Graphics->RenderCube( matrix,
+				minAABB.x( ), minAABB.y( ), minAABB.z( ),
+				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
 		}
 		else if ( m_vecRigidBodies[ i ]->Name == L"Torus" )
 		{

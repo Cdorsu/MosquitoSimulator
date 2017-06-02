@@ -28,8 +28,8 @@ private:
 		DirectX::XMFLOAT4X4 _4x4fWorld;
 		bool bRenderDepthMap;
 		bool bRenderBackBuffer;
-		SObjectToDraw( CModel * Model, float* World )
-			:ModelToDraw( Model ), World( World )
+		SObjectToDraw( CModel * Model, float* World, bool RenderCam, bool RenderShadow )
+			:ModelToDraw( Model ), World( World ), bRenderDepthMap( RenderShadow ), bRenderBackBuffer( RenderCam )
 		{
 			DirectX::XMStoreFloat4x4( &_4x4fWorld, DirectX::XMMATRIX( World ) );
 		};
@@ -91,9 +91,15 @@ public:
 	void Update( float fFrameTime, UINT FPS );
 	void RenderUI( );
 	void Render( );
-	void RenderPlane( float* World );
-	void RenderCube( float* World );
-	void RenderTorus( float* World );
+	void RenderPlane( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderCube( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderTorus( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color );
 	void RenderPlayer( DirectX::XMFLOAT3 Position );
 	void Shutdown( );
@@ -112,20 +118,10 @@ public:
 		m_D3D11->SwitchFullscreenState( m_bFullscreen ?
 			( FALSE, m_bFullscreen = false ) : ( TRUE, m_bFullscreen = true ) );
 	}
-	inline void AddObjectToRenderList( std::wstring Name, CModel * Model, float* World )
-	{
-		static auto toIndex = [ ]
-			( int row, int col, int nCols = 4 )->int
-		{
-			return row * nCols + col;
-		};
-		float toAddX = World[ toIndex( 4, 0 ) ];
-		float toAddY = World[ toIndex( 4, 1 ) ];
-		float toAddZ = World[ toIndex( 4, 2 ) ];
-		auto minAABB = Model->GetMinAABB( );
-		auto maxAABB = Model->GetMaxAABB( );
-		
-		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World );
+	inline void AddObjectToRenderList( std::wstring Name, CModel * Model,
+		float* World, bool RenderShadow = true, bool RenderCam = true )
+	{	
+		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World, RenderCam, RenderShadow );
 	}
 public:
 	inline CCamera * GetCamera( )
