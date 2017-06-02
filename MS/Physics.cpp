@@ -3,7 +3,7 @@
 btMatrix3x3 CPhysics::m_3x3RotationMatrix = btMatrix3x3( );
 std::random_device CPhysics::m_RandomDevice;
 std::mt19937 CPhysics::m_RandomGenerator = std::mt19937( CPhysics::m_RandomDevice( ) );
-std::uniform_real_distribution<float> CPhysics::m_FloatDistribution = std::uniform_real_distribution<float>( -50, 50 );
+std::uniform_real_distribution<float> CPhysics::m_xzFloatDistribution = std::uniform_real_distribution<float>( -50, 50 );
 
 CPhysics::CPhysics( )
 {
@@ -224,13 +224,8 @@ bool CPhysics::Collision( btManifoldPoint& cp,
 		return false;
 	float x;
 	float z;
-	/*std::random_device rd;
-	std::mt19937 generator( rd( ) );
-	std::uniform_int_distribution<> distribution( -50, 50 );*/
-	//x = distribution( generator );
-	//z = distribution( generator );
-	x = CPhysics::m_FloatDistribution( CPhysics::m_RandomGenerator );
-	z = CPhysics::m_FloatDistribution( CPhysics::m_RandomGenerator );
+	x = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
+	z = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
 	Torus->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, 2, z ) ) );
 	Torus->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, 2, z ) ) );
 	Torus->setLinearVelocity( btVector3( 0, 0, 0 ) );

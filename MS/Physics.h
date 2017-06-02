@@ -36,7 +36,7 @@ private:
 protected:
 	static std::random_device m_RandomDevice;
 	static std::mt19937 m_RandomGenerator;
-	static std::uniform_real_distribution<float> m_FloatDistribution;
+	static std::uniform_real_distribution<float> m_xzFloatDistribution;
 private: // To be taken from an upper level (CApplication)
 	CGraphics * m_Graphics;
 	CInput * m_Input;
