@@ -13,6 +13,8 @@ class CPhysics sealed : public btIDebugDraw
 {
 	static constexpr int CheckpointID = 69;
 	static constexpr int PlayerID = 169;
+	static constexpr int MaxXZSpeed2 = 25;
+	static constexpr int VerticalImpulse = 5;
 	struct bulletObject
 	{
 		btRigidBody* Body;
@@ -37,6 +39,7 @@ protected:
 	static std::random_device m_RandomDevice;
 	static std::mt19937 m_RandomGenerator;
 	static std::uniform_real_distribution<float> m_xzFloatDistribution;
+	static std::uniform_real_distribution<float> m_yFloatDistribution;
 private: // To be taken from an upper level (CApplication)
 	CGraphics * m_Graphics;
 	CInput * m_Input;

@@ -4,6 +4,7 @@ btMatrix3x3 CPhysics::m_3x3RotationMatrix = btMatrix3x3( );
 std::random_device CPhysics::m_RandomDevice;
 std::mt19937 CPhysics::m_RandomGenerator = std::mt19937( CPhysics::m_RandomDevice( ) );
 std::uniform_real_distribution<float> CPhysics::m_xzFloatDistribution = std::uniform_real_distribution<float>( -50, 50 );
+std::uniform_real_distribution<float> CPhysics::m_yFloatDistribution = std::uniform_real_distribution<float>( 0, 30 );
 
 CPhysics::CPhysics( )
 {
@@ -14,6 +15,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 {
 	m_Graphics = GraphicsObject;
 	m_Input = InputObject;
+
+	m_Input->addSpecialKey( DIK_SPACE );
 
 	m_pBroadphase = new btDbvtBroadphase( );
 	m_pCollisionConfiguration = new btDefaultCollisionConfiguration( );
@@ -51,8 +54,12 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_vecRigidBodies.push_back( BoxPtr );
 
 	auto TorusMaxAABB = m_Graphics->GetTorus( )->GetMaxAABB( );
+	float x, y, z;
+	x = m_xzFloatDistribution( m_RandomGenerator );
+	z = m_xzFloatDistribution( m_RandomGenerator );
+	y = m_yFloatDistribution( m_RandomGenerator );
 	btCollisionShape * TorusShape = new btBoxShape( btVector3( TorusMaxAABB.x, TorusMaxAABB.y, TorusMaxAABB.z ) );
-	btMotionState * TorusState = new btDefaultMotionState( btTransform( m_3x3RotationMatrix, btVector3( 0, 2, 0 ) ) );
+	btMotionState * TorusState = new btDefaultMotionState( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
 	btRigidBody::btRigidBodyConstructionInfo TorusCI( 0, TorusState, TorusShape, localInertia );
 	btRigidBody * Torus = new btRigidBody( TorusCI );
 	Torus->setCollisionFlags( Torus->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_NO_CONTACT_RESPONSE |
@@ -102,6 +109,8 @@ void CPhysics::Frame( float fFrameTime )
 			btTransform trans;
 			motionState->getWorldTransform( trans );
 			trans.getOpenGLMatrix( matrix );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
 			m_Graphics->RenderPlane( matrix );
 		}
 		else if ( m_vecRigidBodies[ i ]->Name == L"Box" )
@@ -137,7 +146,8 @@ void CPhysics::Frame( float fFrameTime )
 		auto CamForward = Camera->GetDirection( );
 		btVector3 Direction = btVector3( CamForward.x, 0.0f, CamForward.z );
 		btVector3 InitialVelocity = m_Player->Body->getLinearVelocity( );
-		if ( InitialVelocity.length2( ) < 25 )
+		btVector3 xzVelocity = btVector3( InitialVelocity.x( ), 0, InitialVelocity.z( ) );
+		if ( xzVelocity.length2( ) < MaxXZSpeed2 )
 			InitialVelocity += Direction.normalize( );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
 	}
@@ -147,7 +157,8 @@ void CPhysics::Frame( float fFrameTime )
 		auto CamForward = Camera->GetDirection( );
 		btVector3 Direction = btVector3( CamForward.x, 0.0f, CamForward.z );
 		btVector3 InitialVelocity = m_Player->Body->getLinearVelocity( );
-		if ( InitialVelocity.length2( ) < 25 )
+		btVector3 xzVelocity = btVector3( InitialVelocity.x( ), 0, InitialVelocity.z( ) );
+		if ( xzVelocity.length2( ) < MaxXZSpeed2 )
 			InitialVelocity -= Direction.normalize( );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
 	}
@@ -157,7 +168,8 @@ void CPhysics::Frame( float fFrameTime )
 		auto CamForward = Camera->GetRight( );
 		btVector3 Direction = btVector3( CamForward.x, 0.0f, CamForward.z );
 		btVector3 InitialVelocity = m_Player->Body->getLinearVelocity( );
-		if ( InitialVelocity.length2( ) < 25 )
+		btVector3 xzVelocity = btVector3( InitialVelocity.x( ), 0, InitialVelocity.z( ) );
+		if ( xzVelocity.length2( ) < MaxXZSpeed2 )
 			InitialVelocity += Direction.normalize( );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
 	}
@@ -167,8 +179,19 @@ void CPhysics::Frame( float fFrameTime )
 		auto CamForward = Camera->GetRight( );
 		btVector3 Direction = btVector3( CamForward.x, 0.0f, CamForward.z );
 		btVector3 InitialVelocity = m_Player->Body->getLinearVelocity( );
-		if ( InitialVelocity.length2( ) < 25 )
+		btVector3 xzVelocity = btVector3( InitialVelocity.x( ), 0, InitialVelocity.z( ) );
+		if ( xzVelocity.length2( ) < MaxXZSpeed2 )
 			InitialVelocity -= Direction.normalize( );
+		m_Player->Body->setLinearVelocity( InitialVelocity );
+	}
+	else if ( m_Input->isSpecialKeyPressed( DIK_SPACE ) )
+	{
+		CCamera * Camera = m_Graphics->GetCamera( );
+		auto CamForward = Camera->GetDirection( );
+		btVector3 Direction = btVector3( CamForward.x, 0.0f, CamForward.z );
+		btVector3 InitialVelocity = m_Player->Body->getLinearVelocity( );
+		Direction.normalize( );
+		InitialVelocity += Direction + btVector3( 0, btScalar( VerticalImpulse ), 0 );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
 	}
 	if ( m_Input->isKeyPressed( DIK_B ) )
@@ -224,10 +247,12 @@ bool CPhysics::Collision( btManifoldPoint& cp,
 		return false;
 	float x;
 	float z;
+	float y;
 	x = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
 	z = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
-	Torus->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, 2, z ) ) );
-	Torus->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, 2, z ) ) );
+	y = CPhysics::m_yFloatDistribution( CPhysics::m_RandomGenerator );
+	Torus->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
+	Torus->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
 	Torus->setLinearVelocity( btVector3( 0, 0, 0 ) );
 	Torus->setGravity( btVector3( 0, 0, 0 ) );
 	Torus->activate( );
