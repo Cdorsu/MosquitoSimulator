@@ -55,6 +55,9 @@ private:
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
 	CTextureWindow * m_DebugWindow;
+	CTextureWindow * m_MapWindow;
+	CTextureWindow * m_PlayerWindow;
+	CTextureWindow * m_CheckpointWindow;
 	CLineManager * m_LineManager;
 	CModel * m_Cube;
 	CModel * m_Torus;
@@ -75,6 +78,9 @@ private:
 	CLight * m_Light;
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
+protected:
+	UINT m_WindowWidth;
+	UINT m_WindowHeight;
 	UINT m_iScore;
 private: // Fonts
 	FontClass * m_Font;
@@ -83,6 +89,11 @@ private: // Just pointers, do not create, do not destroy
 	CCamera * m_ActiveCamera;
 private: // Do not create, do not destroy, just take it from an upper level (CApplication)
 	CInput * m_Input;
+private:
+	float m_CheckpointX;
+	float m_CheckpointZ;
+	float m_PlayerX;
+	float m_PlayerZ;
 public:
 	CGraphics( );
 	~CGraphics( );

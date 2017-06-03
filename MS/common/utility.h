@@ -38,4 +38,8 @@ namespace utility
 		va_end( args );
 		OutputDebugStringW( Sequence );
 	}
+	inline int toIndex( int row, int col, int nCols = 4 )
+	{
+		return row * nCols + col;
+	}
 }

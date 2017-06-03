@@ -10,6 +10,8 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 {
 	m_bFullscreen = bFullscreen;
 	m_Input = Input;
+	m_WindowWidth = WindowWidth;
+	m_WindowHeight = WindowHeight;
 
 	m_Input->addSpecialKey( DIK_V );
 
@@ -54,8 +56,19 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 	m_ActiveCamera = m_FirstPersonCamera;
 
+#if _DEBUG || DEBUG
 	m_DebugWindow = new CTextureWindow( );
 	if ( !m_DebugWindow->Initialize( m_D3D11->GetDevice( ), L"", WindowWidth, WindowHeight, 100, 100 ) )
+		return false;
+#endif // _DEBUG || DEBUG
+	m_MapWindow = new CTextureWindow( );
+	if ( !m_MapWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\MapTest.png", WindowWidth, WindowHeight, 100, 100 ) )
+		return false;
+	m_PlayerWindow = new CTextureWindow( );
+	if ( !m_PlayerWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\Player.png", WindowWidth, WindowHeight, 3, 3 ) )
+		return false;
+	m_CheckpointWindow = new CTextureWindow( );
+	if ( !m_CheckpointWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\Checkpoint.png", WindowWidth, WindowHeight, 3, 3 ) )
 		return false;
 
 	m_LineManager = new CLineManager( );
@@ -95,7 +108,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_DebugText->Initialize( m_D3D11->GetDevice( ), m_Font01,
 		300, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
-#endif
+#endif // _DEBUG || DEBUG
 
 	m_Skybox = new CSkybox( );
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
@@ -106,7 +119,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 	m_Mosquito->CalculateAABB( );
 	m_Mosquito->CalculateCenter( );
-#endif
+#endif // !(_DEBUG || DEBUG)
 	m_Depthmap = new CRenderTexture( );
 	if ( !m_Depthmap->Initialize( m_D3D11->GetDevice( ), SHADOW_WIDTH, SHADOW_HEIGHT,
 		0.1f, 1.0f, 1, ( FLOAT ) 1 / ( FLOAT ) 1 ) )
@@ -442,6 +455,8 @@ void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position )
 {
 	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
 	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
+	m_PlayerX = Position.x;
+	m_PlayerZ = Position.z;
 }
 
 void CGraphics::RenderPlane( float* World,
@@ -480,6 +495,8 @@ void CGraphics::RenderTorus( float* World,
 	float minX, float minY, float minZ,
 	float maxX, float maxY, float maxZ )
 {
+	m_CheckpointX = minX;
+	m_CheckpointZ = minZ;
 	if ( minX == 0 && minY == 0 && minZ == 0 &&
 		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
 	{
@@ -509,6 +526,20 @@ void CGraphics::RenderTorus( float* World,
 void CGraphics::RenderUI( )
 {
 	m_D3D11->DisableCulling( );
+
+	m_CheckpointWindow->Render( m_D3D11->GetImmediateContext( ),
+		m_WindowWidth - 120 + 50 + ( UINT ) m_CheckpointX, 20 + 50 + ( UINT ) m_CheckpointZ );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_CheckpointWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_CheckpointWindow->GetTexture( ) );
+
+	m_PlayerWindow->Render( m_D3D11->GetImmediateContext( ),
+		m_WindowWidth - 120 + 50 + ( UINT ) m_PlayerX, 20 + 50 + ( UINT ) m_PlayerZ );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_PlayerWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_PlayerWindow->GetTexture( ) );
+
+	m_MapWindow->Render( m_D3D11->GetImmediateContext( ), m_WindowWidth - 120, 20 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_MapWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_MapWindow->GetTexture( ) );
 
 	m_D3D11->EnableDSLessEqual( );
 
@@ -633,6 +664,24 @@ CGraphics::~CGraphics( )
 		m_LineManager->Shutdown( );
 		delete m_LineManager;
 		m_LineManager = 0;
+	}
+	if ( m_CheckpointWindow )
+	{
+		m_CheckpointWindow->Shutdown( );
+		delete m_CheckpointWindow;
+		m_CheckpointWindow = 0;
+	}
+	if ( m_PlayerWindow )
+	{
+		m_PlayerWindow->Shutdown( );
+		delete m_PlayerWindow;
+		m_PlayerWindow = 0;
+	}
+	if ( m_MapWindow )
+	{
+		m_MapWindow->Shutdown( );
+		delete m_MapWindow;
+		m_MapWindow = 0;
 	}
 	if ( m_DebugWindow )
 	{
