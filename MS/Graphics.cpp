@@ -10,6 +10,8 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 {
 	m_bFullscreen = bFullscreen;
 	m_Input = Input;
+	m_WindowWidth = WindowWidth;
+	m_WindowHeight = WindowHeight;
 
 	m_Input->addSpecialKey( DIK_V );
 
@@ -54,8 +56,19 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 	m_ActiveCamera = m_FirstPersonCamera;
 
+#if _DEBUG || DEBUG
 	m_DebugWindow = new CTextureWindow( );
 	if ( !m_DebugWindow->Initialize( m_D3D11->GetDevice( ), L"", WindowWidth, WindowHeight, 100, 100 ) )
+		return false;
+#endif // _DEBUG || DEBUG
+	m_MapWindow = new CTextureWindow( );
+	if ( !m_MapWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\MapTest.png", WindowWidth, WindowHeight, 100, 100 ) )
+		return false;
+	m_PlayerWindow = new CTextureWindow( );
+	if ( !m_PlayerWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\Player.png", WindowWidth, WindowHeight, 3, 3 ) )
+		return false;
+	m_CheckpointWindow = new CTextureWindow( );
+	if ( !m_CheckpointWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\Checkpoint.png", WindowWidth, WindowHeight, 3, 3 ) )
 		return false;
 
 	m_LineManager = new CLineManager( );
@@ -86,12 +99,16 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_FrameTimeText->Initialize( m_D3D11->GetDevice( ), m_Font01,
 		20, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
+	m_ScoreText = new CText( );
+	if ( !m_ScoreText->Initialize( m_D3D11->GetDevice( ), m_Font01,
+		12, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
+		return false;
 #if _DEBUG || DEBUG
 	m_DebugText = new CText( );
 	if ( !m_DebugText->Initialize( m_D3D11->GetDevice( ), m_Font01,
 		300, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
-#endif
+#endif // _DEBUG || DEBUG
 
 	m_Skybox = new CSkybox( );
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
@@ -102,7 +119,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 	m_Mosquito->CalculateAABB( );
 	m_Mosquito->CalculateCenter( );
-#endif
+#endif // !(_DEBUG || DEBUG)
 	m_Depthmap = new CRenderTexture( );
 	if ( !m_Depthmap->Initialize( m_D3D11->GetDevice( ), SHADOW_WIDTH, SHADOW_HEIGHT,
 		0.1f, 1.0f, 1, ( FLOAT ) 1 / ( FLOAT ) 1 ) )
@@ -178,11 +195,14 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	char buffer2[ 20 ] = { 0 };
 	sprintf_s( buffer2, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ), buffer2 );
+	char buffer3[ 12 ] = { 0 };
+	sprintf_s( buffer3, "Score: %d", m_iScore );
+	m_ScoreText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ) * 2, buffer3 );
 #if DEBUG || _DEBUG
-	char buffer3[ 300 ] = { 0 };
-	sprintf_s( buffer3, "DEBUG MODE" );
+	char buffer4[ 300 ] = { 0 };
+	sprintf_s( buffer4, "DEBUG MODE" );
 	m_DebugText->Update( m_D3D11->GetImmediateContext( ), 0,
-		m_FPSText->GetHeight( ) + m_FrameTimeText->GetHeight( ), buffer3 );
+		m_FPSText->GetHeight( ) * 3, buffer4 );
 #endif
 }
 
@@ -331,6 +351,7 @@ void CGraphics::Render( )
 
 void CGraphics::RenderScene( )
 {
+	static DirectX::XMMATRIX WorldMatrix;
 	m_D3D11->EnableBackFaceCulling( );
 	m_Depthmap->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
 	m_Depthmap->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
@@ -342,7 +363,10 @@ void CGraphics::RenderScene( )
 			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_LightView );
+				if ( iter.second[ i ].bRenderDepthMap == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ) );
 			}
 		}
@@ -351,7 +375,10 @@ void CGraphics::RenderScene( )
 			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_LightView );
+				if ( iter.second[ i ].bRenderDepthMap == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ) );
 			}
 		}
@@ -360,7 +387,10 @@ void CGraphics::RenderScene( )
 			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_LightView );
+				if ( iter.second[ i ].bRenderDepthMap == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
 			}
 		}
@@ -382,7 +412,10 @@ void CGraphics::RenderScene( )
 			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_ActiveCamera );
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Ground->GetMaterial( ) );
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ) );
 			}
@@ -392,7 +425,10 @@ void CGraphics::RenderScene( )
 			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_ActiveCamera );
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Cube->GetMaterial( ) );
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ) );
 			}
@@ -402,35 +438,108 @@ void CGraphics::RenderScene( )
 			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), iter.second[ i ].WorldMatrix, m_ActiveCamera );
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Torus->GetMaterial( ) );
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
 			}
 		}
-
 	}
 	m_mwvecObjectsToDraw.clear( );
 	RenderUI( );
 }
 
-void CGraphics::RenderPlane( float* World )
+void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position )
 {
-	AddObjectToRenderList( L"Plane", m_Ground, World );
+	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
+	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
+	m_PlayerX = Position.x;
+	m_PlayerZ = Position.z;
 }
 
-void CGraphics::RenderCube( float* World )
+void CGraphics::RenderPlane( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
 {
-	AddObjectToRenderList( L"Cube", m_Cube, World );
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+		AddObjectToRenderList( L"Plane", m_Ground, World );
+	else
+	{
+		bool bIsInViewFrustum, bIsInLightFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Plane", m_Ground, World, bIsInLightFrustum, bIsInViewFrustum );
+	}
 }
 
-void CGraphics::RenderTorus( float* World )
+void CGraphics::RenderCube( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
 {
-	AddObjectToRenderList( L"Torus", m_Torus, World );
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+		AddObjectToRenderList( L"Cube", m_Cube, World );
+	else
+	{
+		bool bIsInViewFrustum, bIsInLightFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Cube", m_Ground, World, bIsInLightFrustum, bIsInViewFrustum );
+	}
+}
+
+void CGraphics::RenderTorus( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
+{
+	m_CheckpointX = minX;
+	m_CheckpointZ = minZ;
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+	{
+	//AddObjectToRenderList( L"Torus", m_Torus, World );
+		m_Torus->Render( m_D3D11->GetImmediateContext( ) );
+		m_3DShader->SetData( m_D3D11->GetImmediateContext( ), DirectX::XMMATRIX( World ), m_ActiveCamera );
+		m_3DShader->SetMaterialData( m_D3D11->GetImmediateContext( ), false, utility::SColor( 1.0f ), nullptr );
+		m_3DShader->SetShaders( m_D3D11->GetImmediateContext( ) );
+		m_3DShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
+	}
+	else
+	{
+		bool bIsInViewFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		if ( bIsInViewFrustum )
+		{
+			m_Torus->Render( m_D3D11->GetImmediateContext( ) );
+			m_3DShader->SetData( m_D3D11->GetImmediateContext( ), DirectX::XMMATRIX( World ), m_ActiveCamera );
+			m_3DShader->SetMaterialData( m_D3D11->GetImmediateContext( ), false, utility::SColor( 1.0f ), nullptr );
+			m_3DShader->SetShaders( m_D3D11->GetImmediateContext( ) );
+			m_3DShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
+		}
+	}
+
 }
 
 void CGraphics::RenderUI( )
 {
 	m_D3D11->DisableCulling( );
+
+	m_CheckpointWindow->Render( m_D3D11->GetImmediateContext( ),
+		m_WindowWidth - 120 + 50 + ( UINT ) m_CheckpointX, 20 + 50 + ( UINT ) m_CheckpointZ );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_CheckpointWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_CheckpointWindow->GetTexture( ) );
+
+	m_PlayerWindow->Render( m_D3D11->GetImmediateContext( ),
+		m_WindowWidth - 120 + 50 + ( UINT ) m_PlayerX, 20 + 50 + ( UINT ) m_PlayerZ );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_PlayerWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_PlayerWindow->GetTexture( ) );
+
+	m_MapWindow->Render( m_D3D11->GetImmediateContext( ), m_WindowWidth - 120, 20 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_MapWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_MapWindow->GetTexture( ) );
 
 	m_D3D11->EnableDSLessEqual( );
 
@@ -449,6 +558,11 @@ void CGraphics::RenderUI( )
 	m_FrameTimeText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FrameTimeText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
+		utility::SColor( 1.0f, 1.0f, 0.0f, 1.0f ) );
+
+	m_ScoreText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_ScoreText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_ScoreText->GetTexture( ),
 		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
 
 #if DEBUG || _DEBUG
@@ -497,6 +611,12 @@ CGraphics::~CGraphics( )
 		m_DebugText = 0;
 	}
 #endif
+	if ( m_ScoreText )
+	{
+		m_ScoreText->Shutdown( );
+		delete m_ScoreText;
+		m_ScoreText = 0;
+	}
 	if ( m_FrameTimeText )
 	{
 		m_FrameTimeText->Shutdown( );
@@ -544,6 +664,24 @@ CGraphics::~CGraphics( )
 		m_LineManager->Shutdown( );
 		delete m_LineManager;
 		m_LineManager = 0;
+	}
+	if ( m_CheckpointWindow )
+	{
+		m_CheckpointWindow->Shutdown( );
+		delete m_CheckpointWindow;
+		m_CheckpointWindow = 0;
+	}
+	if ( m_PlayerWindow )
+	{
+		m_PlayerWindow->Shutdown( );
+		delete m_PlayerWindow;
+		m_PlayerWindow = 0;
+	}
+	if ( m_MapWindow )
+	{
+		m_MapWindow->Shutdown( );
+		delete m_MapWindow;
+		m_MapWindow = 0;
 	}
 	if ( m_DebugWindow )
 	{

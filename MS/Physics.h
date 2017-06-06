@@ -11,10 +11,15 @@
 
 class CPhysics sealed : public btIDebugDraw
 {
+	static constexpr int CheckpointID = 69;
+	static constexpr int PlayerID = 169;
+	static constexpr int MaxXZSpeed2 = 25;
+	static constexpr int VerticalImpulse = 5;
 	struct bulletObject
 	{
 		btRigidBody* Body;
 		std::wstring Name;
+		unsigned int Score;
 		bulletObject( )
 		{
 			ZeroMemory( this, sizeof( CPhysics::bulletObject ) );
@@ -30,9 +35,16 @@ private:
 	btConstraintSolver * m_pSolver;
 	btDynamicsWorld * m_pWorld;
 	std::vector<bulletObject*> m_vecRigidBodies;
+protected:
+	static std::random_device m_RandomDevice;
+	static std::mt19937 m_RandomGenerator;
+	static std::uniform_real_distribution<float> m_xzFloatDistribution;
+	static std::uniform_real_distribution<float> m_yFloatDistribution;
 private: // To be taken from an upper level (CApplication)
 	CGraphics * m_Graphics;
 	CInput * m_Input;
+private: // Deleted automatically
+	bulletObject * m_Player;
 public:
 	CPhysics( );
 	~CPhysics( );
@@ -40,6 +52,12 @@ public:
 	bool Initialize( CGraphics * GraphicsObject, CInput * InputObject );
 	void Frame( float fFrameTime );
 	void Shutdown( );
+public:
+	static bool Collision( btManifoldPoint& cp,
+		const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
+		const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1 );
+protected:
+	static btMatrix3x3 m_3x3RotationMatrix;
 public: // Inherited
 	void drawLine( const btVector3& from, const btVector3& to, const btVector3& color )
 	{

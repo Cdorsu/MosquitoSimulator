@@ -27,6 +27,10 @@ public:
 	{
 		m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH( FOV, AspectRatio, CamNear, CamFar );
 	}
+	inline void GenerateOrtograhicMatrix( float WidthHeight, float CamNear, float CamFar )
+	{
+		m_ProjectionMatrix = DirectX::XMMatrixOrthographicLH( WidthHeight, WidthHeight, CamNear, CamFar );
+	}
 	inline void GenerateViewMatrix( )
 	{
 		m_ViewMatrix = DirectX::XMMatrixLookAtLH( m_Position, m_LookAt, m_UpDirection );

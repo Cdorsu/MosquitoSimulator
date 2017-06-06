@@ -25,10 +25,14 @@ private:
 	{
 		CModel * ModelToDraw;
 		float * World;
-		DirectX::XMMATRIX WorldMatrix;
-		SObjectToDraw( CModel * Model, float* World )
-			:ModelToDraw( Model ), World( World )
-		{};
+		DirectX::XMFLOAT4X4 _4x4fWorld;
+		bool bRenderDepthMap;
+		bool bRenderBackBuffer;
+		SObjectToDraw( CModel * Model, float* World, bool RenderCam, bool RenderShadow )
+			:ModelToDraw( Model ), World( World ), bRenderDepthMap( RenderShadow ), bRenderBackBuffer( RenderCam )
+		{
+			DirectX::XMStoreFloat4x4( &_4x4fWorld, DirectX::XMMATRIX( World ) );
+		};
 	};
 public:
 	static constexpr float CamNear = 0.1f;
@@ -51,12 +55,16 @@ private:
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
 	CTextureWindow * m_DebugWindow;
+	CTextureWindow * m_MapWindow;
+	CTextureWindow * m_PlayerWindow;
+	CTextureWindow * m_CheckpointWindow;
 	CLineManager * m_LineManager;
 	CModel * m_Cube;
 	CModel * m_Torus;
 	CModel * m_Ground;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
+	CText * m_ScoreText;
 #if _DEBUG || DEBUG
 	CText * m_DebugText;
 #endif
@@ -70,6 +78,10 @@ private:
 	CLight * m_Light;
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
+protected:
+	UINT m_WindowWidth;
+	UINT m_WindowHeight;
+	UINT m_iScore;
 private: // Fonts
 	FontClass * m_Font;
 	FontClass * m_Font01;
@@ -77,6 +89,11 @@ private: // Just pointers, do not create, do not destroy
 	CCamera * m_ActiveCamera;
 private: // Do not create, do not destroy, just take it from an upper level (CApplication)
 	CInput * m_Input;
+private:
+	float m_CheckpointX;
+	float m_CheckpointZ;
+	float m_PlayerX;
+	float m_PlayerZ;
 public:
 	CGraphics( );
 	~CGraphics( );
@@ -85,24 +102,42 @@ public:
 	void Update( float fFrameTime, UINT FPS );
 	void RenderUI( );
 	void Render( );
-	void RenderPlane( float* World );
-	void RenderCube( float* World );
-	void RenderTorus( float* World );
+	void RenderPlane( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderCube( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderTorus( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color );
+	void RenderPlayer( DirectX::XMFLOAT3 Position );
 	void Shutdown( );
 private:
 	void RenderScene( );
+public:
+	inline void SetScore( UINT score )
+	{
+		m_iScore = score;
+		if ( m_iScore > 9999 )
+			m_iScore = 9999;
+	}
 public:
 	inline void SwitchFullScreenState( )
 	{
 		m_D3D11->SwitchFullscreenState( m_bFullscreen ?
 			( FALSE, m_bFullscreen = false ) : ( TRUE, m_bFullscreen = true ) );
 	}
-	inline void AddObjectToRenderList( std::wstring Name, CModel * Model, float* World )
+	inline void AddObjectToRenderList( std::wstring Name, CModel * Model,
+		float* World, bool RenderShadow = true, bool RenderCam = true )
+	{	
+		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World, RenderCam, RenderShadow );
+	}
+public:
+	inline CCamera * GetCamera( )
 	{
-		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World );
-		m_mwvecObjectsToDraw[ Name ][ m_mwvecObjectsToDraw[ Name ].size( ) - 1 ]
-			.WorldMatrix = DirectX::XMMATRIX( World );
+		return m_FirstPersonCamera;
 	}
 public:
 	inline CModel * GetTorus( )
@@ -118,6 +153,8 @@ public:
 	{
 		m_D3D11->EnableDefaultViewPort( );
 		m_D3D11->EnableBackBuffer( );
+		m_LightView->ConstructFrustum( );
+		m_ActiveCamera->ConstructFrustum( );
 		m_D3D11->BeginScene( );
 	}
 	inline void EndScene( )
