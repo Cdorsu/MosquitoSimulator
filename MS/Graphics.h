@@ -34,6 +34,11 @@ private:
 			DirectX::XMStoreFloat4x4( &_4x4fWorld, DirectX::XMMATRIX( World ) );
 		};
 	};
+	struct SAdditionalInfoFromPhysicsEngine
+	{
+		DirectX::XMFLOAT3 PlayerDirection = DirectX::XMFLOAT3( 0.0f, 0.0f, 1.0f );
+		bool bAnimateWings = false;
+	};
 public:
 	static constexpr float CamNear = 0.1f;
 	static constexpr float CamFar = 200.0f;
@@ -78,6 +83,7 @@ private:
 	CLight * m_Light;
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
+	SAdditionalInfoFromPhysicsEngine m_AdditionalPhysicsInfo;
 protected:
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
@@ -112,16 +118,25 @@ public:
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color );
-	void RenderPlayer( DirectX::XMFLOAT3 Position );
+	void RenderPlayer( DirectX::XMFLOAT3 Position, float * World );
 	void Shutdown( );
 private:
 	void RenderScene( );
+	void RenderMosquito( float * World, bool drawtoback );
 public:
 	inline void SetScore( UINT score )
 	{
 		m_iScore = score;
 		if ( m_iScore > 9999 )
 			m_iScore = 9999;
+	}
+	inline void SetPlayerDirection( DirectX::XMFLOAT3 PlayerDirection)
+	{
+		m_AdditionalPhysicsInfo.PlayerDirection = PlayerDirection;
+	}
+	inline void SetUserTouchesTheGround( bool bTouchesTheGround )
+	{
+		m_AdditionalPhysicsInfo.bAnimateWings = !bTouchesTheGround;
 	}
 public:
 	inline void SwitchFullScreenState( )
@@ -147,6 +162,13 @@ public:
 	inline CModel * GetCube( )
 	{
 		return m_Cube;
+	}
+	inline std::pair<DirectX::XMFLOAT3, DirectX::XMFLOAT3> GetPlayerAABB( )
+	{
+		std::pair<DirectX::XMFLOAT3, DirectX::XMFLOAT3> AABB;
+		AABB.first = m_Mosquito->GetMinAABB( );
+		AABB.second = m_Mosquito->GetMaxAABB( );
+		return AABB;
 	}
 public:
 	inline void BeginScene( )

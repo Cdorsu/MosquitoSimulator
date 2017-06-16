@@ -119,6 +119,8 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 	m_Mosquito->CalculateAABB( );
 	m_Mosquito->CalculateCenter( );
+	utility::OutputVDebugString( L"Center: %.2f, %.2f, %.2f\n",
+		m_Mosquito->GetCenter( ).x, m_Mosquito->GetCenter( ).y, m_Mosquito->GetCenter( ).z );
 #endif // !(_DEBUG || DEBUG)
 	m_Depthmap = new CRenderTexture( );
 	if ( !m_Depthmap->Initialize( m_D3D11->GetDevice( ), SHADOW_WIDTH, SHADOW_HEIGHT,
@@ -162,6 +164,9 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_ThirdPersonCamera->Update( );
 	m_ThirdPersonCamera->ConstructFrustum( );
 	m_Skybox->Update( m_ActiveCamera );
+	m_Mosquito->UpdateWings( m_D3D11->GetImmediateContext( ),
+		m_AdditionalPhysicsInfo.PlayerDirection, m_AdditionalPhysicsInfo.bAnimateWings );
+
 
 	/*Rotation += fFrameTime * 0.2f;
 	if ( Rotation >= 4 * ( FLOAT ) D3DX_PI )
@@ -394,6 +399,37 @@ void CGraphics::RenderScene( )
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
 			}
 		}
+		else if ( iter.first == L"Mosquito" )
+		{
+			if ( iter.second[ 0 ].bRenderDepthMap == false )
+				continue;
+			WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ 0 ]._4x4fWorld );
+			m_D3D11->DisableCulling( );
+			UINT NoCulling = m_Mosquito->GetNumberOfStaticObjectsDrawnWithNoCulling( );
+			for ( UINT i = 0; i < NoCulling; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+					WorldMatrix, m_LightView, m_Mosquito->GetModel( i )->GetTexture( ) );
+			}
+			UINT StaticObjects = m_Mosquito->GetNumberOfStaticObjects( );
+			for ( UINT i = NoCulling; i < StaticObjects; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+					WorldMatrix, m_LightView, m_Mosquito->GetModel( i )->GetTexture( ) );
+			}
+			UINT DynamicObjects = m_Mosquito->GetNumberOfDynamicObjects( );
+			UINT TotalObjects = m_Mosquito->GetNumberOfObjects( );
+			for ( UINT i = StaticObjects; i < TotalObjects; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				m_DepthShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+					WorldMatrix, m_LightView, m_Mosquito->GetModel( i )->GetTexture( ) );
+			}
+
+			m_D3D11->EnableBackFaceCulling( );
+		}
 		else
 		{
 			wchar_t buffer[ 500 ];
@@ -446,17 +482,64 @@ void CGraphics::RenderScene( )
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
 			}
 		}
+		else if ( iter.first == L"Mosquito" )
+		{
+			if ( iter.second[ 0 ].bRenderBackBuffer == false )
+				continue;
+			WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ 0 ]._4x4fWorld );
+			m_D3D11->DisableCulling( );
+			UINT NoCulling = m_Mosquito->GetNumberOfStaticObjectsDrawnWithNoCulling( );
+			for ( UINT i = 0; i < NoCulling; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+					WorldMatrix, m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_Depthmap->GetTexture( ),
+					m_LightView );
+			}
+			m_D3D11->DisableCulling( );
+			UINT StaticObjects = m_Mosquito->GetNumberOfStaticObjects( );
+			for ( UINT i = NoCulling; i < StaticObjects; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+					WorldMatrix, m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_Depthmap->GetTexture( ),
+					m_LightView );
+			}
+			m_D3D11->DisableCulling( );
+			UINT DynamicObjects = m_Mosquito->GetNumberOfDynamicObjects( );
+			UINT TotalObjects = m_Mosquito->GetNumberOfObjects( );
+			for ( UINT i = StaticObjects; i < TotalObjects; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+					WorldMatrix, m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_Depthmap->GetTexture( ),
+					m_LightView );
+			}
+			m_D3D11->EnableBackFaceCulling( );
+		}
 	}
 	m_mwvecObjectsToDraw.clear( );
 	RenderUI( );
 }
 
-void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position )
+void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position, float * World )
 {
 	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
 	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
 	m_PlayerX = Position.x;
 	m_PlayerZ = Position.z;
+
+	if ( m_ActiveCamera == m_ThirdPersonCamera ) // Render model only if it's in third person camera
+	{
+		RenderMosquito( World, true );
+	}
+	else
+		RenderMosquito( World, false );
+}
+
+void CGraphics::RenderMosquito( float * World, bool drawtoback )
+{
+	AddObjectToRenderList( L"Mosquito", nullptr, World, true, drawtoback );
 }
 
 void CGraphics::RenderPlane( float* World,

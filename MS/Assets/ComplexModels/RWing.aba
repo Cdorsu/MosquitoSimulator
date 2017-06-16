@@ -1,0 +1,20 @@
+Objects: 1
+RWing {
+	Vertices: 4 Texture: ENABLED Normals: ENABLED Tangents: DISABLED Binormals: DISABLED {
+		0 1 0.5 0 0 0 1 0
+		5 1 0.5 1 0 0 1 0
+		5 1 -0.5 1 1 0 1 0
+		0 1 -0.5 0 1 0 1 0
+	}
+	Indices: 6 {
+		0 1 2
+		0 2 3
+	}
+	Material Material.002 {
+        Ambient color: 1.0 1.0 1.0
+        Diffuse color: 0.8 0.0 0.0
+        Specular color: 0.5 0.5 0.5
+        Specular power: 99.039215
+        Emissive color: 0.0 0.0 0.0 # probably won't use this
+    }
+}
