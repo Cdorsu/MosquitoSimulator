@@ -29,8 +29,11 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	btVector3 localInertia = btVector3( 0, 0, 0 );
 	btRigidBody::btRigidBodyConstructionInfo PlaneCI( 0, MotionState, PlaneShape, localInertia );
 	btRigidBody *Plane = new btRigidBody( PlaneCI );
+	Plane->setFlags( Plane->getFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
+	Plane->setUserIndex( GroundID );
 	Plane->setFriction( 3 );
 	bulletObject *PlanePtr = new bulletObject( L"Plane", Plane );
+	Plane->setUserPointer( PlanePtr );
 	m_pWorld->addRigidBody( Plane );
 	m_vecRigidBodies.push_back( PlanePtr );
 
@@ -71,7 +74,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Torus );
 	m_vecRigidBodies.push_back( TorusPtr );
 
-	btCollisionShape * CapsuleShape = new btCapsuleShape( 1.0f, 3.0f );
+	DirectX::XMFLOAT3 MaxAABB = m_Graphics->GetPlayerAABB( ).second;
+	btCollisionShape * CapsuleShape = new btBoxShape( btVector3( MaxAABB.x, MaxAABB.y - 0.7f, MaxAABB.z ) );
 	btMotionState * CapsuleState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 10, 15, 10 ) ) );
 	btRigidBody::btRigidBodyConstructionInfo CapsuleCI( 100, CapsuleState, CapsuleShape );
 	btRigidBody * Capsule = new btRigidBody( CapsuleCI );
@@ -86,7 +90,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 
 	m_Player = CapsulePtr;
 
-	gContactAddedCallback = Collision;;
+	gContactAddedCallback = Collision;
 	
 	m_pWorld->setGravity( btVector3( 0, -10, 0 ) );
 
@@ -94,11 +98,14 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawAabb );
 	m_pWorld->setDebugDrawer( this );
 #endif
+	m_pWorld->setInternalTickCallback( CPhysics::myTickCallBack, reinterpret_cast< void* >( this ) );
+
 	return true;
 }
 
 void CPhysics::Frame( float fFrameTime )
 {
+	m_Player->bTouchesTheGround = false;
 	m_pWorld->stepSimulation( fFrameTime );
 	for ( unsigned int i = 0; i < m_vecRigidBodies.size( ); ++i )
 	{
@@ -141,11 +148,15 @@ void CPhysics::Frame( float fFrameTime )
 		}
 		else if ( m_vecRigidBodies[ i ]->Name == L"Player" )
 		{
+			float matrix[ 16 ];
 			btMotionState * motionState = m_vecRigidBodies[ i ]->Body->getMotionState( );
 			btTransform trans;
 			motionState->getWorldTransform( trans );
-			btVector3 Origin = trans.getOrigin( );
-			m_Graphics->RenderPlayer( DirectX::XMFLOAT3( Origin.x( ), Origin.y( ), Origin.z( ) ) );
+			trans.getOpenGLMatrix( matrix );
+			m_Graphics->RenderPlayer( DirectX::XMFLOAT3(
+				trans.getOrigin( ).x( ),
+				trans.getOrigin( ).y( ),
+				trans.getOrigin( ).z( ) ), matrix );
 		}
 	}
 	if ( m_Input->isKeyPressed( DIK_W ) )
@@ -158,6 +169,11 @@ void CPhysics::Frame( float fFrameTime )
 		if ( xzVelocity.length2( ) < MaxXZSpeed2 )
 			InitialVelocity += Direction.normalize( );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
+		btTransform btTrans = m_Player->Body->getCenterOfMassTransform( );
+		btMatrix3x3 Rotation;
+		float rad = atan2f( InitialVelocity.x( ), InitialVelocity.z( ) );
+		Rotation.setEulerYPR( 0, SIMD_PI + rad, 0 );
+		m_Player->Body->setCenterOfMassTransform( btTransform( Rotation, btTrans.getOrigin( ) ) );
 	}
 	else if ( m_Input->isKeyPressed( DIK_S ) )
 	{
@@ -169,6 +185,11 @@ void CPhysics::Frame( float fFrameTime )
 		if ( xzVelocity.length2( ) < MaxXZSpeed2 )
 			InitialVelocity -= Direction.normalize( );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
+		btTransform btTrans = m_Player->Body->getCenterOfMassTransform( );
+		btMatrix3x3 Rotation;
+		float rad = atan2f( InitialVelocity.x( ), InitialVelocity.z( ) );
+		Rotation.setEulerYPR( 0, SIMD_PI + rad, 0 );
+		m_Player->Body->setCenterOfMassTransform( btTransform( Rotation, btTrans.getOrigin( ) ) );
 	}
 	if ( m_Input->isKeyPressed( DIK_D ) )
 	{
@@ -180,6 +201,11 @@ void CPhysics::Frame( float fFrameTime )
 		if ( xzVelocity.length2( ) < MaxXZSpeed2 )
 			InitialVelocity += Direction.normalize( );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
+		btTransform btTrans = m_Player->Body->getCenterOfMassTransform( );
+		btMatrix3x3 Rotation;
+		float rad = atan2f( InitialVelocity.x( ), InitialVelocity.z( ) );
+		Rotation.setEulerYPR( 0, SIMD_PI + rad, 0 );
+		m_Player->Body->setCenterOfMassTransform( btTransform( Rotation, btTrans.getOrigin( ) ) );
 	}
 	else if ( m_Input->isKeyPressed( DIK_A ) )
 	{
@@ -191,6 +217,11 @@ void CPhysics::Frame( float fFrameTime )
 		if ( xzVelocity.length2( ) < MaxXZSpeed2 )
 			InitialVelocity -= Direction.normalize( );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
+		btTransform btTrans = m_Player->Body->getCenterOfMassTransform( );
+		btMatrix3x3 Rotation;
+		float rad = atan2f( InitialVelocity.x( ), InitialVelocity.z( ) );
+		Rotation.setEulerYPR( 0, SIMD_PI + rad, 0 );
+		m_Player->Body->setCenterOfMassTransform( btTransform( Rotation, btTrans.getOrigin( ) ) );
 	}
 	else if ( m_Input->isSpecialKeyPressed( DIK_SPACE ) )
 	{
@@ -201,11 +232,20 @@ void CPhysics::Frame( float fFrameTime )
 		Direction.normalize( );
 		InitialVelocity += Direction + btVector3( 0, btScalar( VerticalImpulse ), 0 );
 		m_Player->Body->setLinearVelocity( InitialVelocity );
+		btTransform btTrans = m_Player->Body->getCenterOfMassTransform( );
+		btMatrix3x3 Rotation;
+		InitialVelocity.setY( 0 );
+		InitialVelocity.normalize( );
+		float rad = atan2f( InitialVelocity.x( ), InitialVelocity.z( ) );
+		Rotation.setEulerYPR( 0, SIMD_PI + rad, 0 );
+		m_Player->Body->setCenterOfMassTransform( btTransform( Rotation, btTrans.getOrigin( ) ) );
+		
 	}
 	if ( m_Input->isKeyPressed( DIK_B ) )
 	{
 		m_pWorld->debugDrawWorld( );
 	}
+	m_Graphics->SetUserTouchesTheGround( m_Player->bTouchesTheGround );
 	m_Graphics->SetScore( m_Player->Score );
 }
 
@@ -251,7 +291,9 @@ bool CPhysics::Collision( btManifoldPoint& cp,
 		User = First->Body;
 	else if ( Second->Body->getUserIndex( ) == PlayerID )
 		User = Second->Body;
-	if ( Torus == nullptr || User == nullptr )
+	if ( User == nullptr )
+		return false;
+	if ( Torus == nullptr )
 		return false;
 	float x;
 	float z;
@@ -266,4 +308,19 @@ bool CPhysics::Collision( btManifoldPoint& cp,
 	Torus->activate( );
 	( ( bulletObject* ) User->getUserPointer( ) )->Score = ( ( bulletObject* ) User->getUserPointer( ) )->Score + 1;
 	return true;
+}
+
+void CPhysics::myTickCallBack( btDynamicsWorld *world, btScalar timeStep )
+{
+	CPhysics* object = ( CPhysics* ) world->getWorldUserInfo( );
+	for ( unsigned int i = 0; i < object->m_vecRigidBodies.size( ); ++i )
+	{
+		btVector3 Velocity = object->m_vecRigidBodies[ i ]->Body->getLinearVelocity( );
+		btScalar Speed = Velocity.length2( );
+		if ( Speed > MaxSpeed2 )
+		{
+			Velocity *= MaxSpeed2 / Speed;
+			object->m_vecRigidBodies[ i ]->Body->setLinearVelocity( Velocity );
+		}
+	}
 }

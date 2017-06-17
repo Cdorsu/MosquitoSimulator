@@ -17,9 +17,13 @@ ALIGN16 class CMosquito sealed
 public:
 	CMosquito( );
 	~CMosquito( );
+protected:
+	static std::random_device m_RandomDevice;
+	static std::mt19937 m_RandomGenerator;
+	static std::uniform_real_distribution<float> m_FloatWingAngleDistribution;
 public:
 	bool Initialize( ID3D11Device * device, LPWSTR lpList );
-	void UpdateWings( );
+	void UpdateWings( ID3D11DeviceContext * context, DirectX::XMFLOAT3 Direction, bool bUpdateWings = false );
 	void Render( ID3D11DeviceContext * context, UINT objectIndex );
 	void Shutdown( );
 public:
@@ -38,6 +42,8 @@ public:
 		return m_vecModels[ index ]->GetWorld( );
 	}
 	inline DirectX::XMFLOAT3 GetCenter( ) { return m_3fCenter; };
+	inline DirectX::XMFLOAT3 GetMinAABB( ) { return m_3fMinAABB; };
+	inline DirectX::XMFLOAT3 GetMaxAABB( ) { return m_3fMaxAABB; };
 	inline void Identity( ) { m_StaticWorld = DirectX::XMMatrixIdentity( ); };
 	inline void Translate( float x, float y, float z ) { m_StaticWorld *= DirectX::XMMatrixTranslation( x, y, z ); };
 	inline void RotateX( float theta ) { m_StaticWorld *= DirectX::XMMatrixRotationX( theta ); };

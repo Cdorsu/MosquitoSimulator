@@ -1,6 +1,8 @@
 #include "Mosquito.h"
 
-
+std::random_device CMosquito::m_RandomDevice;
+std::mt19937 CMosquito::m_RandomGenerator = std::mt19937( CMosquito::m_RandomDevice( ) );
+std::uniform_real_distribution<float> CMosquito::m_FloatWingAngleDistribution( -D3DX_PI / 8.f, D3DX_PI / 8.f );
 
 CMosquito::CMosquito( )
 {
@@ -78,9 +80,17 @@ bool CMosquito::Initialize( ID3D11Device * device, LPWSTR lpList )
 		/// Maybe do something with other data
 	}
 	ifCitire.close( );
-	for ( unsigned int i = 0; i < m_vecModels.size( ); ++i )
+	for ( unsigned int i = m_numStaticObjects; i < m_vecModels.size( ); ++i )
 	{
-		m_vecModels[ i ]->m_World = DirectX::XMMatrixIdentity( );;
+		CModel * Model = m_vecModels[ i ];
+		SAFE_RELEASE( Model->m_VertexBuffer );
+		D3D11_BUFFER_DESC buffDesc = { 0 };
+		buffDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+		buffDesc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
+		buffDesc.ByteWidth = sizeof( CModel::SVertex ) * 4;
+		buffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
+		IFFAILED( device->CreateBuffer( &buffDesc, nullptr, &Model->m_VertexBuffer ),
+			L"Couldn't create a vertex buffer" );
 	}
 	return true;
 }
@@ -89,7 +99,7 @@ void CMosquito::CalculateAABB( )
 {
 	m_3fMinAABB = DirectX::XMFLOAT3( FLT_MAX, FLT_MAX, FLT_MAX );
 	m_3fMaxAABB = DirectX::XMFLOAT3( -FLT_MAX, -FLT_MAX, -FLT_MAX );
-	for ( UINT i = 0; i < m_vecModels.size( ); ++i )
+	for ( UINT i = 0; i < m_numStaticObjects; ++i )
 	{
 		if ( m_vecModels[ i ]->m_3fMinAABB.x < m_3fMinAABB.x )
 			m_3fMinAABB.x = m_vecModels[ i ]->m_3fMinAABB.x;
@@ -117,16 +127,34 @@ void CMosquito::CalculateCenter( bool bReconstructBuffers )
 		m_3fMaxAABB.y - distY, m_3fMaxAABB.z - distZ );
 }
 
-void CMosquito::UpdateWings( )
+void CMosquito::UpdateWings( ID3D11DeviceContext * context, DirectX::XMFLOAT3 Direction, bool bAnimateWings )
 {
-	static float theta = 0.0f;
-	theta += 0.2f;
-	if ( theta >= 2 * ( FLOAT ) D3DX_PI )
-		theta = 0.0f;
-	CModel * Wing = m_vecModels[ m_numStaticObjects ];
-	Wing->Identity( );
-	Wing->RotateY( theta );
-	Wing->Translate( -0.1f, 3.05f, 1.49f );
+	static HRESULT hr;
+	static D3D11_MAPPED_SUBRESOURCE MappedResource;
+	DirectX::XMVECTOR Point;
+	DirectX::XMMATRIX Rotation;
+	DirectX::XMVECTOR Axis = DirectX::XMLoadFloat3( &Direction );
+	for ( int i = m_numStaticObjects; i < m_vecModels.size( ); ++i )
+	{
+		float Angle = bAnimateWings ? m_FloatWingAngleDistribution( m_RandomGenerator ) : 0.0f;
+		Rotation = DirectX::XMMatrixRotationAxis( Axis, Angle );
+		hr = context->Map( m_vecModels[ i ]->m_VertexBuffer, 0, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
+		if ( FAILED( hr ) )
+			return;
+
+		( ( CModel::SVertex* )MappedResource.pData )[ 0 ].Position = m_vecModels[ i ]->m_vecVertices[ 0 ].Position;
+		( ( CModel::SVertex* )MappedResource.pData )[ 3 ].Position = m_vecModels[ i ]->m_vecVertices[ 3 ].Position;
+
+		Point = DirectX::XMLoadFloat3( &m_vecModels[ i ]->m_vecVertices[ 1 ].Position );
+		Point = DirectX::XMVector3TransformCoord( Point, Rotation );
+		DirectX::XMStoreFloat3( &( ( CModel::SVertex* )MappedResource.pData )[ 1 ].Position, Point );
+
+		Point = DirectX::XMLoadFloat3( &m_vecModels[ i ]->m_vecVertices[ 2 ].Position );
+		Point = DirectX::XMVector3TransformCoord( Point, Rotation );
+		DirectX::XMStoreFloat3( &( ( CModel::SVertex* )MappedResource.pData )[ 2 ].Position, Point );
+
+		context->Unmap( m_vecModels[ i ]->m_VertexBuffer, 0 );
+	}
 }
 
 void CMosquito::Render( ID3D11DeviceContext * context, UINT objectIndex )

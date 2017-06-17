@@ -82,7 +82,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\bullet3-2.85.1\bullet3-2.85.1\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -100,7 +100,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\bullet3-2.85.1\bullet3-2.85.1\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -298,14 +298,14 @@
     <Image Include="2DArt\Mosquito-Download-PNG.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="C:\Users\Stefan\Desktop\Bullet\src\BulletCollision\BulletCollision.vcxproj">
-      <Project>{46aa8e0e-523d-3927-959f-223b71da2df0}</Project>
+    <ProjectReference Include="..\..\..\Bullet Physics\src\BulletCollision\BulletCollision.vcxproj">
+      <Project>{69f9530c-5c87-3c53-a53b-cc4e47a951bf}</Project>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\Stefan\Desktop\Bullet\src\BulletDynamics\BulletDynamics.vcxproj">
-      <Project>{1d4e6e6e-e987-3516-a00b-cc954b604fc1}</Project>
+    <ProjectReference Include="..\..\..\Bullet Physics\src\BulletDynamics\BulletDynamics.vcxproj">
+      <Project>{f831959e-dd88-3e68-9cfb-6ae600316fe5}</Project>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\Stefan\Desktop\Bullet\src\LinearMath\LinearMath.vcxproj">
-      <Project>{e93b3384-0029-3c0a-bd46-19714d4db020}</Project>
+    <ProjectReference Include="..\..\..\Bullet Physics\src\LinearMath\LinearMath.vcxproj">
+      <Project>{5ac54d48-e8e9-3cdf-a1d1-76c09abf3960}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

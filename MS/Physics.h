@@ -13,13 +13,16 @@ class CPhysics sealed : public btIDebugDraw
 {
 	static constexpr int CheckpointID = 69;
 	static constexpr int PlayerID = 169;
-	static constexpr int MaxXZSpeed2 = 25;
+	static constexpr int GroundID = 269;
+	static constexpr int MaxXZSpeed2 = 49;
+	static constexpr int MaxSpeed2 = 100;
 	static constexpr int VerticalImpulse = 5;
 	struct bulletObject
 	{
 		btRigidBody* Body;
 		std::wstring Name;
 		unsigned int Score;
+		bool bTouchesTheGround = false;
 		bulletObject( )
 		{
 			ZeroMemory( this, sizeof( CPhysics::bulletObject ) );
@@ -56,6 +59,7 @@ public:
 	static bool Collision( btManifoldPoint& cp,
 		const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
 		const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1 );
+	static void myTickCallBack( btDynamicsWorld *world, btScalar timeStep );
 protected:
 	static btMatrix3x3 m_3x3RotationMatrix;
 public: // Inherited
