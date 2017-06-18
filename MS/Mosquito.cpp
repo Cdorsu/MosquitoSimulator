@@ -2,7 +2,7 @@
 
 std::random_device CMosquito::m_RandomDevice;
 std::mt19937 CMosquito::m_RandomGenerator = std::mt19937( CMosquito::m_RandomDevice( ) );
-std::uniform_real_distribution<float> CMosquito::m_FloatWingAngleDistribution( -D3DX_PI / 8.f, D3DX_PI / 8.f );
+std::uniform_real_distribution<float> CMosquito::m_FloatWingAngleDistribution( ( FLOAT ) -D3DX_PI / 8.f, ( FLOAT ) D3DX_PI / 8.f );
 
 CMosquito::CMosquito( )
 {

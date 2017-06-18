@@ -23,6 +23,7 @@ class CPhysics sealed : public btIDebugDraw
 		std::wstring Name;
 		unsigned int Score;
 		bool bTouchesTheGround = false;
+		bool bUpdateScoreThisFrame = false;
 		bulletObject( )
 		{
 			ZeroMemory( this, sizeof( CPhysics::bulletObject ) );

@@ -250,7 +250,8 @@ void CPhysics::Frame( float fFrameTime )
 		m_pWorld->debugDrawWorld( );
 	}
 	m_Graphics->SetUserTouchesTheGround( m_Player->bTouchesTheGround );
-	m_Graphics->SetScore( m_Player->Score / 2 );
+	m_Graphics->SetScore( m_Player->Score );
+	m_Player->bUpdateScoreThisFrame = false;
 }
 
 void CPhysics::Shutdown( )
@@ -319,7 +320,11 @@ bool CPhysics::Collision( btManifoldPoint& cp,
 	Torus->setLinearVelocity( btVector3( 0, 0, 0 ) );
 	Torus->setGravity( btVector3( 0, 0, 0 ) );
 	Torus->activate( );
-	( ( bulletObject* ) User->getUserPointer( ) )->Score = ( ( bulletObject* ) User->getUserPointer( ) )->Score + 1;
+	if ( !( ( bulletObject* ) User->getUserPointer( ) )->bUpdateScoreThisFrame )
+	{
+		( ( bulletObject* ) User->getUserPointer( ) )->Score = ( ( bulletObject* ) User->getUserPointer( ) )->Score + 1;
+		( ( bulletObject* ) User->getUserPointer( ) )->bUpdateScoreThisFrame = true;
+	}
 
 	return true;
 }
