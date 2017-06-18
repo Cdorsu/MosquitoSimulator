@@ -119,8 +119,6 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 	m_Mosquito->CalculateAABB( );
 	m_Mosquito->CalculateCenter( );
-	utility::OutputVDebugString( L"Center: %.2f, %.2f, %.2f\n",
-		m_Mosquito->GetCenter( ).x, m_Mosquito->GetCenter( ).y, m_Mosquito->GetCenter( ).z );
 #endif // !(_DEBUG || DEBUG)
 	m_Depthmap = new CRenderTexture( );
 	if ( !m_Depthmap->Initialize( m_D3D11->GetDevice( ), SHADOW_WIDTH, SHADOW_HEIGHT,
@@ -140,7 +138,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_LightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	m_LightView->SetDiffuse( utility::hexToRGB( 0xFFFFFF ) );
 	m_LightView->SetSpecularColor( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	m_LightView->GenerateProjectionMatrix( FOV, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
+	m_LightView->GenerateProjectionMatrix( D3DX_PI * 0.7f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
 	m_LightView->GenerateViewMatrix( );
 
 	//auto Center = m_Mosquito->GetCenter( );
@@ -164,9 +162,10 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_ThirdPersonCamera->Update( );
 	m_ThirdPersonCamera->ConstructFrustum( );
 	m_Skybox->Update( m_ActiveCamera );
+#if !(_DEBUG || DEBUG)
 	m_Mosquito->UpdateWings( m_D3D11->GetImmediateContext( ),
 		m_AdditionalPhysicsInfo.PlayerDirection, m_AdditionalPhysicsInfo.bAnimateWings );
-
+#endif
 
 	/*Rotation += fFrameTime * 0.2f;
 	if ( Rotation >= 4 * ( FLOAT ) D3DX_PI )
@@ -401,6 +400,7 @@ void CGraphics::RenderScene( )
 		}
 		else if ( iter.first == L"Mosquito" )
 		{
+#if !(_DEBUG || DEBUG)
 			if ( iter.second[ 0 ].bRenderDepthMap == false )
 				continue;
 			WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ 0 ]._4x4fWorld );
@@ -429,6 +429,7 @@ void CGraphics::RenderScene( )
 			}
 
 			m_D3D11->EnableBackFaceCulling( );
+#endif
 		}
 		else
 		{
@@ -484,6 +485,7 @@ void CGraphics::RenderScene( )
 		}
 		else if ( iter.first == L"Mosquito" )
 		{
+#if !(_DEBUG || DEBUG)
 			if ( iter.second[ 0 ].bRenderBackBuffer == false )
 				continue;
 			WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ 0 ]._4x4fWorld );
@@ -516,6 +518,7 @@ void CGraphics::RenderScene( )
 					m_LightView );
 			}
 			m_D3D11->EnableBackFaceCulling( );
+#endif
 		}
 	}
 	m_mwvecObjectsToDraw.clear( );

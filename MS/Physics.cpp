@@ -74,7 +74,11 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Torus );
 	m_vecRigidBodies.push_back( TorusPtr );
 
+#if !(_DEBUG || DEBUG)
 	DirectX::XMFLOAT3 MaxAABB = m_Graphics->GetPlayerAABB( ).second;
+#else
+	DirectX::XMFLOAT3 MaxAABB = DirectX::XMFLOAT3( 3.f, 3.f, 3.f );
+#endif
 	btCollisionShape * CapsuleShape = new btBoxShape( btVector3( MaxAABB.x, MaxAABB.y - 0.7f, MaxAABB.z ) );
 	btMotionState * CapsuleState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 10, 15, 10 ) ) );
 	btRigidBody::btRigidBodyConstructionInfo CapsuleCI( 100, CapsuleState, CapsuleShape );
@@ -246,7 +250,7 @@ void CPhysics::Frame( float fFrameTime )
 		m_pWorld->debugDrawWorld( );
 	}
 	m_Graphics->SetUserTouchesTheGround( m_Player->bTouchesTheGround );
-	m_Graphics->SetScore( m_Player->Score );
+	m_Graphics->SetScore( m_Player->Score / 2 );
 }
 
 void CPhysics::Shutdown( )
@@ -272,10 +276,9 @@ CPhysics::~CPhysics( )
 {
 }
 
-
 bool CPhysics::Collision( btManifoldPoint& cp,
 	const btCollisionObjectWrapper* obj0, int partId0, int index0,
-	const btCollisionObjectWrapper* obj1, int partId1, int index1 )
+	const btCollisionObjectWrapper* obj1, int partId1, int index1 ) // Will be called twice for every collision
 {
 	bulletObject * First = ( ( bulletObject* ) obj0->getCollisionObject( )->getUserPointer( ) );
 	bulletObject * Second = ( ( bulletObject* ) obj1->getCollisionObject( )->getUserPointer( ) );
@@ -298,15 +301,26 @@ bool CPhysics::Collision( btManifoldPoint& cp,
 	float x;
 	float z;
 	float y;
-	x = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
-	z = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
-	y = CPhysics::m_yFloatDistribution( CPhysics::m_RandomGenerator );
-	Torus->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
-	Torus->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
+	bool Done = false;
+	while ( !Done ) // Make sure we don't place the checkpoint inside player's AABB
+	{
+		btVector3 UserMinAABB, UserMaxAABB;
+		btVector3 TorusMinAABB, TorusMaxAABB;
+		x = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
+		z = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
+		y = CPhysics::m_yFloatDistribution( CPhysics::m_RandomGenerator );
+		Torus->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
+		Torus->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
+		User->getAabb( UserMinAABB,UserMaxAABB );
+		Torus->getAabb( TorusMinAABB, TorusMaxAABB );
+		if ( !AABBCollidingWithAABB( UserMinAABB, UserMaxAABB, TorusMinAABB, TorusMaxAABB ) )
+			Done = true;
+	}
 	Torus->setLinearVelocity( btVector3( 0, 0, 0 ) );
 	Torus->setGravity( btVector3( 0, 0, 0 ) );
 	Torus->activate( );
 	( ( bulletObject* ) User->getUserPointer( ) )->Score = ( ( bulletObject* ) User->getUserPointer( ) )->Score + 1;
+
 	return true;
 }
 

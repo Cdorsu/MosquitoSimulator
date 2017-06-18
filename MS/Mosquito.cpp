@@ -134,7 +134,7 @@ void CMosquito::UpdateWings( ID3D11DeviceContext * context, DirectX::XMFLOAT3 Di
 	DirectX::XMVECTOR Point;
 	DirectX::XMMATRIX Rotation;
 	DirectX::XMVECTOR Axis = DirectX::XMLoadFloat3( &Direction );
-	for ( int i = m_numStaticObjects; i < m_vecModels.size( ); ++i )
+	for ( unsigned int i = m_numStaticObjects; i < m_vecModels.size( ); ++i )
 	{
 		float Angle = bAnimateWings ? m_FloatWingAngleDistribution( m_RandomGenerator ) : 0.0f;
 		Rotation = DirectX::XMMatrixRotationAxis( Axis, Angle );

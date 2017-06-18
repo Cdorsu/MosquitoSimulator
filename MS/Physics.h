@@ -60,6 +60,16 @@ public:
 		const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
 		const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1 );
 	static void myTickCallBack( btDynamicsWorld *world, btScalar timeStep );
+public:
+	static inline bool AABBCollidingWithAABB(
+		btVector3& minAABB1, btVector3& maxAABB1,
+		btVector3& minAABB2, btVector3& maxAABB2 )
+	{
+ 		if ( minAABB2.x( ) < maxAABB1.x( ) && maxAABB2.x( ) > minAABB1.x( ) )
+			if ( minAABB2.z( ) < maxAABB1.z( ) && maxAABB2.z( ) > minAABB1.z( ) )
+				return true;
+		return false;
+	}
 protected:
 	static btMatrix3x3 m_3x3RotationMatrix;
 public: // Inherited
