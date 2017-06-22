@@ -49,7 +49,7 @@ public:
 	static constexpr float CamFar = 200.0f;
 	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
 	static constexpr float SunDistanceToCamera = 20.f;
-	static constexpr float SunInFrontOfCamera = 10.f;
+	static constexpr float SunInFrontOfCamera = 20.f;
 	static constexpr float SunWidthHeight = 50.f;
 	static constexpr UINT SHADOW_WIDTH = 1024;
 	static constexpr UINT SHADOW_HEIGHT = 1024;

@@ -19,6 +19,7 @@ public:
 
 	ID3D11RasterizerState * m_NoCulling;
 	ID3D11DepthStencilState * m_DSLessEqual;
+	ID3D11BlendState * m_AddColorsBleding;
 
 	utility::SColor m_BackgroundColor;
 	LPWSTR m_GPUInfo;
@@ -42,6 +43,8 @@ public:
 	inline void EnableDSLessEqual( ) { m_d3d11DeviceContext->OMSetDepthStencilState( m_DSLessEqual, 0 ); };
 	inline void EnableBackBuffer( ) { m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_d3d11RenderTargetView, m_d3d11DSView ); };
 	inline void EnableDefaultViewPort( ) { m_d3d11DeviceContext->RSSetViewports( 1, &m_DefaultViewport ); };
+	inline void EnableAddColorBlendingState( ) { m_d3d11DeviceContext->OMSetBlendState( m_AddColorsBleding, nullptr, 0xffffffff ); };
+	inline void EnableDefaultBlendingState( ) { m_d3d11DeviceContext->OMSetBlendState( nullptr, nullptr, 0xffffffff ); };
 	inline DirectX::XMMATRIX& GetOrthoMatrix( ) { return m_OrthoMatrix; };
 	inline void SwitchFullscreenState( BOOL bState ) { m_SwapChain->SetFullscreenState( bState, nullptr ); };
 public:

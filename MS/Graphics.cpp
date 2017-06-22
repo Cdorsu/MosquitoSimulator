@@ -182,7 +182,7 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_Skybox->Update( m_ActiveCamera );
 
 	/*Lighting updates*/
-	DirectX::XMFLOAT3 LightPosition = m_SunLightView->GetCamPos( );
+	/*DirectX::XMFLOAT3 LightPosition = m_SunLightView->GetCamPos( );
 	DirectX::XMFLOAT3 CameraDirection = m_ActiveCamera->GetDirection( );
 	float Length = sqrtf( CameraDirection.x * CameraDirection.x + CameraDirection.z * CameraDirection.z );
 	CameraDirection.x /= Length;
@@ -197,7 +197,27 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 		LightPosition.x, LightPosition.y, LightPosition.z, 1.0f
 	) );
 
+	m_SunLightView->GenerateViewMatrix( );*/
+
+	DirectX::XMFLOAT3 CameraPosition = m_ActiveCamera->GetCamPos( );
+	DirectX::XMFLOAT3 CameraDirection = m_ActiveCamera->GetDirection( );
+	DirectX::XMFLOAT3 LightDirection = m_SunLightView->GetDirection( );
+	DirectX::XMFLOAT3 LightPosition;
+	LightPosition = CameraPosition;
+	float Length = sqrtf( CameraDirection.x * CameraDirection.x + CameraDirection.z * CameraDirection.z );
+	CameraDirection.x /= Length;
+	CameraDirection.z /= Length;
+	LightPosition.x += CameraDirection.x * SunInFrontOfCamera;
+	LightPosition.y += CameraDirection.y * SunInFrontOfCamera;
+	LightPosition.x -= LightDirection.x * SunDistanceToCamera;
+	LightPosition.y -= LightDirection.y * SunDistanceToCamera;
+	LightPosition.z -= LightDirection.z * SunDistanceToCamera;
+
+	m_SunLightView->SetPosition( DirectX::XMVectorSet(
+		LightPosition.x, LightPosition.y, LightPosition.z, 1.0f
+	) );
 	m_SunLightView->GenerateViewMatrix( );
+
 
 #if !(_DEBUG || DEBUG)
 	m_Mosquito->UpdateWings( m_D3D11->GetImmediateContext( ),
@@ -737,18 +757,6 @@ void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position, float * World )
 	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
 	m_PlayerX = Position.x;
 	m_PlayerZ = Position.z;
-
-	DirectX::XMFLOAT3 LightDirection = m_SunLightView->GetDirection( );
-	LightDirection.x *= SunDistanceToCamera;
-	LightDirection.y *= SunDistanceToCamera;
-	LightDirection.z *= SunDistanceToCamera;
-	Position.x -= LightDirection.x;
-	Position.y -= LightDirection.y;
-	Position.y -= LightDirection.y;
-
-	m_SunLightView->SetPosition( DirectX::XMVectorSet(
-		Position.x, Position.y, Position.z, 1.0f
-	) );
 
 	m_SunLightView->GenerateViewMatrix( );
 

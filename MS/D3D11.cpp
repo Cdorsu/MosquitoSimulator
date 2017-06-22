@@ -251,7 +251,23 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 	dsDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
 	hr = m_d3d11Device->CreateDepthStencilState( &dsDesc, &m_DSLessEqual );
 	IFFAILED( hr, L"Couldn't create a depth stencil state" );
-
+	D3D11_BLEND_DESC blendDesc;
+	D3D11_RENDER_TARGET_BLEND_DESC BlendingEquation;
+	ZeroMemory( &blendDesc, sizeof( D3D11_BLEND_DESC ) );
+	BlendingEquation.BlendEnable = TRUE;
+	BlendingEquation.BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
+	BlendingEquation.BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
+	BlendingEquation.SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ONE;
+	BlendingEquation.DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ONE;
+	BlendingEquation.SrcBlend = D3D11_BLEND::D3D11_BLEND_ONE;
+	BlendingEquation.DestBlend = D3D11_BLEND::D3D11_BLEND_ONE;
+	BlendingEquation.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;
+	ZeroMemory( &BlendingEquation, sizeof( D3D11_RENDER_TARGET_BLEND_DESC ) );
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.IndependentBlendEnable = false;
+	blendDesc.RenderTarget[ 0 ] = BlendingEquation;
+	hr = m_d3d11Device->CreateBlendState( &blendDesc, &m_AddColorsBleding );
+	IFFAILED( hr, L"Couldn't create a blending state" );
 
 	m_OrthoMatrix = DirectX::XMMatrixOrthographicLH( ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight, Near, Far );
 
@@ -275,8 +291,11 @@ void CD3D11::Shutdown( )
 	SAFE_RELEASE( m_d3d11Device );
 	SAFE_RELEASE( m_d3d11DeviceContext );
 	SAFE_RELEASE( m_d3d11RenderTargetView );
+	SAFE_RELEASE( m_d3d11DSView );
 	SAFE_RELEASE( m_SwapChain );
 	SAFE_RELEASE( m_NoCulling );
+	SAFE_RELEASE( m_DSLessEqual );
+	SAFE_RELEASE( m_AddColorsBleding );
 }
 
 CD3D11::~CD3D11( )
