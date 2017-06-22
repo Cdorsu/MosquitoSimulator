@@ -23,6 +23,8 @@ private:
 	DirectX::XMVECTOR m_Direction;
 	DirectX::XMVECTOR m_Right;
 
+	DirectX::XMFLOAT3 m_3fDirection;
+
 	float m_fCamPitch;
 	float m_fCamYaw;
 	float m_fCamRoll;
@@ -57,6 +59,9 @@ public:
 	inline DirectX::XMVECTOR& GetPosition( ) { return m_Position; };
 	inline DirectX::XMFLOAT3 GetDirection( )
 	{
+		if ( m_eCameraType == EType::ThirdPersonCamera )
+			return m_3fDirection;
+		// First person camera
 		DirectX::XMFLOAT3 Result;
 		DirectX::XMStoreFloat3( &Result, m_Direction );
 		return Result;

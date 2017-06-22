@@ -1,9 +1,10 @@
 #pragma once
 #include "ViewInterface.h"
 #include "common\utility.h"
-ALIGN16 class CLightView sealed :
+ALIGN16 class CLightView :
 	public CViewInterface
 {
+protected:
 	DirectX::XMMATRIX m_ViewMatrix;
 	DirectX::XMMATRIX m_ProjectionMatrix;
 	
@@ -27,11 +28,7 @@ public:
 	{
 		m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH( FOV, AspectRatio, CamNear, CamFar );
 	}
-	inline void GenerateOrtograhicMatrix( float WidthHeight, float CamNear, float CamFar )
-	{
-		m_ProjectionMatrix = DirectX::XMMatrixOrthographicLH( WidthHeight, WidthHeight, CamNear, CamFar );
-	}
-	inline void GenerateViewMatrix( )
+	virtual inline void GenerateViewMatrix( )
 	{
 		m_ViewMatrix = DirectX::XMMatrixLookAtLH( m_Position, m_LookAt, m_UpDirection );
 	}
@@ -39,6 +36,10 @@ public:
 	inline utility::SColor GetDiffuse( ) { return m_DiffuseColor; };
 	inline utility::SColor GetAmbient( ) { return m_AmbientColor; };
 	inline utility::SColor GetSpecular( ) { return m_SpecularColor; };
+	virtual inline DirectX::XMFLOAT3 GetDirection( )
+	{
+		return DirectX::XMFLOAT3( );
+	};
 public:
 	virtual inline DirectX::XMMATRIX& GetView( ) override { return m_ViewMatrix; };
 	virtual inline DirectX::XMMATRIX& GetProjection( ) override { return m_ProjectionMatrix; };

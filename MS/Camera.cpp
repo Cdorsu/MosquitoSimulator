@@ -115,6 +115,14 @@ void CCamera::Update( )
 
 		m_fMoveForwardBackward = 0;
 		m_fMoveRightLeft = 0;
+
+		m_3fDirection.x = DirectX::XMVectorGetX( m_Direction ) - DirectX::XMVectorGetX( m_Position );
+		m_3fDirection.y = DirectX::XMVectorGetY( m_Direction ) - DirectX::XMVectorGetY( m_Position );
+		m_3fDirection.z = DirectX::XMVectorGetZ( m_Direction ) - DirectX::XMVectorGetZ( m_Position );
+
+		m_3fDirection.x /= m_fDistanceToCamera;
+		m_3fDirection.y /= m_fDistanceToCamera;
+		m_3fDirection.z /= m_fDistanceToCamera;
 	}
 }
 

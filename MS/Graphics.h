@@ -9,14 +9,19 @@
 #include "SkyboxShader.h"
 #include "DepthShader.h"
 #include "ShadowShader.h"
+#include "SunShadowShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
 #include "Text.h"
 #include "Skybox.h"
 #include "RenderTexture.h"
 #include "LightView.h"
+#include "SunLightView.h"
 #include "LineManager.h"
 #include "Mosquito.h"
+
+
+#define USE_SUN_LIGHT
 
 class CGraphics sealed
 {
@@ -43,8 +48,15 @@ public:
 	static constexpr float CamNear = 0.1f;
 	static constexpr float CamFar = 200.0f;
 	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
+	static constexpr float SunDistanceToCamera = 20.f;
+	static constexpr float SunInFrontOfCamera = 10.f;
+	static constexpr float SunWidthHeight = 50.f;
 	static constexpr UINT SHADOW_WIDTH = 1024;
 	static constexpr UINT SHADOW_HEIGHT = 1024;
+	static constexpr UINT DistanceFromRightWindowLeftMap = 120;
+	static constexpr UINT DistanceFromTopToTopMap = 20;
+	static constexpr UINT MapWidth = 100;
+	static constexpr UINT MapWidthOver2 = 50;
 private:
 	bool m_bFullscreen;
 private:
@@ -57,6 +69,7 @@ private:
 	CDepthShader * m_DepthShader;
 	CDepthShader * m_DepthShaderEx;
 	CShadowShader * m_ShadowShader;
+	CSunShadowShader * m_SunShadowShader;
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
 	CTextureWindow * m_DebugWindow;
@@ -77,8 +90,12 @@ private:
 	CMosquito * m_Mosquito;
 
 	/*Light*/
-	CRenderTexture * m_Depthmap;
+	CRenderTexture * m_LightDepthmap;
 	CLightView * m_LightView;
+
+	/*Sun*/
+	CRenderTexture * m_SunDepthmap;
+	CSunLightView * m_SunLightView;
 
 	CLight * m_Light;
 private:
