@@ -131,7 +131,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_LightView = new CLightView( );
 	m_LightView->SetLookAt( DirectX::XMVectorZero( ) );
 	m_LightView->SetPosition( DirectX::XMVectorSet( -3.0f, 6.0f, -4.0f, 1.0f ) );
-	m_LightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 1.0f ) );
+	m_LightView->SetAmbient( utility::hexToRGB( 0x0 ) );
 	m_LightView->SetDiffuse( utility::hexToRGB( 0xFFFFFF ) );
 	m_LightView->SetSpecularColor( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	m_LightView->GenerateProjectionMatrix( ( FLOAT ) D3DX_PI * 0.7f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
@@ -143,7 +143,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 
 	m_SunLightView = new CSunLightView( );
-	m_SunLightView->SetDirection( DirectX::XMVectorSet( .3f, -1.0f, .3f, 0.0f ) );
+	m_SunLightView->SetDirection( DirectX::XMVector3Normalize(
+		DirectX::XMVectorSet( .3f, -1.0f, .3f, 0.0f )
+	) );
 	m_SunLightView->SetPosition( DirectX::XMVectorSet( -3.0f, 6.0f, -4.0f, 1.0f ) );
 	m_SunLightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	m_SunLightView->SetDiffuse( utility::hexToRGB( 0xFFFFFF ) );
@@ -217,7 +219,6 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 		LightPosition.x, LightPosition.y, LightPosition.z, 1.0f
 	) );
 	m_SunLightView->GenerateViewMatrix( );
-
 
 #if !(_DEBUG || DEBUG)
 	m_Mosquito->UpdateWings( m_D3D11->GetImmediateContext( ),
@@ -413,6 +414,7 @@ void CGraphics::Render( )
 void CGraphics::RenderScene( )
 {
 	static DirectX::XMMATRIX WorldMatrix;
+#pragma region Render to depthmap
 	m_D3D11->EnableBackFaceCulling( );
 	m_LightDepthmap->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
 	m_LightDepthmap->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
@@ -424,7 +426,7 @@ void CGraphics::RenderScene( )
 			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				if ( iter.second[ i ].bRenderDepthMap == false )
+				if ( iter.second[ i ].bRenderDepthmap == false )
 					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
@@ -436,7 +438,7 @@ void CGraphics::RenderScene( )
 			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				if ( iter.second[ i ].bRenderDepthMap == false )
+				if ( iter.second[ i ].bRenderDepthmap == false )
 					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
@@ -448,7 +450,7 @@ void CGraphics::RenderScene( )
 			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				if ( iter.second[ i ].bRenderDepthMap == false )
+				if ( iter.second[ i ].bRenderDepthmap == false )
 					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
@@ -458,7 +460,7 @@ void CGraphics::RenderScene( )
 		else if ( iter.first == L"Mosquito" )
 		{
 #if !(_DEBUG || DEBUG)
-			if ( iter.second[ 0 ].bRenderDepthMap == false )
+			if ( iter.second[ 0 ].bRenderDepthmap == false )
 				continue;
 			WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ 0 ]._4x4fWorld );
 			m_D3D11->DisableCulling( );
@@ -507,8 +509,6 @@ void CGraphics::RenderScene( )
 			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				if ( iter.second[ i ].bRenderDepthMap == false )
-					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_SunLightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ) );
@@ -519,8 +519,6 @@ void CGraphics::RenderScene( )
 			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				if ( iter.second[ i ].bRenderDepthMap == false )
-					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_SunLightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ) );
@@ -531,8 +529,6 @@ void CGraphics::RenderScene( )
 			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
 			for ( UINT i = 0; i < iter.second.size( ); ++i )
 			{
-				if ( iter.second[ i ].bRenderDepthMap == false )
-					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_SunLightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
@@ -541,8 +537,6 @@ void CGraphics::RenderScene( )
 		else if ( iter.first == L"Mosquito" )
 		{
 #if !(_DEBUG || DEBUG)
-			if ( iter.second[ 0 ].bRenderDepthMap == false )
-				continue;
 			WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ 0 ]._4x4fWorld );
 			m_D3D11->DisableCulling( );
 			UINT NoCulling = m_Mosquito->GetNumberOfStaticObjectsDrawnWithNoCulling( );
@@ -572,9 +566,10 @@ void CGraphics::RenderScene( )
 #endif
 		}
 	}
+#pragma endregion
 	m_D3D11->EnableBackBuffer( );
 	m_D3D11->EnableDefaultViewPort( );
-#ifndef USE_SUN_LIGHT
+#ifdef VALOARE
 	m_ShadowShader->SetShaders( m_D3D11->GetImmediateContext( ) );
 	m_ShadowShader->SetLightData( m_D3D11->GetImmediateContext( ), m_LightView, m_LightDepthmap->GetTexture( ) );
 	for ( auto & iter : m_mwvecObjectsToDraw ) // Second pass - render to back buffer
@@ -656,10 +651,12 @@ void CGraphics::RenderScene( )
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ) );
 			}
 			m_D3D11->EnableBackFaceCulling( );
+		}
+	}
 #endif
 		}
 	}
-#else
+#endif
 	m_SunShadowShader->SetShaders( m_D3D11->GetImmediateContext( ) );
 	m_SunShadowShader->SetLightData( m_D3D11->GetImmediateContext( ), m_SunLightView, m_SunDepthmap->GetTexture( ) );
 	for ( auto & iter : m_mwvecObjectsToDraw ) // Second pass - render to back buffer
@@ -744,14 +741,14 @@ void CGraphics::RenderScene( )
 #endif
 		}
 	}
-#endif // !USE_SUN_LIGHT
-
 
 	m_mwvecObjectsToDraw.clear( );
 	RenderUI( );
 }
 
-void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position, float * World )
+void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position, float * World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
 {
 	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
 	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Position.x, Position.y, Position.z, 1.0f ) );
@@ -768,9 +765,23 @@ void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position, float * World )
 		RenderMosquito( World, false );
 }
 
-void CGraphics::RenderMosquito( float * World, bool drawtoback )
+void CGraphics::RenderMosquito( float * World, bool drawtoback,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
 {
-	AddObjectToRenderList( L"Mosquito", nullptr, World, true, drawtoback );
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 )
+	{
+		AddObjectToRenderList( L"Mosquito", World, true, drawtoback, true );
+	}
+	else
+	{
+		bool bIsInViewFrustum, bIsInLightFrustum, bIsInSunLightFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Mosquito", World, bIsInLightFrustum, bIsInViewFrustum, bIsInSunLightFrustum );
+	}
 }
 
 void CGraphics::RenderPlane( float* World,
@@ -779,13 +790,14 @@ void CGraphics::RenderPlane( float* World,
 {
 	if ( minX == 0 && minY == 0 && minZ == 0 &&
 		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
-		AddObjectToRenderList( L"Plane", m_Ground, World );
+		AddObjectToRenderList( L"Plane", World );
 	else
 	{
-		bool bIsInViewFrustum, bIsInLightFrustum;
+		bool bIsInViewFrustum, bIsInLightFrustum, bIsInSunLightFrustum;
 		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
 		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
-		AddObjectToRenderList( L"Plane", m_Ground, World, bIsInLightFrustum, bIsInViewFrustum );
+		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Plane", World, bIsInLightFrustum, bIsInViewFrustum, bIsInSunLightFrustum );
 	}
 }
 
@@ -795,13 +807,14 @@ void CGraphics::RenderCube( float* World,
 {
 	if ( minX == 0 && minY == 0 && minZ == 0 &&
 		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
-		AddObjectToRenderList( L"Cube", m_Cube, World );
+		AddObjectToRenderList( L"Cube", World );
 	else
 	{
-		bool bIsInViewFrustum, bIsInLightFrustum;
+		bool bIsInViewFrustum, bIsInLightFrustum, bIsInSunLightFrustum;
 		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
 		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
-		AddObjectToRenderList( L"Cube", m_Ground, World, bIsInLightFrustum, bIsInViewFrustum );
+		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Cube", World, bIsInLightFrustum, bIsInViewFrustum, bIsInSunLightFrustum );
 	}
 }
 
@@ -889,8 +902,9 @@ void CGraphics::RenderUI( )
 #endif
 }
 
-CGraphics::~CGraphics( )
+void CGraphics::Shutdown( )
 {
+
 	if ( m_Light )
 	{
 		delete m_Light;
@@ -1088,4 +1102,9 @@ CGraphics::~CGraphics( )
 		delete m_D3D11;
 		m_D3D11 = 0;
 	}
+}
+
+CGraphics::~CGraphics( )
+{
+	Shutdown( );
 }

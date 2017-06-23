@@ -21,20 +21,21 @@
 #include "Mosquito.h"
 
 
-#define USE_SUN_LIGHT
+#define USE_BOTH_LIGHTS
 
 class CGraphics sealed
 {
 private:
 	struct SObjectToDraw
 	{
-		CModel * ModelToDraw;
 		float * World;
 		DirectX::XMFLOAT4X4 _4x4fWorld;
-		bool bRenderDepthMap;
+		bool bRenderDepthmap;
 		bool bRenderBackBuffer;
-		SObjectToDraw( CModel * Model, float* World, bool RenderCam, bool RenderShadow )
-			:ModelToDraw( Model ), World( World ), bRenderDepthMap( RenderShadow ), bRenderBackBuffer( RenderCam )
+		bool bRenderSunDepthmap;
+		SObjectToDraw( float* World, bool RenderCam, bool RenderLightShadow, bool RenderSunShadow )
+			: World( World ), bRenderDepthmap( RenderLightShadow ), bRenderBackBuffer( RenderCam ),
+			bRenderSunDepthmap( RenderSunShadow )
 		{
 			DirectX::XMStoreFloat4x4( &_4x4fWorld, DirectX::XMMATRIX( World ) );
 		};
@@ -48,9 +49,9 @@ public:
 	static constexpr float CamNear = 0.1f;
 	static constexpr float CamFar = 200.0f;
 	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
-	static constexpr float SunDistanceToCamera = 20.f;
-	static constexpr float SunInFrontOfCamera = 20.f;
-	static constexpr float SunWidthHeight = 50.f;
+	static constexpr float SunDistanceToCamera = 10.f; // You can play
+	static constexpr float SunInFrontOfCamera = 10.f; //				with these values
+	static constexpr float SunWidthHeight = 30.f; //										to get different results
 	static constexpr UINT SHADOW_WIDTH = 1024;
 	static constexpr UINT SHADOW_HEIGHT = 1024;
 	static constexpr UINT DistanceFromRightWindowLeftMap = 120;
@@ -135,11 +136,15 @@ public:
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color );
-	void RenderPlayer( DirectX::XMFLOAT3 Position, float * World );
+	void RenderPlayer( DirectX::XMFLOAT3 Position, float * World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );
 private:
 	void RenderScene( );
-	void RenderMosquito( float * World, bool drawtoback );
+	void RenderMosquito( float * World, bool drawtoback,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
 public:
 	inline void SetScore( UINT score )
 	{
@@ -161,10 +166,10 @@ public:
 		m_D3D11->SwitchFullscreenState( m_bFullscreen ?
 			( FALSE, m_bFullscreen = false ) : ( TRUE, m_bFullscreen = true ) );
 	}
-	inline void AddObjectToRenderList( std::wstring Name, CModel * Model,
-		float* World, bool RenderShadow = true, bool RenderCam = true )
+	inline void AddObjectToRenderList( std::wstring Name, float* World,
+		bool RenderShadow = true, bool RenderCam = true, bool RenderSunShadow = true )
 	{	
-		m_mwvecObjectsToDraw[ Name ].emplace_back( Model, World, RenderCam, RenderShadow );
+		m_mwvecObjectsToDraw[ Name ].emplace_back(World, RenderCam, RenderShadow, RenderSunShadow );
 	}
 public:
 	inline CCamera * GetCamera( )

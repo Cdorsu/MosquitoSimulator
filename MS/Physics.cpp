@@ -157,10 +157,14 @@ void CPhysics::Frame( float fFrameTime )
 			btTransform trans;
 			motionState->getWorldTransform( trans );
 			trans.getOpenGLMatrix( matrix );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
 			m_Graphics->RenderPlayer( DirectX::XMFLOAT3(
 				trans.getOrigin( ).x( ),
 				trans.getOrigin( ).y( ),
-				trans.getOrigin( ).z( ) ), matrix );
+				trans.getOrigin( ).z( ) ), matrix,
+				minAABB.x( ), minAABB.y( ), minAABB.z( ),
+				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
 		}
 	}
 	if ( m_Input->isKeyPressed( DIK_W ) )

@@ -11,7 +11,7 @@ bool CModel::Initialize( ID3D11Device * device )
 {
 	m_Material = new SMaterial;
 	m_Material->Texture = new CTexture( );
-	if ( !m_Material->Texture->Initialize( device, L"2DArt\\Ana.jpeg" ) )
+	if ( !m_Material->Texture->Initialize( device, L"2DArt\\A.jpeg" ) )
 		return false;
 	HRESULT hr;
 	SVertex vertices[ ] =
