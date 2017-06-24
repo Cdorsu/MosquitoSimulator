@@ -21,8 +21,6 @@
 #include "Mosquito.h"
 
 
-#define USE_BOTH_LIGHTS
-
 class CGraphics sealed
 {
 private:
@@ -49,7 +47,7 @@ public:
 	static constexpr float CamNear = 0.1f;
 	static constexpr float CamFar = 200.0f;
 	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
-	static constexpr float SunDistanceToCamera = 10.f; // You can play
+	static constexpr float SunDistanceToCamera = 20.f; // You can play
 	static constexpr float SunInFrontOfCamera = 10.f; //				with these values
 	static constexpr float SunWidthHeight = 30.f; //										to get different results
 	static constexpr UINT SHADOW_WIDTH = 1024;

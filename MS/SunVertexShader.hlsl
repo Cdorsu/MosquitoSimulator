@@ -21,6 +21,8 @@ struct VSOut
 	float4 Position : SV_Position;
 	float4 LightViewPosition : POSITION0;
 	float3 VertexToCamVector : POSITION1;
+	float3 CamPos : POSITION2;
+	float4 WorldPos : POSITION3;
 	float3 Normal : NORMAL;
 	float3 Tangent : TANGENT;
 	float3 Binormal : BINORMAL;
@@ -31,11 +33,13 @@ VSOut main(float4 inPos : POSITION, float3 inNor : NORMAL, float2 inTex : TEXCOO
 {
 	VSOut output = (VSOut) 0;
 
-	float4 WorldPos = mul(inPos, g_World);
+	output.CamPos = g_CamPos;
+
+	output.WorldPos = mul(inPos, g_World);
 
 	output.Position = mul(inPos, g_CamWVP);
 
-	output.LightViewPosition = mul(WorldPos, g_LightView);
+	output.LightViewPosition = mul(output.WorldPos, g_LightView);
 	output.LightViewPosition = mul(output.LightViewPosition, g_LightProjection);
 	
 	

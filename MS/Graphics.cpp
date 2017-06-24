@@ -569,7 +569,94 @@ void CGraphics::RenderScene( )
 #pragma endregion
 	m_D3D11->EnableBackBuffer( );
 	m_D3D11->EnableDefaultViewPort( );
-#ifdef VALOARE
+	m_SunShadowShader->SetShaders( m_D3D11->GetImmediateContext( ) );
+	m_SunShadowShader->SetLightData( m_D3D11->GetImmediateContext( ), m_SunLightView, m_SunDepthmap->GetTexture( ) );
+	for ( auto & iter : m_mwvecObjectsToDraw ) // Second pass - render to back buffer
+	{
+		if ( iter.first == L"Plane" )
+		{
+			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
+			for ( UINT i = 0; i < iter.second.size( ); ++i )
+			{
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Ground->GetMaterial( ) );
+				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ) );
+			}
+		}
+		else if ( iter.first == L"Cube" )
+		{
+			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
+			for ( UINT i = 0; i < iter.second.size( ); ++i )
+			{
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Cube->GetMaterial( ) );
+				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ) );
+			}
+		}
+		else if ( iter.first == L"Torus" )
+		{
+			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
+			for ( UINT i = 0; i < iter.second.size( ); ++i )
+			{
+				if ( iter.second[ i ].bRenderBackBuffer == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Torus->GetMaterial( ) );
+				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
+			}
+		}
+		else if ( iter.first == L"Mosquito" )
+		{
+#if !(_DEBUG || DEBUG)
+			if ( iter.second[ 0 ].bRenderBackBuffer == false )
+				continue;
+			WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ 0 ]._4x4fWorld );
+			m_D3D11->DisableCulling( );
+			UINT NoCulling = m_Mosquito->GetNumberOfStaticObjectsDrawnWithNoCulling( );
+			for ( UINT i = 0; i < NoCulling; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				/*m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
+				WorldMatrix, m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_LightDepthmap->GetTexture( ),
+				m_LightView );*/
+				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetMaterial( ) );
+				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ) );
+			}
+			m_D3D11->DisableCulling( );
+			UINT StaticObjects = m_Mosquito->GetNumberOfStaticObjects( );
+			for ( UINT i = NoCulling; i < StaticObjects; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetMaterial( ) );
+				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ) );
+			}
+			m_D3D11->DisableCulling( );
+			UINT DynamicObjects = m_Mosquito->GetNumberOfDynamicObjects( );
+			UINT TotalObjects = m_Mosquito->GetNumberOfObjects( );
+			for ( UINT i = StaticObjects; i < TotalObjects; ++i )
+			{
+				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
+				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetMaterial( ) );
+				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ) );
+			}
+			m_D3D11->EnableBackFaceCulling( );
+#endif
+		}
+	}
+
+#pragma region RENDER LIGHT
+#if defined VALOARE
+
 	m_ShadowShader->SetShaders( m_D3D11->GetImmediateContext( ) );
 	m_ShadowShader->SetLightData( m_D3D11->GetImmediateContext( ), m_LightView, m_LightDepthmap->GetTexture( ) );
 	for ( auto & iter : m_mwvecObjectsToDraw ) // Second pass - render to back buffer
@@ -656,91 +743,8 @@ void CGraphics::RenderScene( )
 #endif
 		}
 	}
-#endif
-	m_SunShadowShader->SetShaders( m_D3D11->GetImmediateContext( ) );
-	m_SunShadowShader->SetLightData( m_D3D11->GetImmediateContext( ), m_SunLightView, m_SunDepthmap->GetTexture( ) );
-	for ( auto & iter : m_mwvecObjectsToDraw ) // Second pass - render to back buffer
-	{
-		if ( iter.first == L"Plane" )
-		{
-			m_Ground->Render( m_D3D11->m_d3d11DeviceContext );
-			for ( UINT i = 0; i < iter.second.size( ); ++i )
-			{
-				if ( iter.second[ i ].bRenderBackBuffer == false )
-					continue;
-				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
-				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
-				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Ground->GetMaterial( ) );
-				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ground->GetIndexCount( ) );
-			}
-		}
-		else if ( iter.first == L"Cube" )
-		{
-			m_Cube->Render( m_D3D11->m_d3d11DeviceContext );
-			for ( UINT i = 0; i < iter.second.size( ); ++i )
-			{
-				if ( iter.second[ i ].bRenderBackBuffer == false )
-					continue;
-				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
-				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
-				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Cube->GetMaterial( ) );
-				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Cube->GetIndexCount( ) );
-			}
-		}
-		else if ( iter.first == L"Torus" )
-		{
-			m_Torus->Render( m_D3D11->m_d3d11DeviceContext );
-			for ( UINT i = 0; i < iter.second.size( ); ++i )
-			{
-				if ( iter.second[ i ].bRenderBackBuffer == false )
-					continue;
-				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
-				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
-				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Torus->GetMaterial( ) );
-				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Torus->GetIndexCount( ) );
-			}
-		}
-		else if ( iter.first == L"Mosquito" )
-		{
-#if !(_DEBUG || DEBUG)
-			if ( iter.second[ 0 ].bRenderBackBuffer == false )
-				continue;
-			WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ 0 ]._4x4fWorld );
-			m_D3D11->DisableCulling( );
-			UINT NoCulling = m_Mosquito->GetNumberOfStaticObjectsDrawnWithNoCulling( );
-			for ( UINT i = 0; i < NoCulling; ++i )
-			{
-				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
-				/*m_ShadowShader->Render( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ),
-				WorldMatrix, m_ActiveCamera, m_Mosquito->GetModel( i )->GetMaterial( ), m_LightDepthmap->GetTexture( ),
-				m_LightView );*/
-				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
-				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetMaterial( ) );
-				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ) );
-			}
-			m_D3D11->DisableCulling( );
-			UINT StaticObjects = m_Mosquito->GetNumberOfStaticObjects( );
-			for ( UINT i = NoCulling; i < StaticObjects; ++i )
-			{
-				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
-				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
-				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetMaterial( ) );
-				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ) );
-			}
-			m_D3D11->DisableCulling( );
-			UINT DynamicObjects = m_Mosquito->GetNumberOfDynamicObjects( );
-			UINT TotalObjects = m_Mosquito->GetNumberOfObjects( );
-			for ( UINT i = StaticObjects; i < TotalObjects; ++i )
-			{
-				m_Mosquito->Render( m_D3D11->GetImmediateContext( ), i );
-				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
-				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetMaterial( ) );
-				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Mosquito->GetModel( i )->GetIndexCount( ) );
-			}
-			m_D3D11->EnableBackFaceCulling( );
-#endif
-		}
-	}
+#endif // defined VALOARE
+#pragma endregion
 
 	m_mwvecObjectsToDraw.clear( );
 	RenderUI( );
@@ -780,7 +784,7 @@ void CGraphics::RenderMosquito( float * World, bool drawtoback,
 		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
 		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
 		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
-		AddObjectToRenderList( L"Mosquito", World, bIsInLightFrustum, bIsInViewFrustum, bIsInSunLightFrustum );
+		AddObjectToRenderList( L"Mosquito", World, bIsInLightFrustum, drawtoback, bIsInSunLightFrustum );
 	}
 }
 
