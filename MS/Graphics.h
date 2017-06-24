@@ -10,6 +10,7 @@
 #include "DepthShader.h"
 #include "ShadowShader.h"
 #include "SunShadowShader.h"
+#include "AddTexturesShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
 #include "Text.h"
@@ -47,7 +48,7 @@ public:
 	static constexpr float CamNear = 0.1f;
 	static constexpr float CamFar = 200.0f;
 	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
-	static constexpr float SunDistanceToCamera = 20.f; // You can play
+	static constexpr float SunDistanceToCamera = 10.f; // You can play
 	static constexpr float SunInFrontOfCamera = 10.f; //				with these values
 	static constexpr float SunWidthHeight = 30.f; //										to get different results
 	static constexpr UINT SHADOW_WIDTH = 1024;
@@ -56,6 +57,9 @@ public:
 	static constexpr UINT DistanceFromTopToTopMap = 20;
 	static constexpr UINT MapWidth = 100;
 	static constexpr UINT MapWidthOver2 = 50;
+#if DEBUG || _DEBUG
+	static constexpr UINT DebugWindowWidthHeight = 100;
+#endif
 private:
 	bool m_bFullscreen;
 private:
@@ -69,9 +73,13 @@ private:
 	CDepthShader * m_DepthShaderEx;
 	CShadowShader * m_ShadowShader;
 	CSunShadowShader * m_SunShadowShader;
+	CAddTexturesShader * m_AddTexturesShader;
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
+#if _DEBUG || DEBUG
 	CTextureWindow * m_DebugWindow;
+#endif
+	CTextureWindow * m_FullscreenWindow;
 	CTextureWindow * m_MapWindow;
 	CTextureWindow * m_PlayerWindow;
 	CTextureWindow * m_CheckpointWindow;
@@ -96,7 +104,10 @@ private:
 	CRenderTexture * m_SunDepthmap;
 	CSunLightView * m_SunLightView;
 
-	CLight * m_Light;
+	/*Textures to add*/
+	CRenderTexture * m_SceneWithSunLight;
+	CRenderTexture * m_SceneWithLight;
+
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
 	SAdditionalInfoFromPhysicsEngine m_AdditionalPhysicsInfo;

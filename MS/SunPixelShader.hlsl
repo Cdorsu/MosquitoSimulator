@@ -52,10 +52,6 @@ float4 GetBumpColor(float3 Tangent, float3 Binormal, float3 Normal,
 
 float4 main(PSIn input) : SV_TARGET
 {
-	float fogStart = 10;
-	float fogRange = 80;
-	float4 fogColor = float4(0.2f, 0.2f, 0.2f, 0.2f);
-	float distance = length(input.CamPos - input.WorldPos.xyz);
 	float3 LightDirection = -LightDir;
 	float4 TextureColor;
 	float4 BumpmapColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -118,7 +114,5 @@ float4 main(PSIn input) : SV_TARGET
 	Color = saturate(BumpmapColor + Color);
 	Color = Color * TextureColor;
 	Color = saturate(Color + Specular);
-	float s = saturate((distance - fogStart) / fogRange);
-	return (1-s) * Color + s * fogColor;
 	return Color;
 }

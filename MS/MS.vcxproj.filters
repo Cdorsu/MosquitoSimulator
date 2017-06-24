@@ -123,6 +123,9 @@
     <ClCompile Include="SunShadowShader.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="AddTexturesShader.cpp">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\windowsIncludes.h">
@@ -230,6 +233,9 @@
     <ClInclude Include="SunShadowShader.h">
       <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="AddTexturesShader.h">
+      <Filter>Header Files\Graphics\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -281,6 +287,12 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="SunPixelShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="AddTexturesVertexShader.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="AddTexturesPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>
