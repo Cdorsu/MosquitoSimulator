@@ -24,7 +24,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pSolver = new btSequentialImpulseConstraintSolver( );
 	m_pWorld = new btDiscreteDynamicsWorld( m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration );
 
-	btCollisionShape *PlaneShape = new btBoxShape( btVector3( 50, 0, 50 ) );
+	btCollisionShape *PlaneShape = new btStaticPlaneShape( btVector3( 0, 1, 0 ), 0 );
 	btMotionState *MotionState = new btDefaultMotionState( );
 	btVector3 localInertia = btVector3( 0, 0, 0 );
 	btRigidBody::btRigidBodyConstructionInfo PlaneCI( 0, MotionState, PlaneShape, localInertia );
@@ -36,6 +36,17 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	Plane->setUserPointer( PlanePtr );
 	m_pWorld->addRigidBody( Plane );
 	m_vecRigidBodies.push_back( PlanePtr );
+	
+	btCollisionShape * WallShape = new btStaticPlaneShape( btVector3( 0, 0, 1 ), -50 );
+	btMotionState * WallState = new btDefaultMotionState( );
+	//WallState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 50 ) ) );
+	btRigidBody::btRigidBodyConstructionInfo WallCI( 0, WallState, WallShape );
+	btRigidBody * Wall = new btRigidBody( WallCI );
+	bulletObject *WallPtr = new bulletObject( L"Wall", Wall );
+	Wall->setUserPointer( WallPtr );
+	m_pWorld->addRigidBody( Wall );
+	m_vecRigidBodies.push_back( WallPtr );
+
 
 	btCollisionShape *BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
 	btMotionState *BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 10, 0 ) ) );
@@ -165,6 +176,17 @@ void CPhysics::Frame( float fFrameTime )
 				trans.getOrigin( ).z( ) ), matrix,
 				minAABB.x( ), minAABB.y( ), minAABB.z( ),
 				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
+		}
+		else if ( m_vecRigidBodies[ i ]->Name == L"Wall" )
+		{
+			float matrix[ 16 ];
+			btMotionState * motionState = m_vecRigidBodies[ i ]->Body->getMotionState( );
+			btTransform trans;
+			motionState->getWorldTransform( trans );
+			trans.getOpenGLMatrix( matrix );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
+			m_Graphics->RenderWindow( matrix );
 		}
 	}
 	if ( m_Input->isKeyPressed( DIK_W ) )

@@ -1,0 +1,20 @@
+Objects: 1
+Ground {
+    Vertices: 4 Texture: ENABLED Normals: ENABLED Tangents: DISABLED Binormals: DISABLED {
+        -50 50 -50 0 0 0 0 -1
+        50 50 -50 1 0 0 0 -1
+        50 0 -50 1 1 0 0 -1
+        -50 0 -50 0 1 0 0 -1
+    }
+    Indices: 6 {
+        0 1 2 
+        0 2 3
+    }
+    Material None {
+        Ambient color: 0.0 0.0 0.0
+        Diffuse color: 0.0 1.0 0
+        Specular color: 0.8 0.8 0.8
+        Specular power: 32
+        Diffuse map: 2DArt\\WallWithWindow.png
+    }
+}

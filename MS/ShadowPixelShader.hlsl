@@ -55,6 +55,7 @@ float4 main ( PSIn input) : SV_TARGET
 	if (bHasTexture)
 	{
 		TextureColor = ObjTexture.Sample(WrapSampler, input.TexCoord);
+		clip(TextureColor.a - 0.1f);
 		if(bHasNormalMap)
 		{
 			float4 BC = ObjNormalmap.Sample(WrapSampler, input.TexCoord);

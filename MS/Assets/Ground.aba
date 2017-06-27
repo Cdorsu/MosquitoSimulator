@@ -14,7 +14,7 @@ Ground {
         Ambient color: 0.0 0.0 0.0
         Diffuse color: 0.0 1.0 0
         Specular color: 0.8 0.8 0.8
-        Specular power: 100
+        Specular power: 1
         Diffuse map: 2DArt\\earth.jpg
         Bump map: 2DArt\\earthNormals.png
     }

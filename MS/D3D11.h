@@ -18,6 +18,7 @@ public:
 	D3D11_VIEWPORT m_DefaultViewport;
 
 	ID3D11RasterizerState * m_NoCulling;
+	ID3D11RasterizerState * m_FrontFaceCulling;
 	ID3D11DepthStencilState * m_DSLessEqual;
 	ID3D11BlendState * m_AddColorsBleding;
 
@@ -39,6 +40,7 @@ public:
 	inline ID3D11DeviceContext * GetImmediateContext( ) { return m_d3d11DeviceContext; };
 	inline void DisableCulling( ) { m_d3d11DeviceContext->RSSetState( m_NoCulling ); };
 	inline void EnableBackFaceCulling( ) { m_d3d11DeviceContext->RSSetState( nullptr ); };
+	inline void EnableFrontFaceCulling( ) { m_d3d11DeviceContext->RSSetState( m_FrontFaceCulling ); };
 	inline void EnableDefaultDSState( ) { m_d3d11DeviceContext->OMSetDepthStencilState( nullptr, 0 ); };
 	inline void EnableDSLessEqual( ) { m_d3d11DeviceContext->OMSetDepthStencilState( m_DSLessEqual, 0 ); };
 	inline void EnableBackBuffer( ) { m_d3d11DeviceContext->OMSetRenderTargets( 1, &m_d3d11RenderTargetView, m_d3d11DSView ); };

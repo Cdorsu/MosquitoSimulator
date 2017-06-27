@@ -66,7 +66,7 @@ public:
 		btVector3& minAABB1, btVector3& maxAABB1,
 		btVector3& minAABB2, btVector3& maxAABB2 )
 	{
- 		if ( minAABB2.x( ) < maxAABB1.x( ) && maxAABB2.x( ) > minAABB1.x( ) )
+		if ( minAABB2.x( ) < maxAABB1.x( ) && maxAABB2.x( ) > minAABB1.x( ) )
 			if ( minAABB2.z( ) < maxAABB1.z( ) && maxAABB2.z( ) > minAABB1.z( ) )
 				return true;
 		return false;

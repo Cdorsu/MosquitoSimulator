@@ -21,6 +21,7 @@
 #include "LineManager.h"
 #include "Mosquito.h"
 
+#define USE_LIGHT
 
 class CGraphics sealed
 {
@@ -48,9 +49,9 @@ public:
 	static constexpr float CamNear = 0.1f;
 	static constexpr float CamFar = 200.0f;
 	static constexpr float FOV = 0.5f * ( FLOAT ) D3DX_PI;
-	static constexpr float SunDistanceToCamera = 10.f; // You can play
+	static constexpr float SunDistanceToCamera = 100.f; // You can play
 	static constexpr float SunInFrontOfCamera = 10.f; //				with these values
-	static constexpr float SunWidthHeight = 30.f; //										to get different results
+	static constexpr float SunWidthHeight = 40.f; //										to get different results
 	static constexpr UINT SHADOW_WIDTH = 1024;
 	static constexpr UINT SHADOW_HEIGHT = 1024;
 	static constexpr UINT DistanceFromRightWindowLeftMap = 120;
@@ -87,6 +88,7 @@ private:
 	CModel * m_Cube;
 	CModel * m_Torus;
 	CModel * m_Ground;
+	CModel * m_Window;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CText * m_ScoreText;
@@ -146,6 +148,9 @@ public:
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color );
 	void RenderPlayer( DirectX::XMFLOAT3 Position, float * World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderWindow( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );

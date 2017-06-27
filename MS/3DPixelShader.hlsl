@@ -21,5 +21,6 @@ float4 main(PSIn input) : SV_TARGET
         Color = ObjTexture.Sample(ObjSampler, input.Texture);
     else
         Color = g_Color;
+    clip(Color.a - 0.2f);
     return Color;
 }

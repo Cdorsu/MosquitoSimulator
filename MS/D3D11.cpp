@@ -244,6 +244,9 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 	rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	hr = m_d3d11Device->CreateRasterizerState( &rastDesc, &m_NoCulling );
 	IFFAILED( hr, L"Couldn't create rasterizer state" );
+	rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
+	hr = m_d3d11Device->CreateRasterizerState( &rastDesc, &m_FrontFaceCulling );
+	IFFAILED( hr, L"Couldn't create rasterizer state" );
 	D3D11_DEPTH_STENCIL_DESC dsDesc;
 	ZeroMemory( &dsDesc, sizeof( D3D11_DEPTH_STENCIL_DESC ) );
 	dsDesc.DepthEnable = true;
@@ -291,6 +294,7 @@ void CD3D11::Shutdown( )
 	SAFE_RELEASE( m_d3d11DSView );
 	SAFE_RELEASE( m_SwapChain );
 	SAFE_RELEASE( m_NoCulling );
+	SAFE_RELEASE( m_FrontFaceCulling );
 	SAFE_RELEASE( m_DSLessEqual );
 	SAFE_RELEASE( m_AddColorsBleding );
 }
