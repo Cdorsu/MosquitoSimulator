@@ -52,8 +52,8 @@ public:
 	static constexpr float SunDistanceToCamera = 100.f; // You can play
 	static constexpr float SunInFrontOfCamera = 10.f; //				with these values
 	static constexpr float SunWidthHeight = 40.f; //										to get different results
-	static constexpr UINT SHADOW_WIDTH = 1024;
-	static constexpr UINT SHADOW_HEIGHT = 1024;
+	static constexpr UINT SHADOW_WIDTH = 2048;
+	static constexpr UINT SHADOW_HEIGHT = 2048;
 	static constexpr UINT DistanceFromRightWindowLeftMap = 120;
 	static constexpr UINT DistanceFromTopToTopMap = 20;
 	static constexpr UINT MapWidth = 100;

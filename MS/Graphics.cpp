@@ -118,7 +118,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 #if _DEBUG || DEBUG
 	m_DebugText = new CText( );
-	if ( !m_DebugText->Initialize( m_D3D11->GetDevice( ), m_Font01,
+	if ( !m_DebugText->Initialize( m_D3D11->GetDevice( ), m_Font,
 		300, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
 #endif // _DEBUG || DEBUG
@@ -139,12 +139,12 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 
 	m_LightView = new CLightView( );
-	m_LightView->SetLookAt( DirectX::XMVectorZero( ) );
-	m_LightView->SetPosition( DirectX::XMVectorSet( -3.0f, 6.0f, -4.0f, 1.0f ) );
+	m_LightView->SetLookAt( DirectX::XMVectorSet( 0.1f, 0.0f, 0.1f, 1.0f ) );
+	m_LightView->SetPosition( DirectX::XMVectorSet( 0.0f, 40.0f, 0.0f, 1.0f ) );
 	m_LightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 0.1f ) );
 	m_LightView->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	m_LightView->SetSpecularColor( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	m_LightView->GenerateProjectionMatrix( ( FLOAT ) D3DX_PI * 0.7f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
+	m_LightView->GenerateProjectionMatrix( ( FLOAT ) D3DX_PI * 0.6f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
 	m_LightView->GenerateViewMatrix( );
 
 	m_SunDepthmap = new CRenderTexture( );
@@ -156,7 +156,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_SunLightView->SetDirection( DirectX::XMVector3Normalize(
 		DirectX::XMVectorSet( .3f, -1.0f, .3f, 0.0f )
 	) );
-	m_SunLightView->SetPosition( DirectX::XMVectorSet( -3.0f, 6.0f, -4.0f, 1.0f ) );
+	m_SunLightView->SetPosition( DirectX::XMVectorSet( -3.0f, 10.0f, -4.0f, 1.0f ) );
 	m_SunLightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 0.0f ) );
 	m_SunLightView->SetDiffuse( utility::SColor( 0.5f, 0.5f, 0.5f, 0.1f ) );
 	m_SunLightView->SetSpecularColor( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
@@ -478,7 +478,7 @@ void CGraphics::RenderScene( )
 					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
-				m_D3D11->EnableFrontFaceCulling( );
+				m_D3D11->DisableCulling( );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Window->GetIndexCount( ) );
 				m_D3D11->EnableBackFaceCulling( );
 			}
@@ -782,6 +782,7 @@ void CGraphics::RenderScene( )
 				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Window->GetMaterial( ) );
 				m_D3D11->DisableCulling( );
 				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Window->GetIndexCount( ) );
+				m_D3D11->EnableBackFaceCulling( );
 			}
 		}
 		else if ( iter.first == L"Mosquito" )
@@ -1007,6 +1008,21 @@ void CGraphics::RenderUI( )
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
 		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
+	m_DebugWindow->Render( m_D3D11->GetImmediateContext( ), 128, 128 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_LightDepthmap->GetTexture( ) );
+	if ( m_Input->isKeyPressed( DIK_H ) )
+	{
+		ID3D11Texture2D * Tex;
+		
+		m_LightDepthmap->GetTexture( )->GetResource( reinterpret_cast< ID3D11Resource** >( &Tex ) );
+
+		HRESULT hr = D3DX11SaveTextureToFile( m_D3D11->GetImmediateContext( ),
+			reinterpret_cast< ID3D11Resource* >( Tex ), 
+			D3DX11_IMAGE_FILE_FORMAT::D3DX11_IFF_PNG, L"Ceva.png" );
+		if ( FAILED( hr ) )
+			OutputDebugString( L"Couldn't save the texture to file\n" );
+	}
 #endif
 	m_FullscreenWindow->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
 	m_AddTexturesShader->Render( m_D3D11->GetImmediateContext( ), m_FullscreenWindow->GetIndexCount( ),

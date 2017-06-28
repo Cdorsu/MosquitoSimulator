@@ -37,12 +37,23 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Plane );
 	m_vecRigidBodies.push_back( PlanePtr );
 	
-	btCollisionShape * WallShape = new btStaticPlaneShape( btVector3( 0, 0, 1 ), -50 );
+	btCollisionShape * WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
 	btMotionState * WallState = new btDefaultMotionState( );
-	//WallState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 50 ) ) );
+	WallState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, -50 ) ) );
 	btRigidBody::btRigidBodyConstructionInfo WallCI( 0, WallState, WallShape );
 	btRigidBody * Wall = new btRigidBody( WallCI );
 	bulletObject *WallPtr = new bulletObject( L"Wall", Wall );
+	Wall->setUserPointer( WallPtr );
+	m_pWorld->addRigidBody( Wall );
+	m_vecRigidBodies.push_back( WallPtr );
+
+
+	WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
+	WallState = new btDefaultMotionState( );
+	WallState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 50 ) ) );
+	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
+	Wall = new btRigidBody( WallCI );
+	WallPtr = new bulletObject( L"Wall", Wall );
 	Wall->setUserPointer( WallPtr );
 	m_pWorld->addRigidBody( Wall );
 	m_vecRigidBodies.push_back( WallPtr );
@@ -58,7 +69,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Box );
 	m_vecRigidBodies.push_back( BoxPtr );
 
-	BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 30, 0 ) ) );
+	BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 30, -10 ) ) );
 	localInertia = btVector3( 10, 0, 0 );
 	BoxCI = btRigidBody::btRigidBodyConstructionInfo( 50, BoxState, BoxShape, localInertia );
 	Box = new btRigidBody( BoxCI );
@@ -110,7 +121,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->setGravity( btVector3( 0, -10, 0 ) );
 
 #if DEBUG || _DEBUG
-	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawAabb );
+	this->setDebugMode( CPhysics::DebugDrawModes::DBG_MAX_DEBUG_DRAW_MODE );
 	m_pWorld->setDebugDrawer( this );
 #endif
 	m_pWorld->setInternalTickCallback( CPhysics::myTickCallBack, reinterpret_cast< void* >( this ) );

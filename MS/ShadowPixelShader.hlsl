@@ -55,7 +55,7 @@ float4 main ( PSIn input) : SV_TARGET
 	if (bHasTexture)
 	{
 		TextureColor = ObjTexture.Sample(WrapSampler, input.TexCoord);
-		clip(TextureColor.a - 0.1f);
+		clip(TextureColor.a - 0.2f);
 		if(bHasNormalMap)
 		{
 			float4 BC = ObjNormalmap.Sample(WrapSampler, input.TexCoord);
@@ -70,7 +70,7 @@ float4 main ( PSIn input) : SV_TARGET
 	float4 Color = Ambient;
 	float2 projTexCoord;
 	float4 Specular = float4(0.0f, 0.0f, 0.0f, 1.0f);
-	float bias = 0.00001f;
+	float bias = 0.0001f;
 
 	projTexCoord.x = input.LightViewPosition.x / input.LightViewPosition.w / 2.0f + 0.5f;
 	projTexCoord.y = -input.LightViewPosition.y / input.LightViewPosition.w / 2.0f + 0.5f;
