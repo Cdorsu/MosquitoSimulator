@@ -47,10 +47,33 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Wall );
 	m_vecRigidBodies.push_back( WallPtr );
 
-
+	btMatrix3x3 RotMat;
+	RotMat.setEulerYPR( 0, SIMD_HALF_PI, 0 );
 	WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
 	WallState = new btDefaultMotionState( );
-	WallState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 50 ) ) );
+	WallState->setWorldTransform( btTransform( RotMat, btVector3( -50, 0, 0 ) ) );
+	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
+	Wall = new btRigidBody( WallCI );
+	WallPtr = new bulletObject( L"Wall", Wall );
+	Wall->setUserPointer( WallPtr );
+	m_pWorld->addRigidBody( Wall );
+	m_vecRigidBodies.push_back( WallPtr );
+
+	RotMat.setEulerYPR( 0, SIMD_PI, 0 );
+	WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
+	WallState = new btDefaultMotionState( );
+	WallState->setWorldTransform( btTransform( RotMat, btVector3( 0, 0, 50 ) ) );
+	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
+	Wall = new btRigidBody( WallCI );
+	WallPtr = new bulletObject( L"Wall", Wall );
+	Wall->setUserPointer( WallPtr );
+	m_pWorld->addRigidBody( Wall );
+	m_vecRigidBodies.push_back( WallPtr );
+
+	RotMat.setEulerYPR( 0, SIMD_PI + SIMD_HALF_PI, 0 );
+	WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
+	WallState = new btDefaultMotionState( );
+	WallState->setWorldTransform( btTransform( RotMat, btVector3( 50, 0, 0 ) ) );
 	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
 	Wall = new btRigidBody( WallCI );
 	WallPtr = new bulletObject( L"Wall", Wall );
@@ -197,7 +220,7 @@ void CPhysics::Frame( float fFrameTime )
 			trans.getOpenGLMatrix( matrix );
 			btVector3 minAABB, maxAABB;
 			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
-			m_Graphics->RenderWindow( matrix );
+			m_Graphics->RenderWall( matrix );
 		}
 	}
 	if ( m_Input->isKeyPressed( DIK_W ) )

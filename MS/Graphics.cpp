@@ -96,6 +96,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Window = new CModel( );
 	if ( !m_Window->Initialize( m_D3D11->GetDevice( ), L"Assets\\Window.aba" ) )
 		return false;
+	m_Ceil = new CModel( );
+	if ( !m_Ceil->Initialize( m_D3D11->GetDevice( ), L"Assets\\Ceiling.aba" ) )
+		return false;
 
 	m_Font = new FontClass( );
 	if ( !m_Font->Initialize( m_D3D11->GetDevice( ), L"Font\\font.dds", L"Font\\font.txt", 16 ) )
@@ -942,7 +945,7 @@ void CGraphics::RenderTorus( float* World,
 
 }
 
-void CGraphics::RenderWindow( float* World,
+void CGraphics::RenderWall( float* World,
 	float minX, float minY, float minZ,
 	float maxX, float maxY, float maxZ )
 {
@@ -1114,6 +1117,12 @@ void CGraphics::Shutdown( )
 		m_Font->Shutdown( );
 		delete m_Font;
 		m_Font = 0;
+	}
+	if ( m_Ceil )
+	{
+		m_Ceil->Shutdown( );
+		delete m_Ceil;
+		m_Ceil = 0;
 	}
 	if ( m_Window )
 	{

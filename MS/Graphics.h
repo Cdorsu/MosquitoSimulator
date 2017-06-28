@@ -89,6 +89,7 @@ private:
 	CModel * m_Torus;
 	CModel * m_Ground;
 	CModel * m_Window;
+	CModel * m_Ceil;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CText * m_ScoreText;
@@ -150,7 +151,7 @@ public:
 	void RenderPlayer( DirectX::XMFLOAT3 Position, float * World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
-	void RenderWindow( float* World,
+	void RenderWall( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );

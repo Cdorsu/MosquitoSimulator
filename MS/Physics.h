@@ -14,8 +14,8 @@ class CPhysics sealed : public btIDebugDraw
 	static constexpr int CheckpointID = 69;
 	static constexpr int PlayerID = 169;
 	static constexpr int GroundID = 269;
-	static constexpr int MaxXZSpeed2 = 49;
-	static constexpr int MaxSpeed2 = 100;
+	static constexpr int MaxXZSpeed2 = 490;
+	static constexpr int MaxSpeed2 = 1000;
 	static constexpr int VerticalImpulse = 5;
 	struct bulletObject
 	{
