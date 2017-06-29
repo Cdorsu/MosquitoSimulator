@@ -147,7 +147,6 @@ public:
 	void RenderTorus( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
-	[[ deprecated ]]
 	void RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color );
 	void RenderPlayer( DirectX::XMFLOAT3 Position, float * World,
 		float minX = 0, float minY = 0, float minZ = 0,

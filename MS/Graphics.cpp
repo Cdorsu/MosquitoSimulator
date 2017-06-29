@@ -740,8 +740,8 @@ void CGraphics::RenderScene( )
 #endif
 
 #if defined USE_LIGHT
-	m_SceneWithLight->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
-	m_SceneWithLight->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
+	m_D3D11->EnableBackBuffer( );
+	m_D3D11->EnableDefaultViewPort( );
 	m_ShadowShader->SetShaders( m_D3D11->GetImmediateContext( ) );
 	m_ShadowShader->SetLightData( m_D3D11->GetImmediateContext( ), m_LightView, m_LightDepthmap->GetTexture( ) );
 	for ( auto & iter : m_mwvecObjectsToDraw ) // Second pass - render to back buffer
@@ -852,9 +852,6 @@ void CGraphics::RenderScene( )
 		}
 	}
 #endif
-
-	m_D3D11->EnableBackBuffer( );
-	m_D3D11->EnableDefaultViewPort( );
 
 	m_mwvecObjectsToDraw.clear( );
 	RenderUI( );
@@ -1069,9 +1066,6 @@ void CGraphics::RenderUI( )
 			OutputDebugString( L"Couldn't save the texture to file\n" );
 	}
 #endif
-	m_FullscreenWindow->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
-	m_AddTexturesShader->Render( m_D3D11->GetImmediateContext( ), m_FullscreenWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_SceneWithSunLight->GetTexture( ), m_SceneWithLight->GetTexture( ) );
 }
 
 void CGraphics::Shutdown( )

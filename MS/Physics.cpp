@@ -153,7 +153,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->setGravity( btVector3( 0, -10, 0 ) );
 
 #if DEBUG || _DEBUG
-	this->setDebugMode( CPhysics::DebugDrawModes::DBG_MAX_DEBUG_DRAW_MODE );
+	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawAabb );
 	m_pWorld->setDebugDrawer( this );
 #endif
 	m_pWorld->setInternalTickCallback( CPhysics::myTickCallBack, reinterpret_cast< void* >( this ) );
