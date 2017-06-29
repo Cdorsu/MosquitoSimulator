@@ -79,7 +79,7 @@ public: // Inherited
 		float fX = from.x( ), fY = from.y( ), fZ = from.z( );
 		float tX = to.x( ), tY = to.z( ), tZ = to.z( );
 		utility::SColor Color( color.x( ), color.y( ), color.z( ), color.w( ) );
-		m_Graphics->RenderLine( DirectX::XMFLOAT3( fX, fY, fZ ), DirectX::XMFLOAT3( tX, tY, tZ ), Color );
+		//m_Graphics->RenderLine( DirectX::XMFLOAT3( fX, fY, fZ ), DirectX::XMFLOAT3( tX, tY, tZ ), Color );
 	}
 	void drawContactPoint( const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color )
 	{

@@ -143,7 +143,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 
 	m_LightView = new CLightView( );
 	m_LightView->SetLookAt( DirectX::XMVectorSet( 0.1f, 0.0f, 0.1f, 1.0f ) );
-	m_LightView->SetPosition( DirectX::XMVectorSet( 0.0f, 40.0f, 0.0f, 1.0f ) );
+	m_LightView->SetPosition( DirectX::XMVectorSet( 0.0f, 45.0f, 0.0f, 1.0f ) );
 	m_LightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 0.1f ) );
 	m_LightView->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	m_LightView->SetSpecularColor( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
@@ -486,6 +486,18 @@ void CGraphics::RenderScene( )
 				m_D3D11->EnableBackFaceCulling( );
 			}
 		}
+		else if ( iter.first == L"Ceiling" )
+		{
+			/*m_Ceil->Render( m_D3D11->GetImmediateContext( ) );
+			for ( UINT i = 0; i < iter.second.size( ); ++i )
+			{
+				if ( !iter.second[ i ].bRenderDepthmap )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ceil->GetIndexCount( ) );
+			}*/
+		}
 		else if ( iter.first == L"Mosquito" )
 		{
 #if !(_DEBUG || DEBUG)
@@ -781,11 +793,24 @@ void CGraphics::RenderScene( )
 				if ( !iter.second[ i ].bRenderBackBuffer )
 					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
-				m_SunShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
-				m_SunShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Window->GetMaterial( ) );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Window->GetMaterial( ) );
 				m_D3D11->DisableCulling( );
-				m_SunShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Window->GetIndexCount( ) );
+				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Window->GetIndexCount( ) );
 				m_D3D11->EnableBackFaceCulling( );
+			}
+		}
+		else if ( iter.first == L"Ceiling" )
+		{
+			m_Ceil->Render( m_D3D11->GetImmediateContext( ) );
+			for ( UINT i = 0; i < iter.second.size( ); ++i )
+			{
+				if ( !iter.second[ i ].bRenderBackBuffer )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Ceil->GetMaterial( ) );
+				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ceil->GetIndexCount( ) );
 			}
 		}
 		else if ( iter.first == L"Mosquito" )
@@ -873,7 +898,7 @@ void CGraphics::RenderMosquito( float * World, bool drawtoback,
 	}
 }
 
-void CGraphics::RenderPlane( float* World,
+void CGraphics::RenderGround( float* World,
 	float minX, float minY, float minZ,
 	float maxX, float maxY, float maxZ )
 {
@@ -887,6 +912,23 @@ void CGraphics::RenderPlane( float* World,
 		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
 		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
 		AddObjectToRenderList( L"Plane", World, bIsInLightFrustum, bIsInViewFrustum, bIsInSunLightFrustum );
+	}
+}
+
+void CGraphics::RenderCeiling( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
+{
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+		AddObjectToRenderList( L"Ceiling", World );
+	else
+	{
+		bool bIsInViewFrustum, bIsInLightFrustum, bIsInSunLightFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Ceiling", World, bIsInLightFrustum, bIsInViewFrustum, bIsInSunLightFrustum );
 	}
 }
 

@@ -26,8 +26,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 
 	btCollisionShape *PlaneShape = new btStaticPlaneShape( btVector3( 0, 1, 0 ), 0 );
 	btMotionState *MotionState = new btDefaultMotionState( );
-	btVector3 localInertia = btVector3( 0, 0, 0 );
-	btRigidBody::btRigidBodyConstructionInfo PlaneCI( 0, MotionState, PlaneShape, localInertia );
+	btRigidBody::btRigidBodyConstructionInfo PlaneCI( 0, MotionState, PlaneShape );
 	btRigidBody *Plane = new btRigidBody( PlaneCI );
 	Plane->setFlags( Plane->getFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
 	Plane->setUserIndex( GroundID );
@@ -36,9 +35,21 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	Plane->setUserPointer( PlanePtr );
 	m_pWorld->addRigidBody( Plane );
 	m_vecRigidBodies.push_back( PlanePtr );
+
+	btMatrix3x3 RotMat;
+	PlaneShape = new btBoxShape( btVector3( 50, 0, 50 ) );
+	MotionState = new btDefaultMotionState( );
+	MotionState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 50, 0 ) ) );
+	PlaneCI = btRigidBody::btRigidBodyConstructionInfo( 0, MotionState, PlaneShape );
+	Plane = new btRigidBody( PlaneCI );
+	PlanePtr = new bulletObject( L"Ceiling", Plane );
+	Plane->setUserPointer( PlanePtr );
+	m_pWorld->addRigidBody( Plane );
+	m_vecRigidBodies.push_back( PlanePtr );
 	
 	btCollisionShape * WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
 	btMotionState * WallState = new btDefaultMotionState( );
+	btVector3 localInertia = btVector3( 0, 0, 0 );
 	WallState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, -50 ) ) );
 	btRigidBody::btRigidBodyConstructionInfo WallCI( 0, WallState, WallShape );
 	btRigidBody * Wall = new btRigidBody( WallCI );
@@ -47,7 +58,6 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Wall );
 	m_vecRigidBodies.push_back( WallPtr );
 
-	btMatrix3x3 RotMat;
 	RotMat.setEulerYPR( 0, SIMD_HALF_PI, 0 );
 	WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
 	WallState = new btDefaultMotionState( );
@@ -80,7 +90,6 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	Wall->setUserPointer( WallPtr );
 	m_pWorld->addRigidBody( Wall );
 	m_vecRigidBodies.push_back( WallPtr );
-
 
 	btCollisionShape *BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
 	btMotionState *BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 10, 0 ) ) );
@@ -167,7 +176,7 @@ void CPhysics::Frame( float fFrameTime )
 			trans.getOpenGLMatrix( matrix );
 			btVector3 minAABB, maxAABB;
 			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
-			m_Graphics->RenderPlane( matrix );
+			m_Graphics->RenderGround( matrix );
 		}
 		else if ( m_vecRigidBodies[ i ]->Name == L"Box" )
 		{
@@ -221,6 +230,17 @@ void CPhysics::Frame( float fFrameTime )
 			btVector3 minAABB, maxAABB;
 			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
 			m_Graphics->RenderWall( matrix );
+		}
+		else if ( m_vecRigidBodies[ i ]->Name == L"Ceiling" )
+		{
+			float matrix[ 16 ];
+			btMotionState * motionState = m_vecRigidBodies[ i ]->Body->getMotionState( );
+			btTransform trans;
+			motionState->getWorldTransform( trans );
+			trans.getOpenGLMatrix( matrix );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
+			m_Graphics->RenderCeiling( matrix );
 		}
 	}
 	if ( m_Input->isKeyPressed( DIK_W ) )

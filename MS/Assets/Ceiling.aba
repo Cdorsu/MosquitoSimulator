@@ -1,14 +1,14 @@
 Objects: 1
 Ground {
     Vertices: 4 Texture: ENABLED Normals: ENABLED Tangents: ENABLED Binormals: ENABLED {
-        -50 50 50 0 0 0 1 0 0 0 1 1 0 0
-        50 50 50 10 0 0 1 0 0 0 1 1 0 0
-        50 50 -50 10 10 0 1 0 0 0 1 1 0 0
-        -50 50 -50 0 10 0 1 0 0 0 1 1 0 0
+        -50 0 50 0 0 0 1 0 0 0 1 1 0 0
+        50 0 50 1 0 0 1 0 0 0 1 1 0 0
+        50 0 -50 1 1 0 1 0 0 0 1 1 0 0
+        -50 0 -50 0 1 0 1 0 0 0 1 1 0 0
     }
     Indices: 6 {
-        2 1 0 
-        3 2 0
+        0 1 2 
+        0 2 3
     }
     Material None {
         Ambient color: 0.0 0.0 0.0
