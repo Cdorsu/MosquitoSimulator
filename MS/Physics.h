@@ -32,6 +32,10 @@ class CPhysics sealed : public btIDebugDraw
 			:Name( Name ), Body( Body )
 		{};
 	};
+	struct DOF6SpringSetupData
+	{
+		btRigidBody * m_RotateSpringBody;
+	};
 private:
 	btBroadphaseInterface * m_pBroadphase;
 	btDispatcher * m_pDispatcher;
@@ -70,6 +74,13 @@ public:
 			if ( minAABB2.z( ) < maxAABB1.z( ) && maxAABB2.z( ) > minAABB1.z( ) )
 				return true;
 		return false;
+	}
+	static btRigidBody* CreateRigidBody( btScalar Mass, btTransform* trans, btCollisionShape * Shape )
+	{
+		btDefaultMotionState * MotionState = new btDefaultMotionState( );
+		MotionState->setWorldTransform( *trans );
+		btRigidBody::btRigidBodyConstructionInfo bodyCI( Mass, MotionState, Shape );
+		return new btRigidBody( bodyCI );
 	}
 protected:
 	static btMatrix3x3 m_3x3RotationMatrix;

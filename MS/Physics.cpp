@@ -92,8 +92,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_vecRigidBodies.push_back( WallPtr );
 
 	btCollisionShape *BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
-	btMotionState *BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 10, 0 ) ) );
-	btRigidBody::btRigidBodyConstructionInfo BoxCI( 50, BoxState, BoxShape );
+	btMotionState *BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 20, 1, 0 ) ) );
+	btRigidBody::btRigidBodyConstructionInfo BoxCI( 5, BoxState, BoxShape );
 	btRigidBody *Box = new btRigidBody( BoxCI );
 	
 	bulletObject *BoxPtr = new bulletObject( L"Box", Box );
@@ -101,7 +101,109 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Box );
 	m_vecRigidBodies.push_back( BoxPtr );
 
-	BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 30, -10 ) ) );
+	/*btTransform trans;
+	trans.setOrigin( btVector3( 0, 10, 0 ) );
+	Box->getMotionState( )->setWorldTransform( trans );
+
+	btConeTwistConstraint * Constraint = new btConeTwistConstraint(
+		*Box, btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 20, 0 ) ) );
+	Constraint->setEnabled( true );
+	Constraint->setLimit( SIMD_PI / 4, SIMD_PI / 4, SIMD_HALF_PI );
+	Constraint->setDbgDrawSize( 2 );
+	m_pWorld->addConstraint( Constraint ); */ /// #1 attempt
+
+	/*btGeneric6DofConstraint * Constraint = new btGeneric6DofConstraint( *Box,
+		btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 0 ) ), false );
+	Constraint->setBreakingImpulseThreshold( 500 );
+	
+	for ( int i = 0; i < 6; i++ )
+	{
+		Constraint->setParam( BT_CONSTRAINT_STOP_CFM, 0.8f, i );
+		Constraint->setParam( BT_CONSTRAINT_STOP_ERP, 0.8f, i );
+	}
+	m_pWorld->addConstraint( Constraint, true );*/ /// #2 attempt
+
+	/*btPoint2PointConstraint * Constraint = new btPoint2PointConstraint( *Box, *Plane,
+		btVector3( 0, 10, 0 ), btVector3( 10, 0, 0 ) );
+
+	Constraint->setParam( BT_CONSTRAINT_STOP_CFM, 0.8f, -1 );
+	Constraint->setParam( BT_CONSTRAINT_STOP_ERP, 0.8f, -1 );
+	m_pWorld->addConstraint( Constraint );*/
+	
+	//btGeneric6DofSpring2Constraint * Constraint;
+	//Constraint = new btGeneric6DofSpring2Constraint( );
+
+	//m_pWorld->addConstraint( Constraint );
+
+	m_pWorld->getSolverInfo( ).m_numIterations = 50;
+
+	btScalar SpringLength( 3 );
+	btScalar PivotOffset( 0 );
+	btScalar SpringRange( 7 );
+
+	PlaneShape = new btBoxShape( btVector3( 1, 1, 1 ) );
+	btTransform tr;
+	tr.setIdentity( );
+	tr.setOrigin( btVector3( 0, 40, 0 ) );
+	tr.getBasis( ).setEulerYPR( 0, 0, 0 );
+	MotionState = new btDefaultMotionState( );
+	MotionState->setWorldTransform( tr );
+	btRigidBody* pBodyA = new btRigidBody( 1, MotionState, PlaneShape );
+	m_pWorld->addRigidBody( pBodyA );
+	bulletObject * objPtr = new bulletObject( L"Box", pBodyA );
+	pBodyA->setUserPointer( objPtr );
+	m_vecRigidBodies.push_back( objPtr );
+
+	btTransform frameInA;
+	frameInA = btTransform::getIdentity( );
+	frameInA.setOrigin( btVector3( 0, 0, 0 ) );
+
+	tr.setIdentity( );
+	tr.setOrigin( btVector3( 0, 50 - SpringLength - PivotOffset, 0 ) );
+	tr.getBasis( ).setEulerYPR( 0, 0, 0 );
+
+	MotionState = new btDefaultMotionState( );
+	MotionState->setWorldTransform( tr );
+	BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
+	btRigidBody* pBodyB = new btRigidBody( 0, MotionState, BoxShape );
+	m_pWorld->addRigidBody( pBodyB );
+	objPtr = new bulletObject( L"Box", pBodyB );
+	pBodyB->setUserPointer( objPtr );
+	m_vecRigidBodies.push_back( objPtr );
+	pBodyB->setFriction( 100 );
+
+	btTransform frameInB;
+	frameInB = btTransform::getIdentity( );
+	frameInB.setOrigin( btVector3( PivotOffset, -10, 0 ) );
+
+	btGeneric6DofSpringConstraint * pGen6DOFSpring = new btGeneric6DofSpringConstraint(
+		*pBodyA, *pBodyB, frameInA, frameInB, true
+	);
+
+	pGen6DOFSpring->setLinearLowerLimit( btVector3(  - SpringRange,  - 0,  - SpringRange ) );
+	pGen6DOFSpring->setLinearUpperLimit( btVector3(  + SpringRange,  + 0,  + SpringRange ) );
+
+	pGen6DOFSpring->setAngularLowerLimit( btVector3( 1, 1, 1 ) );
+	pGen6DOFSpring->setAngularUpperLimit( btVector3( 0, 0, 0 ) );
+
+	m_pWorld->addConstraint( pGen6DOFSpring, true );
+
+	for ( int i = 0; i < 3; ++i )
+	{
+		pGen6DOFSpring->enableSpring( i, true );
+		pGen6DOFSpring->enableSpring( i + 3, true );
+		pGen6DOFSpring->setStiffness( i, 1 );
+		pGen6DOFSpring->setStiffness( i + 3, 1 );
+		pGen6DOFSpring->setDamping( i, 0.99 );
+		pGen6DOFSpring->setDamping( i + 3, 0.99 );
+		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( 0.1 ), i );
+		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( 0.1 ), i + 3 );
+	}
+	pGen6DOFSpring->setEquilibriumPoint( );
+
+
+	BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
+	BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 3, -10 ) ) );
 	localInertia = btVector3( 10, 0, 0 );
 	BoxCI = btRigidBody::btRigidBodyConstructionInfo( 50, BoxState, BoxShape, localInertia );
 	Box = new btRigidBody( BoxCI );
@@ -153,7 +255,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->setGravity( btVector3( 0, -10, 0 ) );
 
 #if DEBUG || _DEBUG
-	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawAabb );
+	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawConstraints );
 	m_pWorld->setDebugDrawer( this );
 #endif
 	m_pWorld->setInternalTickCallback( CPhysics::myTickCallBack, reinterpret_cast< void* >( this ) );
@@ -338,6 +440,13 @@ void CPhysics::Shutdown( )
 {
 	for ( unsigned int i = 0; i < m_vecRigidBodies.size( ); ++i )
 	{
+		for ( int j = 0; j < m_vecRigidBodies[ i ]->Body->getNumConstraintRefs( ); ++j )
+		{
+			btTypedConstraint * Constraint = m_vecRigidBodies[ i ]->Body->getConstraintRef( j );
+			m_pWorld->removeConstraint( Constraint );
+			m_vecRigidBodies[ i ]->Body->removeConstraintRef( Constraint );
+			delete Constraint;
+		}
 		m_pWorld->removeCollisionObject( m_vecRigidBodies[ i ]->Body );
 		delete m_vecRigidBodies[ i ]->Body->getCollisionShape( );
 		delete m_vecRigidBodies[ i ]->Body->getMotionState( );
@@ -355,6 +464,7 @@ void CPhysics::Shutdown( )
 
 CPhysics::~CPhysics( )
 {
+	Shutdown( );
 }
 
 bool CPhysics::Collision( btManifoldPoint& cp,

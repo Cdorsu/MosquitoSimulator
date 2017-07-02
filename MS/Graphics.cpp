@@ -1053,18 +1053,6 @@ void CGraphics::RenderUI( )
 	m_DebugWindow->Render( m_D3D11->GetImmediateContext( ), 128, 128 );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_LightDepthmap->GetTexture( ) );
-	if ( m_Input->isKeyPressed( DIK_H ) )
-	{
-		ID3D11Texture2D * Tex;
-		
-		m_LightDepthmap->GetTexture( )->GetResource( reinterpret_cast< ID3D11Resource** >( &Tex ) );
-
-		HRESULT hr = D3DX11SaveTextureToFile( m_D3D11->GetImmediateContext( ),
-			reinterpret_cast< ID3D11Resource* >( Tex ), 
-			D3DX11_IMAGE_FILE_FORMAT::D3DX11_IFF_PNG, L"Ceva.png" );
-		if ( FAILED( hr ) )
-			OutputDebugString( L"Couldn't save the texture to file\n" );
-	}
 #endif
 }
 
