@@ -90,6 +90,7 @@ private:
 	CModel * m_Ground;
 	CModel * m_Window;
 	CModel * m_Ceil;
+	CModel * m_LightBulb;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CText * m_ScoreText;
@@ -155,6 +156,9 @@ public:
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void RenderCeiling( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderLightBulb( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );

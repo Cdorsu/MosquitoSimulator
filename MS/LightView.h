@@ -15,11 +15,15 @@ protected:
 	utility::SColor m_DiffuseColor;
 	utility::SColor m_AmbientColor;
 	utility::SColor m_SpecularColor;
+
+private:
+	bool m_bUseLookAt;
 public:
 	CLightView( ) { };
 	~CLightView( ) { };
 public:
-	inline void SetLookAt( DirectX::FXMVECTOR& LookAt ) { m_LookAt = LookAt; };
+	inline void SetDirection( DirectX::FXMVECTOR& Direction ) { m_LookAt = Direction; m_bUseLookAt = false; };
+	inline void SetLookAt( DirectX::FXMVECTOR& LookAt ) { m_LookAt = LookAt; m_bUseLookAt = true; };
 	inline void SetPosition( DirectX::FXMVECTOR& Position ) { m_Position = Position; };
 	inline void SetDiffuse( utility::SColor newDiffuse ) { m_DiffuseColor = newDiffuse; };
 	inline void SetAmbient( utility::SColor newAmbient ) { m_AmbientColor = newAmbient; };
@@ -30,7 +34,10 @@ public:
 	}
 	virtual inline void GenerateViewMatrix( )
 	{
-		m_ViewMatrix = DirectX::XMMatrixLookAtLH( m_Position, m_LookAt, m_UpDirection );
+		if ( m_bUseLookAt )
+			m_ViewMatrix = DirectX::XMMatrixLookAtLH( m_Position, m_LookAt, m_UpDirection );
+		else
+			m_ViewMatrix = DirectX::XMMatrixLookToLH( m_Position, m_LookAt, m_UpDirection );
 	}
 public:
 	inline utility::SColor GetDiffuse( ) { return m_DiffuseColor; };
@@ -38,7 +45,14 @@ public:
 	inline utility::SColor GetSpecular( ) { return m_SpecularColor; };
 	virtual inline DirectX::XMFLOAT3 GetDirection( )
 	{
-		return DirectX::XMFLOAT3( );
+		if ( m_bUseLookAt )
+			return DirectX::XMFLOAT3( );
+		else
+		{
+			DirectX::XMFLOAT3 Direction;
+			DirectX::XMStoreFloat3( &Direction, m_LookAt );
+			return Direction;
+		}
 	};
 public:
 	virtual inline DirectX::XMMATRIX& GetView( ) override { return m_ViewMatrix; };

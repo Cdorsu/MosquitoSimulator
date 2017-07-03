@@ -99,6 +99,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Ceil = new CModel( );
 	if ( !m_Ceil->Initialize( m_D3D11->GetDevice( ), L"Assets\\Ceiling.aba" ) )
 		return false;
+	m_LightBulb = new CModel( );
+	if ( !m_LightBulb->Initialize( m_D3D11->GetDevice( ), L"Assets\\Lightbulb.aba" ) )
+		return false;
 
 	m_Font = new FontClass( );
 	if ( !m_Font->Initialize( m_D3D11->GetDevice( ), L"Font\\font.dds", L"Font\\font.txt", 16 ) )
@@ -144,10 +147,11 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_LightView = new CLightView( );
 	m_LightView->SetLookAt( DirectX::XMVectorSet( 0.1f, 0.0f, 0.1f, 1.0f ) );
 	m_LightView->SetPosition( DirectX::XMVectorSet( 0.0f, 45.0f, 0.0f, 1.0f ) );
+	m_LightView->SetDirection( DirectX::XMVectorSet( 0.0f, -1.0f, 0.01f, 0.0f ) );
 	m_LightView->SetAmbient( utility::SColor( 0.1f, 0.1f, 0.1f, 0.1f ) );
 	m_LightView->SetDiffuse( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	m_LightView->SetSpecularColor( utility::SColor( 1.0f, 1.0f, 1.0f, 1.0f ) );
-	m_LightView->GenerateProjectionMatrix( ( FLOAT ) D3DX_PI * 0.6f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
+	m_LightView->GenerateProjectionMatrix( ( FLOAT ) D3DX_PI * 0.5f, ( FLOAT ) WindowWidth / ( FLOAT ) WindowHeight, CamNear, CamFar );
 	m_LightView->GenerateViewMatrix( );
 
 	m_SunDepthmap = new CRenderTexture( );
@@ -498,6 +502,10 @@ void CGraphics::RenderScene( )
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ceil->GetIndexCount( ) );
 			}*/
 		}
+		else if ( iter.first == L"LightBulb" )
+		{
+			 // Don't draw it
+		}
 		else if ( iter.first == L"Mosquito" )
 		{
 #if !(_DEBUG || DEBUG)
@@ -813,6 +821,19 @@ void CGraphics::RenderScene( )
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ceil->GetIndexCount( ) );
 			}
 		}
+		else if ( iter.first == L"LightBulb" )
+		{
+			m_LightBulb->Render( m_D3D11->GetImmediateContext( ) );
+			for ( UINT i = 0; i < iter.second.size( ); ++i )
+			{
+				if ( !iter.second[ i ].bRenderBackBuffer )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_LightBulb->GetMaterial( ) );
+				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_LightBulb->GetIndexCount( ) );
+			}
+		}
 		else if ( iter.first == L"Mosquito" )
 		{
 #if !( _DEBUG || DEBUG )
@@ -1001,6 +1022,35 @@ void CGraphics::RenderWall( float* World,
 	}
 }
 
+void CGraphics::RenderLightBulb( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
+{
+	DirectX::XMMATRIX XMWorld( World );
+	DirectX::XMVECTOR Direction = DirectX::XMVectorSet( 0.0f, -1.0f, 0.01f, 0.0f );
+	Direction = DirectX::XMVector4Transform( Direction, XMWorld );
+	m_LightView->SetDirection( Direction );
+	Direction = DirectX::XMVectorSet( 0.0f, 0.0f, 0.0f, 1.0f );
+	Direction = DirectX::XMVector3TransformCoord( Direction, XMWorld );
+	m_LightView->SetPosition( Direction );
+
+	m_LightView->GenerateViewMatrix( );
+
+
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+		AddObjectToRenderList( L"LightBulb", World );
+	else
+	{
+		bool bIsInViewFrustum, bIsInLightFrustum, bIsInSunLightFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"LightBulb", World, bIsInLightFrustum,
+			bIsInViewFrustum, bIsInSunLightFrustum );
+	}
+}
+
 void CGraphics::RenderUI( )
 {
 	m_D3D11->DisableCulling( );
@@ -1050,9 +1100,6 @@ void CGraphics::RenderUI( )
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
 		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
-	m_DebugWindow->Render( m_D3D11->GetImmediateContext( ), 128, 128 );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_LightDepthmap->GetTexture( ) );
 #endif
 }
 
@@ -1141,6 +1188,12 @@ void CGraphics::Shutdown( )
 		m_Font->Shutdown( );
 		delete m_Font;
 		m_Font = 0;
+	}
+	if ( m_LightBulb )
+	{
+		m_LightBulb->Shutdown( );
+		delete m_LightBulb;
+		m_LightBulb = 0;
 	}
 	if ( m_Ceil )
 	{

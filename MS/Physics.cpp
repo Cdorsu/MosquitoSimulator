@@ -144,13 +144,13 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	PlaneShape = new btBoxShape( btVector3( 1, 1, 1 ) );
 	btTransform tr;
 	tr.setIdentity( );
-	tr.setOrigin( btVector3( 0, 40, 0 ) );
+	tr.setOrigin( btVector3( 0, 0, 0 ) );
 	tr.getBasis( ).setEulerYPR( 0, 0, 0 );
 	MotionState = new btDefaultMotionState( );
 	MotionState->setWorldTransform( tr );
 	btRigidBody* pBodyA = new btRigidBody( 1, MotionState, PlaneShape );
 	m_pWorld->addRigidBody( pBodyA );
-	bulletObject * objPtr = new bulletObject( L"Box", pBodyA );
+	bulletObject * objPtr = new bulletObject( L"Lightbulb", pBodyA );
 	pBodyA->setUserPointer( objPtr );
 	m_vecRigidBodies.push_back( objPtr );
 
@@ -159,7 +159,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	frameInA.setOrigin( btVector3( 0, 0, 0 ) );
 
 	tr.setIdentity( );
-	tr.setOrigin( btVector3( 0, 50 - SpringLength - PivotOffset, 0 ) );
+	tr.setOrigin( btVector3( 0, 60 - SpringLength - PivotOffset, 0 ) );
 	tr.getBasis( ).setEulerYPR( 0, 0, 0 );
 
 	MotionState = new btDefaultMotionState( );
@@ -167,10 +167,9 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
 	btRigidBody* pBodyB = new btRigidBody( 0, MotionState, BoxShape );
 	m_pWorld->addRigidBody( pBodyB );
-	objPtr = new bulletObject( L"Box", pBodyB );
+	objPtr = new bulletObject( L"Don't draw", pBodyB );
 	pBodyB->setUserPointer( objPtr );
 	m_vecRigidBodies.push_back( objPtr );
-	pBodyB->setFriction( 100 );
 
 	btTransform frameInB;
 	frameInB = btTransform::getIdentity( );
@@ -183,19 +182,18 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	pGen6DOFSpring->setLinearLowerLimit( btVector3(  - SpringRange,  - 0,  - SpringRange ) );
 	pGen6DOFSpring->setLinearUpperLimit( btVector3(  + SpringRange,  + 0,  + SpringRange ) );
 
-	pGen6DOFSpring->setAngularLowerLimit( btVector3( 1, 1, 1 ) );
-	pGen6DOFSpring->setAngularUpperLimit( btVector3( 0, 0, 0 ) );
+	pGen6DOFSpring->setAngularLowerLimit( btVector3( - SpringRange, - SpringRange, - SpringRange ) );
+	pGen6DOFSpring->setAngularUpperLimit( btVector3( + SpringRange, + SpringRange, + SpringRange ) );
 
 	m_pWorld->addConstraint( pGen6DOFSpring, true );
 
 	for ( int i = 0; i < 3; ++i )
 	{
 		pGen6DOFSpring->enableSpring( i, true );
-		pGen6DOFSpring->enableSpring( i + 3, true );
 		pGen6DOFSpring->setStiffness( i, 1 );
 		pGen6DOFSpring->setStiffness( i + 3, 1 );
-		pGen6DOFSpring->setDamping( i, 0.99 );
-		pGen6DOFSpring->setDamping( i + 3, 0.99 );
+		pGen6DOFSpring->setDamping( i, btScalar( 0.99 ) );
+		pGen6DOFSpring->setDamping( i + 3, btScalar( 0.99 ) );
 		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( 0.1 ), i );
 		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( 0.1 ), i + 3 );
 	}
@@ -343,6 +341,19 @@ void CPhysics::Frame( float fFrameTime )
 			btVector3 minAABB, maxAABB;
 			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
 			m_Graphics->RenderCeiling( matrix );
+		}
+		else if ( m_vecRigidBodies[ i ]->Name == L"Lightbulb" )
+		{
+			float matrix[ 16 ];
+			btMotionState * motionState = m_vecRigidBodies[ i ]->Body->getMotionState( );
+			btTransform trans;
+			motionState->getWorldTransform( trans );
+			trans.getOpenGLMatrix( matrix );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
+			m_Graphics->RenderLightBulb( matrix,
+				minAABB.x( ), minAABB.y( ), minAABB.z( ),
+				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
 		}
 	}
 	if ( m_Input->isKeyPressed( DIK_W ) )
