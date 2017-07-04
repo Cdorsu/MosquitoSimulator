@@ -91,6 +91,30 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Wall );
 	m_vecRigidBodies.push_back( WallPtr );
 
+	auto vertices = m_Graphics->GetTable( )->GetVertices( );
+	auto indices = m_Graphics->GetTable( )->GetIndices( );
+	btTriangleMesh * TriangleMesh = new btTriangleMesh( true, false );
+	for ( unsigned int i = 0; i < indices.size( ) / 3; ++i )
+	{
+		CModel::SVertex* Vertex1 = &vertices[ indices[ i * 3 + 0 ] ];
+		CModel::SVertex* Vertex2 = &vertices[ indices[ i * 3 + 1 ] ];
+		CModel::SVertex* Vertex3 = &vertices[ indices[ i * 3 + 2 ] ];
+		TriangleMesh->addTriangle(
+			btVector3( Vertex1->Position.x, Vertex1->Position.y, Vertex1->Position.z ),
+			btVector3( Vertex2->Position.x, Vertex2->Position.y, Vertex2->Position.z ),
+			btVector3( Vertex3->Position.x, Vertex3->Position.y, Vertex3->Position.z ), true
+		);
+	}
+	btBvhTriangleMeshShape * TableShape = new btBvhTriangleMeshShape( TriangleMesh, true );
+	TableShape->setLocalScaling( btVector3( 7, 7, 7 ) );
+	btMotionState * TableState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 0 ) ) );
+	btRigidBody::btRigidBodyConstructionInfo TableCI( 0, TableState, TableShape );
+	btRigidBody * Table = new btRigidBody( TableCI );
+	bulletObject * TablePtr = new bulletObject( L"Table", Table );
+	Table->setUserPointer( TablePtr );
+	m_pWorld->addRigidBody( Table );
+	m_vecRigidBodies.push_back( TablePtr );
+
 	btCollisionShape *BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
 	btMotionState *BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 20, 1, 0 ) ) );
 	btRigidBody::btRigidBodyConstructionInfo BoxCI( 5, BoxState, BoxShape );
@@ -190,12 +214,15 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	for ( int i = 0; i < 3; ++i )
 	{
 		pGen6DOFSpring->enableSpring( i, true );
+		//pGen6DOFSpring->enableSpring( i + 3, true );
 		pGen6DOFSpring->setStiffness( i, 1 );
 		pGen6DOFSpring->setStiffness( i + 3, 1 );
 		pGen6DOFSpring->setDamping( i, btScalar( 0.99 ) );
 		pGen6DOFSpring->setDamping( i + 3, btScalar( 0.99 ) );
-		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( 0.1 ), i );
-		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( 0.1 ), i + 3 );
+		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( (1.0E-5) ), i );
+		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( ( 1.0E-5 ) ), i + 3 );
+		pGen6DOFSpring->setParam( BT_CONSTRAINT_CFM, btScalar( ( 1.0E-5 ) ), i );
+		pGen6DOFSpring->setParam( BT_CONSTRAINT_CFM, btScalar( ( 1.0E-5 ) ), i+3 );
 	}
 	pGen6DOFSpring->setEquilibriumPoint( );
 
@@ -355,6 +382,25 @@ void CPhysics::Frame( float fFrameTime )
 				minAABB.x( ), minAABB.y( ), minAABB.z( ),
 				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
 		}
+		else if ( m_vecRigidBodies[ i ]->Name == L"Table" )
+		{
+			float matrix[ 16 ];
+			btRigidBody * Body = m_vecRigidBodies[ i ]->Body;
+			btCollisionShape * Shape = Body->getCollisionShape( );
+			btVector3 scaling = Shape->getLocalScaling( );
+			btMotionState * motionState = Body->getMotionState( );
+			btTransform trans;
+			motionState->getWorldTransform( trans );
+			trans.getOpenGLMatrix( matrix );
+			matrix[ utility::toIndex( 0, 0 ) ] *= scaling.x( );
+			matrix[ utility::toIndex( 1, 1 ) ] *= scaling.y( );
+			matrix[ utility::toIndex( 2, 2 ) ] *= scaling.z( );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
+			m_Graphics->RenderTable( matrix,
+				minAABB.x( ), minAABB.y( ), minAABB.z( ),
+				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
+		}
 	}
 	if ( m_Input->isKeyPressed( DIK_W ) )
 	{
@@ -459,7 +505,12 @@ void CPhysics::Shutdown( )
 			delete Constraint;
 		}
 		m_pWorld->removeCollisionObject( m_vecRigidBodies[ i ]->Body );
-		delete m_vecRigidBodies[ i ]->Body->getCollisionShape( );
+		btCollisionShape * Shape = m_vecRigidBodies[ i ]->Body->getCollisionShape( );
+		if ( Shape )
+		{
+			delete Shape;
+			Shape = 0;
+		}
 		delete m_vecRigidBodies[ i ]->Body->getMotionState( );
 		delete m_vecRigidBodies[ i ]->Body;
 		delete m_vecRigidBodies[ i ];

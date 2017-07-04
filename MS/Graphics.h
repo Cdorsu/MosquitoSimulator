@@ -52,8 +52,8 @@ public:
 	static constexpr float SunDistanceToCamera = 100.f; // You can play
 	static constexpr float SunInFrontOfCamera = 10.f; //				with these values
 	static constexpr float SunWidthHeight = 40.f; //										to get different results
-	static constexpr UINT SHADOW_WIDTH = 2048;
-	static constexpr UINT SHADOW_HEIGHT = 2048;
+	static constexpr UINT SHADOW_WIDTH = 1024;
+	static constexpr UINT SHADOW_HEIGHT = 1024;
 	static constexpr UINT DistanceFromRightWindowLeftMap = 120;
 	static constexpr UINT DistanceFromTopToTopMap = 20;
 	static constexpr UINT MapWidth = 100;
@@ -91,6 +91,7 @@ private:
 	CModel * m_Window;
 	CModel * m_Ceil;
 	CModel * m_LightBulb;
+	CModel * m_Table;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CText * m_ScoreText;
@@ -161,6 +162,9 @@ public:
 	void RenderLightBulb( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderTable( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );
 private:
 	void RenderScene( );
@@ -206,6 +210,10 @@ public:
 	inline CModel * GetCube( )
 	{
 		return m_Cube;
+	}
+	inline CModel * GetTable( )
+	{
+		return m_Table;
 	}
 	inline std::pair<DirectX::XMFLOAT3, DirectX::XMFLOAT3> GetPlayerAABB( )
 	{
