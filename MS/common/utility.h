@@ -42,4 +42,15 @@ namespace utility
 	{
 		return row * nCols + col;
 	}
+	inline void MatrixMultiply( float * First, float * Second, float *Result )
+	{
+		int row = 4;
+		int col = 4;
+		ZeroMemory( Result, sizeof( float ) * row * col );
+		for ( int i = 0; i < row; ++i )
+			for ( int j = 0; j < col; ++j )
+				for ( int k = 0; k < row /*or col, if you want*/; ++k )
+					Result[ toIndex( i, j ) ] += First[ toIndex( i, k ) ] * Second[ toIndex( k, j ) ];
+
+	}
 }

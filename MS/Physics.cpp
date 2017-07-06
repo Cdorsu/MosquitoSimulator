@@ -24,7 +24,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pSolver = new btSequentialImpulseConstraintSolver( );
 	m_pWorld = new btDiscreteDynamicsWorld( m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration );
 
-	btCollisionShape *PlaneShape = new btStaticPlaneShape( btVector3( 0, 1, 0 ), 0 );
+	btCollisionShape *PlaneShape = new btBoxShape( btVector3( 50, 0, 50 ) );
+	m_vecCollisionShapes.push_back( PlaneShape );
 	btMotionState *MotionState = new btDefaultMotionState( );
 	btRigidBody::btRigidBodyConstructionInfo PlaneCI( 0, MotionState, PlaneShape );
 	btRigidBody *Plane = new btRigidBody( PlaneCI );
@@ -38,6 +39,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 
 	btMatrix3x3 RotMat;
 	PlaneShape = new btBoxShape( btVector3( 50, 0, 50 ) );
+	m_vecCollisionShapes.push_back( PlaneShape );
 	MotionState = new btDefaultMotionState( );
 	MotionState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 50, 0 ) ) );
 	PlaneCI = btRigidBody::btRigidBodyConstructionInfo( 0, MotionState, PlaneShape );
@@ -48,6 +50,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_vecRigidBodies.push_back( PlanePtr );
 	
 	btCollisionShape * WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
+	m_vecCollisionShapes.push_back( WallShape );
 	btMotionState * WallState = new btDefaultMotionState( );
 	btVector3 localInertia = btVector3( 0, 0, 0 );
 	WallState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, -50 ) ) );
@@ -60,6 +63,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 
 	RotMat.setEulerYPR( 0, SIMD_HALF_PI, 0 );
 	WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
+	m_vecCollisionShapes.push_back( WallShape );
 	WallState = new btDefaultMotionState( );
 	WallState->setWorldTransform( btTransform( RotMat, btVector3( -50, 0, 0 ) ) );
 	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
@@ -71,6 +75,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 
 	RotMat.setEulerYPR( 0, SIMD_PI, 0 );
 	WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
+	m_vecCollisionShapes.push_back( WallShape );
 	WallState = new btDefaultMotionState( );
 	WallState->setWorldTransform( btTransform( RotMat, btVector3( 0, 0, 50 ) ) );
 	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
@@ -82,6 +87,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 
 	RotMat.setEulerYPR( 0, SIMD_PI + SIMD_HALF_PI, 0 );
 	WallShape = new btBoxShape( btVector3( 50, 50, 0 ) );
+	m_vecCollisionShapes.push_back( WallShape );
 	WallState = new btDefaultMotionState( );
 	WallState->setWorldTransform( btTransform( RotMat, btVector3( 50, 0, 0 ) ) );
 	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
@@ -91,32 +97,48 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Wall );
 	m_vecRigidBodies.push_back( WallPtr );
 
-	auto vertices = m_Graphics->GetTable( )->GetVertices( );
-	auto indices = m_Graphics->GetTable( )->GetIndices( );
-	btTriangleMesh * TriangleMesh = new btTriangleMesh( true, false );
-	for ( unsigned int i = 0; i < indices.size( ) / 3; ++i )
-	{
-		CModel::SVertex* Vertex1 = &vertices[ indices[ i * 3 + 0 ] ];
-		CModel::SVertex* Vertex2 = &vertices[ indices[ i * 3 + 1 ] ];
-		CModel::SVertex* Vertex3 = &vertices[ indices[ i * 3 + 2 ] ];
-		TriangleMesh->addTriangle(
-			btVector3( Vertex1->Position.x, Vertex1->Position.y, Vertex1->Position.z ),
-			btVector3( Vertex2->Position.x, Vertex2->Position.y, Vertex2->Position.z ),
-			btVector3( Vertex3->Position.x, Vertex3->Position.y, Vertex3->Position.z ), true
-		);
-	}
-	btBvhTriangleMeshShape * TableShape = new btBvhTriangleMeshShape( TriangleMesh, true );
-	TableShape->setLocalScaling( btVector3( 7, 7, 7 ) );
-	btMotionState * TableState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 0 ) ) );
-	btRigidBody::btRigidBodyConstructionInfo TableCI( 0, TableState, TableShape );
-	btRigidBody * Table = new btRigidBody( TableCI );
-	bulletObject * TablePtr = new bulletObject( L"Table", Table );
-	Table->setUserPointer( TablePtr );
-	m_pWorld->addRigidBody( Table );
-	m_vecRigidBodies.push_back( TablePtr );
+	auto TableVertices = m_Graphics->GetTable( )->GetVertices( );
+	auto TableIndices = m_Graphics->GetTable( )->GetIndices( );
+	btRigidBody * Table = CreateCustomRigidBody( TableVertices, TableIndices, 0, L"Table",
+		btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 4, 0 ) ) );
+	Table->getCollisionShape( )->setLocalScaling( btVector3( 7, 7, 7 ) );
+
+	auto ChairVertices = m_Graphics->GetChair( )->GetVertices( );
+	auto ChairIndices = m_Graphics->GetChair( )->GetIndices( );
+	btCollisionShape * ChairShape = CreateCustomCollisionShape( ChairVertices, ChairIndices );
+	m_vecCollisionShapes.push_back( ChairShape );
+	ChairShape->setLocalScaling( btVector3( 5, 5, 5 ) );
+	std::vector<SCreateCustomRigidBody> BodiesToCreate;
+	SCreateCustomRigidBody Body;
+	Body.mass = 200;
+	Body.Name = L"Chair";
+	Body.Shape = ChairShape;
+	Body.Trans = btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 7, 20 ) );
+	BodiesToCreate.push_back( Body );
+	Body.mass = 200;
+	Body.Name = L"Chair";
+	Body.Shape = ChairShape;
+	RotMat.setEulerYPR( 0, SIMD_PI, 0 );
+	Body.Trans = btTransform( RotMat, btVector3( 0, 7, -20 ) );
+	BodiesToCreate.push_back( Body );
+	Body.mass = 200;
+	Body.Name = L"Chair";
+	Body.Shape = ChairShape;
+	RotMat.setEulerYPR( 0, SIMD_PI / 2, 0 );
+	Body.Trans = btTransform( RotMat, btVector3( 20, 7, 0 ) );
+	BodiesToCreate.push_back( Body );
+	Body.mass = 200;
+	Body.Name = L"Chair";
+	Body.Shape = ChairShape;
+	RotMat.setEulerYPR( 0, -SIMD_PI / 2, 0 );
+	Body.Trans = btTransform( RotMat, btVector3( -20, 7, 0 ) );
+	BodiesToCreate.push_back( Body );
+	CreateMultipleCustomRigidBodies( BodiesToCreate );
+	
 
 	btCollisionShape *BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
-	btMotionState *BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 20, 1, 0 ) ) );
+	m_vecCollisionShapes.push_back( BoxShape );
+	btMotionState *BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 30, 1, 0 ) ) );
 	btRigidBody::btRigidBodyConstructionInfo BoxCI( 5, BoxState, BoxShape );
 	btRigidBody *Box = new btRigidBody( BoxCI );
 	
@@ -125,47 +147,14 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->addRigidBody( Box );
 	m_vecRigidBodies.push_back( BoxPtr );
 
-	/*btTransform trans;
-	trans.setOrigin( btVector3( 0, 10, 0 ) );
-	Box->getMotionState( )->setWorldTransform( trans );
-
-	btConeTwistConstraint * Constraint = new btConeTwistConstraint(
-		*Box, btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 20, 0 ) ) );
-	Constraint->setEnabled( true );
-	Constraint->setLimit( SIMD_PI / 4, SIMD_PI / 4, SIMD_HALF_PI );
-	Constraint->setDbgDrawSize( 2 );
-	m_pWorld->addConstraint( Constraint ); */ /// #1 attempt
-
-	/*btGeneric6DofConstraint * Constraint = new btGeneric6DofConstraint( *Box,
-		btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, 0 ) ), false );
-	Constraint->setBreakingImpulseThreshold( 500 );
-	
-	for ( int i = 0; i < 6; i++ )
-	{
-		Constraint->setParam( BT_CONSTRAINT_STOP_CFM, 0.8f, i );
-		Constraint->setParam( BT_CONSTRAINT_STOP_ERP, 0.8f, i );
-	}
-	m_pWorld->addConstraint( Constraint, true );*/ /// #2 attempt
-
-	/*btPoint2PointConstraint * Constraint = new btPoint2PointConstraint( *Box, *Plane,
-		btVector3( 0, 10, 0 ), btVector3( 10, 0, 0 ) );
-
-	Constraint->setParam( BT_CONSTRAINT_STOP_CFM, 0.8f, -1 );
-	Constraint->setParam( BT_CONSTRAINT_STOP_ERP, 0.8f, -1 );
-	m_pWorld->addConstraint( Constraint );*/
-	
-	//btGeneric6DofSpring2Constraint * Constraint;
-	//Constraint = new btGeneric6DofSpring2Constraint( );
-
-	//m_pWorld->addConstraint( Constraint );
-
-	m_pWorld->getSolverInfo( ).m_numIterations = 50;
+	m_pWorld->getSolverInfo( ).m_numIterations = 10;
 
 	btScalar SpringLength( 3 );
 	btScalar PivotOffset( 0 );
-	btScalar SpringRange( 7 );
+	btScalar SpringRange( 1 );
 
 	PlaneShape = new btBoxShape( btVector3( 1, 1, 1 ) );
+	m_vecCollisionShapes.push_back( PlaneShape );
 	btTransform tr;
 	tr.setIdentity( );
 	tr.setOrigin( btVector3( 0, 0, 0 ) );
@@ -189,6 +178,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	MotionState = new btDefaultMotionState( );
 	MotionState->setWorldTransform( tr );
 	BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
+	m_vecCollisionShapes.push_back( BoxShape );
 	btRigidBody* pBodyB = new btRigidBody( 0, MotionState, BoxShape );
 	m_pWorld->addRigidBody( pBodyB );
 	objPtr = new bulletObject( L"Don't draw", pBodyB );
@@ -217,8 +207,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 		//pGen6DOFSpring->enableSpring( i + 3, true );
 		pGen6DOFSpring->setStiffness( i, 1 );
 		pGen6DOFSpring->setStiffness( i + 3, 1 );
-		pGen6DOFSpring->setDamping( i, btScalar( 0.99 ) );
-		pGen6DOFSpring->setDamping( i + 3, btScalar( 0.99 ) );
+		pGen6DOFSpring->setDamping( i, btScalar( 0.5 ) );
+		pGen6DOFSpring->setDamping( i + 3, btScalar( 0.4 ) );
 		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( (1.0E-5) ), i );
 		pGen6DOFSpring->setParam( BT_CONSTRAINT_STOP_CFM, btScalar( ( 1.0E-5 ) ), i + 3 );
 		pGen6DOFSpring->setParam( BT_CONSTRAINT_CFM, btScalar( ( 1.0E-5 ) ), i );
@@ -228,6 +218,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 
 
 	BoxShape = new btBoxShape( btVector3( 1, 1, 1 ) );
+	m_vecCollisionShapes.push_back( BoxShape );
 	BoxState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 3, -10 ) ) );
 	localInertia = btVector3( 10, 0, 0 );
 	BoxCI = btRigidBody::btRigidBodyConstructionInfo( 50, BoxState, BoxShape, localInertia );
@@ -243,6 +234,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	z = m_xzFloatDistribution( m_RandomGenerator );
 	y = m_yFloatDistribution( m_RandomGenerator );
 	btCollisionShape * TorusShape = new btBoxShape( btVector3( TorusMaxAABB.x, TorusMaxAABB.y, TorusMaxAABB.z ) );
+	m_vecCollisionShapes.push_back( TorusShape );
 	btMotionState * TorusState = new btDefaultMotionState( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
 	btRigidBody::btRigidBodyConstructionInfo TorusCI( 0, TorusState, TorusShape, localInertia );
 	btRigidBody * Torus = new btRigidBody( TorusCI );
@@ -261,8 +253,9 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	DirectX::XMFLOAT3 MaxAABB = DirectX::XMFLOAT3( 3.f, 3.f, 3.f );
 #endif
 	btCollisionShape * CapsuleShape = new btBoxShape( btVector3( MaxAABB.x, MaxAABB.y - 0.7f, MaxAABB.z ) );
+	m_vecCollisionShapes.push_back( CapsuleShape );
 	btMotionState * CapsuleState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 10, 15, 10 ) ) );
-	btRigidBody::btRigidBodyConstructionInfo CapsuleCI( 100, CapsuleState, CapsuleShape );
+	btRigidBody::btRigidBodyConstructionInfo CapsuleCI( 50, CapsuleState, CapsuleShape );
 	btRigidBody * Capsule = new btRigidBody( CapsuleCI );
 	Capsule->setFlags( Capsule->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
 	Capsule->setActivationState( DISABLE_DEACTIVATION );
@@ -280,7 +273,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->setGravity( btVector3( 0, -10, 0 ) );
 
 #if DEBUG || _DEBUG
-	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawConstraints );
+	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawWireframe );
 	m_pWorld->setDebugDrawer( this );
 #endif
 	m_pWorld->setInternalTickCallback( CPhysics::myTickCallBack, reinterpret_cast< void* >( this ) );
@@ -384,20 +377,52 @@ void CPhysics::Frame( float fFrameTime )
 		}
 		else if ( m_vecRigidBodies[ i ]->Name == L"Table" )
 		{
-			float matrix[ 16 ];
+			float matrix[ 16 ], world[ 16 ], scale[ 16 ];
+			ZeroMemory( scale, sizeof( float ) * 16 );
 			btRigidBody * Body = m_vecRigidBodies[ i ]->Body;
 			btCollisionShape * Shape = Body->getCollisionShape( );
 			btVector3 scaling = Shape->getLocalScaling( );
 			btMotionState * motionState = Body->getMotionState( );
 			btTransform trans;
 			motionState->getWorldTransform( trans );
-			trans.getOpenGLMatrix( matrix );
-			matrix[ utility::toIndex( 0, 0 ) ] *= scaling.x( );
-			matrix[ utility::toIndex( 1, 1 ) ] *= scaling.y( );
-			matrix[ utility::toIndex( 2, 2 ) ] *= scaling.z( );
+			trans.getOpenGLMatrix( world );
+			scale[ utility::toIndex( 0, 0 ) ] = scaling.x( );
+			scale[ utility::toIndex( 1, 1 ) ] = scaling.y( );
+			scale[ utility::toIndex( 2, 2 ) ] = scaling.z( );
+			scale[ utility::toIndex( 3, 3 ) ] = 1;
+			utility::MatrixMultiply( scale, world, matrix );
 			btVector3 minAABB, maxAABB;
 			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
 			m_Graphics->RenderTable( matrix,
+				minAABB.x( ), minAABB.y( ), minAABB.z( ),
+				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
+		}
+		else if ( m_vecRigidBodies[ i ]->Name == L"Chair" )
+		{
+			float matrix[ 16 ], world[ 16 ], scale[ 16 ];
+			ZeroMemory( scale, sizeof( float ) * 16 );
+			btRigidBody * Body = m_vecRigidBodies[ i ]->Body;
+			btCollisionShape * Shape = Body->getCollisionShape( );
+			btVector3 scaling = Shape->getLocalScaling( );
+			btMotionState * motionState = Body->getMotionState( );
+			btTransform trans;
+			motionState->getWorldTransform( trans );
+			trans.getOpenGLMatrix( world );
+			scale[ utility::toIndex( 0, 0 ) ] = scaling.x( );
+			scale[ utility::toIndex( 1, 1 ) ] = scaling.y( );
+			scale[ utility::toIndex( 2, 2 ) ] = scaling.z( );
+			scale[ utility::toIndex( 3, 3 ) ] = 1;
+			utility::MatrixMultiply( scale, world, matrix );
+			for ( int i = 0; i < 4; ++i )
+			{
+				for ( int j = 0; j < 4; ++j )
+					utility::OutputVDebugString( L"%.2f ", matrix[ utility::toIndex( i, j ) ] );
+				utility::OutputVDebugString( L"\n" );
+			}
+			utility::OutputVDebugString( L"\n" );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
+			m_Graphics->RenderChair( matrix,
 				minAABB.x( ), minAABB.y( ), minAABB.z( ),
 				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
 		}
@@ -486,17 +511,97 @@ void CPhysics::Frame( float fFrameTime )
 	}
 	if ( m_Input->isKeyPressed( DIK_B ) )
 	{
+#if DEBUG || _DEBUG
 		m_pWorld->debugDrawWorld( );
+#endif
 	}
 	m_Graphics->SetUserTouchesTheGround( m_Player->bTouchesTheGround );
 	m_Graphics->SetScore( m_Player->Score );
 	m_Player->bUpdateScoreThisFrame = false;
 }
 
+btRigidBody* CPhysics::CreateCustomRigidBody/*AndAddItToTheWorld*/( std::vector<CModel::SVertex>& vertices, std::vector<DWORD>& indices,
+	btScalar mass, std::wstring Name, btTransform const& Trans)
+{
+	btTriangleMesh * TriangleMesh = new btTriangleMesh( true, false );
+	m_vecMeshes.push_back( TriangleMesh );
+	for ( unsigned int i = 0; i < indices.size( ) / 3; ++i )
+	{
+		CModel::SVertex* Vertex1 = &vertices[ indices[ i * 3 + 0 ] ];
+		CModel::SVertex* Vertex2 = &vertices[ indices[ i * 3 + 1 ] ];
+		CModel::SVertex* Vertex3 = &vertices[ indices[ i * 3 + 2 ] ];
+		TriangleMesh->addTriangle(
+			btVector3( Vertex1->Position.x, Vertex1->Position.y, Vertex1->Position.z ),
+			btVector3( Vertex2->Position.x, Vertex2->Position.y, Vertex2->Position.z ),
+			btVector3( Vertex3->Position.x, Vertex3->Position.y, Vertex3->Position.z ), true
+		);
+	}
+	btBvhTriangleMeshShape * TriangleShape = new btBvhTriangleMeshShape( TriangleMesh, true );
+	m_vecCollisionShapes.push_back( TriangleShape );
+	btMotionState * TriangleState = new btDefaultMotionState(
+		Trans
+	);
+	
+	btRigidBody::btRigidBodyConstructionInfo TriangleCI( 0, TriangleState, TriangleShape );
+	btRigidBody * Triangle = new btRigidBody( TriangleCI );
+	bulletObject * TrianglePtr = new bulletObject( Name, Triangle );
+	Triangle->setUserPointer( TrianglePtr );
+	m_pWorld->addRigidBody( Triangle );
+	m_vecRigidBodies.push_back( TrianglePtr );
+	return Triangle;
+}
+
+btCollisionShape * CPhysics::CreateCustomCollisionShape( std::vector<CModel::SVertex>& vertices, std::vector<DWORD>& indices )
+{
+	btTriangleMesh * TriangleMesh = new btTriangleMesh( true, false );
+	m_vecMeshes.push_back( TriangleMesh );
+	for ( unsigned int i = 0; i < indices.size( ) / 3; ++i )
+	{
+		CModel::SVertex* Vertex1 = &vertices[ indices[ i * 3 + 0 ] ];
+		CModel::SVertex* Vertex2 = &vertices[ indices[ i * 3 + 1 ] ];
+		CModel::SVertex* Vertex3 = &vertices[ indices[ i * 3 + 2 ] ];
+		TriangleMesh->addTriangle(
+			btVector3( Vertex1->Position.x, Vertex1->Position.y, Vertex1->Position.z ),
+			btVector3( Vertex2->Position.x, Vertex2->Position.y, Vertex2->Position.z ),
+			btVector3( Vertex3->Position.x, Vertex3->Position.y, Vertex3->Position.z ), true
+		);
+	}
+	btBvhTriangleMeshShape * TriangleShape = new btBvhTriangleMeshShape( TriangleMesh, true );
+	return TriangleShape;
+}
+
+std::pair<int, int> CPhysics::CreateMultipleCustomRigidBodies( std::vector<SCreateCustomRigidBody>& RigidBodiesToCreate )
+{
+	int Start = m_vecRigidBodies.size( );
+
+	for ( unsigned int i = 0; i < RigidBodiesToCreate.size( ); ++i )
+	{
+		btRigidBody* Body = CreateRigidBody( RigidBodiesToCreate[ i ].mass,
+			&RigidBodiesToCreate[ i ].Trans,
+			RigidBodiesToCreate[ i ].Shape );
+		bulletObject* BodyPtr = new bulletObject( RigidBodiesToCreate[ i ].Name, Body );
+		Body->setUserPointer( BodyPtr );
+		m_pWorld->addRigidBody( Body );
+		m_vecRigidBodies.push_back( BodyPtr );
+	}
+
+	return std::make_pair( Start, Start + RigidBodiesToCreate.size( ) );
+}
+
 void CPhysics::Shutdown( )
 {
 	for ( unsigned int i = 0; i < m_vecRigidBodies.size( ); ++i )
 	{
+		if ( i < m_vecMeshes.size( ) )
+		{
+			delete m_vecMeshes[ i ];
+		}
+		if ( i < m_vecCollisionShapes.size( ) )
+		{
+			delete m_vecCollisionShapes[ i ];
+		}
+		if ( m_vecRigidBodies[ i ] == 0 )
+			continue;
 		for ( int j = 0; j < m_vecRigidBodies[ i ]->Body->getNumConstraintRefs( ); ++j )
 		{
 			btTypedConstraint * Constraint = m_vecRigidBodies[ i ]->Body->getConstraintRef( j );
@@ -505,15 +610,10 @@ void CPhysics::Shutdown( )
 			delete Constraint;
 		}
 		m_pWorld->removeCollisionObject( m_vecRigidBodies[ i ]->Body );
-		btCollisionShape * Shape = m_vecRigidBodies[ i ]->Body->getCollisionShape( );
-		if ( Shape )
-		{
-			delete Shape;
-			Shape = 0;
-		}
 		delete m_vecRigidBodies[ i ]->Body->getMotionState( );
 		delete m_vecRigidBodies[ i ]->Body;
 		delete m_vecRigidBodies[ i ];
+		m_vecRigidBodies[ i ] = 0;
 	}
 
 	delete m_pWorld;

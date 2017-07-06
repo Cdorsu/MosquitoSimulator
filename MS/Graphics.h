@@ -92,6 +92,7 @@ private:
 	CModel * m_Ceil;
 	CModel * m_LightBulb;
 	CModel * m_Table;
+	CModel * m_Chair;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CText * m_ScoreText;
@@ -165,6 +166,9 @@ public:
 	void RenderTable( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderChair( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );
 private:
 	void RenderScene( );
@@ -214,6 +218,10 @@ public:
 	inline CModel * GetTable( )
 	{
 		return m_Table;
+	}
+	inline CModel * GetChair( )
+	{
+		return m_Chair;
 	}
 	inline std::pair<DirectX::XMFLOAT3, DirectX::XMFLOAT3> GetPlayerAABB( )
 	{

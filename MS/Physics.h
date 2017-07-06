@@ -32,9 +32,12 @@ class CPhysics sealed : public btIDebugDraw
 			:Name( Name ), Body( Body )
 		{};
 	};
-	struct DOF6SpringSetupData
+	struct SCreateCustomRigidBody
 	{
-		btRigidBody * m_RotateSpringBody;
+		btScalar mass;
+		btCollisionShape * Shape;
+		btTransform Trans;
+		std::wstring Name;
 	};
 private:
 	btBroadphaseInterface * m_pBroadphase;
@@ -43,6 +46,8 @@ private:
 	btConstraintSolver * m_pSolver;
 	btDynamicsWorld * m_pWorld;
 	std::vector<bulletObject*> m_vecRigidBodies;
+	std::vector<btStridingMeshInterface*> m_vecMeshes;
+	std::vector<btCollisionShape*> m_vecCollisionShapes;
 protected:
 	static std::random_device m_RandomDevice;
 	static std::mt19937 m_RandomGenerator;
@@ -51,6 +56,9 @@ protected:
 private: // To be taken from an upper level (CApplication)
 	CGraphics * m_Graphics;
 	CInput * m_Input;
+#if DEBUG || _DEBUG
+	void * m_PointerToSomething;
+#endif
 private: // Deleted automatically
 	bulletObject * m_Player;
 public:
@@ -58,6 +66,16 @@ public:
 	~CPhysics( );
 public:
 	bool Initialize( CGraphics * GraphicsObject, CInput * InputObject );
+	btRigidBody* CreateCustomRigidBody/*AndAddItToTheWorld*/( std::vector<CModel::SVertex>& vertices,
+		std::vector<DWORD>& indices, btScalar mass, std::wstring Name, btTransform const& Transform );
+	btCollisionShape* CreateCustomCollisionShape( std::vector<CModel::SVertex>& vertices,
+		std::vector<DWORD>& indices );
+	///
+	/// <summary>Creates multiple ridig bodies with the input provided</summary>
+	/// <param name = "RigidBodiesToCreate">Informations about the rigid bodies to create</param>
+	/// <return>Returns a pair of numbers [begin, end) with indices for m_vecRigidBodies (the created bodies)</return>
+	///
+	std::pair<int,int> CreateMultipleCustomRigidBodies( std::vector<SCreateCustomRigidBody>& RigidBodiesToCreate );
 	void Frame( float fFrameTime );
 	void Shutdown( );
 public:

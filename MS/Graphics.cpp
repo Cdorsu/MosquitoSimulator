@@ -105,6 +105,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_Table = new CModel( );
 	if ( !m_Table->Initialize( m_D3D11->GetDevice( ), L"Assets\\Table.aba" ) )
 		return false;
+	m_Chair = new CModel( );
+	if ( !m_Chair->Initialize( m_D3D11->GetDevice( ), L"Assets\\Chair.aba" ) )
+		return false;
 
 	m_Font = new FontClass( );
 	if ( !m_Font->Initialize( m_D3D11->GetDevice( ), L"Font\\font.dds", L"Font\\font.txt", 16 ) )
@@ -495,15 +498,7 @@ void CGraphics::RenderScene( )
 		}
 		else if ( iter.first == L"Ceiling" )
 		{
-			/*m_Ceil->Render( m_D3D11->GetImmediateContext( ) );
-			for ( UINT i = 0; i < iter.second.size( ); ++i )
-			{
-				if ( !iter.second[ i ].bRenderDepthmap )
-					continue;
-				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
-				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
-				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Ceil->GetIndexCount( ) );
-			}*/
+			// Don't draw it
 		}
 		else if ( iter.first == L"LightBulb" )
 		{
@@ -519,6 +514,18 @@ void CGraphics::RenderScene( )
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Table->GetIndexCount( ) );
+			}
+		}
+		else if ( iter.first == L"Chair" )
+		{
+			m_Chair->Render( m_D3D11->GetImmediateContext( ) );
+			for ( UINT i = 0; i < iter.second.size( ); ++i )
+			{
+				if ( iter.second[ i ].bRenderDepthmap == false )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
+				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Chair->GetIndexCount( ) );
 			}
 		}
 		else if ( iter.first == L"Mosquito" )
@@ -862,6 +869,19 @@ void CGraphics::RenderScene( )
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Table->GetIndexCount( ) );
 			}
 		}
+		else if ( iter.first == L"Chair" )
+		{
+			m_Chair->Render( m_D3D11->GetImmediateContext( ) );
+			for ( UINT i = 0; i < iter.second.size( ); ++i )
+			{
+				if ( !iter.second[ i ].bRenderBackBuffer )
+					continue;
+				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
+				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
+				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Chair->GetMaterial( ) );
+				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Chair->GetIndexCount( ) );
+			}
+		}
 		else if ( iter.first == L"Mosquito" )
 		{
 #if !( _DEBUG || DEBUG )
@@ -1097,6 +1117,24 @@ void CGraphics::RenderTable( float* World,
 	}
 }
 
+void CGraphics::RenderChair( float* World,
+	float minX, float minY, float minZ,
+	float maxX, float maxY, float maxZ )
+{
+	if ( minX == 0 && minY == 0 && minZ == 0 &&
+		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
+		AddObjectToRenderList( L"Chair", World );
+	else
+	{
+		bool bIsInViewFrustum, bIsInLightFrustum, bIsInSunLightFrustum;
+		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
+		AddObjectToRenderList( L"Chair", World, bIsInLightFrustum,
+			bIsInViewFrustum, bIsInSunLightFrustum );
+	}
+}
+
 void CGraphics::RenderUI( )
 {
 	m_D3D11->DisableCulling( );
@@ -1240,6 +1278,12 @@ void CGraphics::Shutdown( )
 		m_Table->Shutdown( );
 		delete m_Table;
 		m_Table = 0;
+	}
+	if ( m_Chair )
+	{
+		m_Chair->Shutdown( );
+		delete m_Chair;
+		m_Chair = 0;
 	}
 	if ( m_LightBulb )
 	{
