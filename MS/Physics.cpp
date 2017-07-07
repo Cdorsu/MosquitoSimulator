@@ -103,6 +103,11 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 		btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 4, 0 ) ) );
 	Table->getCollisionShape( )->setLocalScaling( btVector3( 7, 7, 7 ) );
 
+	auto DoggoVertices = m_Graphics->GetDoggo( )->GetVertices( );
+	auto DoggoIndices = m_Graphics->GetDoggo( )->GetIndices( );
+	btRigidBody * Doggo = CreateCustomRigidBody( DoggoVertices, DoggoIndices, 250, L"Doggo",
+		btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 20, 6, 30 ) ) );
+
 	auto ChairVertices = m_Graphics->GetChair( )->GetVertices( );
 	auto ChairIndices = m_Graphics->GetChair( )->GetIndices( );
 	btCollisionShape * ChairShape = CreateCustomCollisionShape( ChairVertices, ChairIndices );
@@ -273,7 +278,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	m_pWorld->setGravity( btVector3( 0, -10, 0 ) );
 
 #if DEBUG || _DEBUG
-	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawWireframe );
+	this->setDebugMode( CPhysics::DebugDrawModes::DBG_DrawAabb );
 	m_pWorld->setDebugDrawer( this );
 #endif
 	m_pWorld->setInternalTickCallback( CPhysics::myTickCallBack, reinterpret_cast< void* >( this ) );
@@ -426,6 +431,35 @@ void CPhysics::Frame( float fFrameTime )
 				minAABB.x( ), minAABB.y( ), minAABB.z( ),
 				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
 		}
+		else if ( m_vecRigidBodies[ i ]->Name == L"Doggo" )
+		{
+			float matrix[ 16 ], world[ 16 ], scale[ 16 ];
+			ZeroMemory( scale, sizeof( float ) * 16 );
+			btRigidBody * Body = m_vecRigidBodies[ i ]->Body;
+			btCollisionShape * Shape = Body->getCollisionShape( );
+			btVector3 scaling = Shape->getLocalScaling( );
+			btMotionState * motionState = Body->getMotionState( );
+			btTransform trans;
+			motionState->getWorldTransform( trans );
+			trans.getOpenGLMatrix( world );
+			scale[ utility::toIndex( 0, 0 ) ] = scaling.x( );
+			scale[ utility::toIndex( 1, 1 ) ] = scaling.y( );
+			scale[ utility::toIndex( 2, 2 ) ] = scaling.z( );
+			scale[ utility::toIndex( 3, 3 ) ] = 1;
+			utility::MatrixMultiply( scale, world, matrix );
+			for ( int i = 0; i < 4; ++i )
+			{
+				for ( int j = 0; j < 4; ++j )
+					utility::OutputVDebugString( L"%.2f ", matrix[ utility::toIndex( i, j ) ] );
+				utility::OutputVDebugString( L"\n" );
+			}
+			utility::OutputVDebugString( L"\n" );
+			btVector3 minAABB, maxAABB;
+			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
+			m_Graphics->RenderDoggo( matrix,
+				minAABB.x( ), minAABB.y( ), minAABB.z( ),
+				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
+		}
 	}
 	if ( m_Input->isKeyPressed( DIK_W ) )
 	{
@@ -542,7 +576,7 @@ btRigidBody* CPhysics::CreateCustomRigidBody/*AndAddItToTheWorld*/( std::vector<
 		Trans
 	);
 	
-	btRigidBody::btRigidBodyConstructionInfo TriangleCI( 0, TriangleState, TriangleShape );
+	btRigidBody::btRigidBodyConstructionInfo TriangleCI( mass, TriangleState, TriangleShape );
 	btRigidBody * Triangle = new btRigidBody( TriangleCI );
 	bulletObject * TrianglePtr = new bulletObject( Name, Triangle );
 	Triangle->setUserPointer( TrianglePtr );

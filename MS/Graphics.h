@@ -93,6 +93,7 @@ private:
 	CModel * m_LightBulb;
 	CModel * m_Table;
 	CModel * m_Chair;
+	CModel * m_Doggo;
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CText * m_ScoreText;
@@ -169,6 +170,9 @@ public:
 	void RenderChair( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void RenderDoggo( float* World,
+		float minX = 0, float minY = 0, float minZ = 0,
+		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );
 private:
 	void RenderScene( );
@@ -222,6 +226,10 @@ public:
 	inline CModel * GetChair( )
 	{
 		return m_Chair;
+	}
+	inline CModel * GetDoggo( )
+	{
+		return m_Doggo;
 	}
 	inline std::pair<DirectX::XMFLOAT3, DirectX::XMFLOAT3> GetPlayerAABB( )
 	{
