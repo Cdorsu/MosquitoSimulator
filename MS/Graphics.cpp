@@ -49,6 +49,12 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_AddTexturesShader = new CAddTexturesShader( );
 	if ( !m_AddTexturesShader->Initialize( m_D3D11->GetDevice( ) ) )
 		return false;
+	m_HorizontalBlurShader = new CHorizontalBlurShader( );
+	if ( !m_HorizontalBlurShader->Initialize( m_D3D11->GetDevice( ) ) )
+		return false;
+	m_VerticalBlurShader = new CVerticalBlurShader( );
+	if ( !m_VerticalBlurShader->Initialize( m_D3D11->GetDevice( ) ) )
+		return false;
 
 	m_FirstPersonCamera = new CCamera( );
 	if ( !m_FirstPersonCamera->InitializeFirstPersonCamera( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
@@ -1422,6 +1428,18 @@ void CGraphics::Shutdown( )
 		m_FirstPersonCamera->Shutdown( );
 		delete m_FirstPersonCamera;
 		m_FirstPersonCamera = 0;
+	}
+	if ( m_VerticalBlurShader )
+	{
+		m_VerticalBlurShader->Shutdown( );
+		delete m_VerticalBlurShader;
+		m_VerticalBlurShader = 0;
+	}
+	if ( m_HorizontalBlurShader )
+	{
+		m_HorizontalBlurShader->Shutdown( );
+		delete m_HorizontalBlurShader;
+		m_HorizontalBlurShader = 0;
 	}
 	if ( m_AddTexturesShader )
 	{

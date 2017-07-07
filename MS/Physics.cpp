@@ -396,11 +396,7 @@ void CPhysics::Frame( float fFrameTime )
 			scale[ utility::toIndex( 2, 2 ) ] = scaling.z( );
 			scale[ utility::toIndex( 3, 3 ) ] = 1;
 			utility::MatrixMultiply( scale, world, matrix );
-			btVector3 minAABB, maxAABB;
-			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
-			m_Graphics->RenderTable( matrix,
-				minAABB.x( ), minAABB.y( ), minAABB.z( ),
-				maxAABB.x( ), maxAABB.y( ), maxAABB.z( ) );
+			m_Graphics->RenderTable( matrix );
 		}
 		else if ( m_vecRigidBodies[ i ]->Name == L"Chair" )
 		{
