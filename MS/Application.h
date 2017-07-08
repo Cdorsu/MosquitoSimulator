@@ -20,6 +20,7 @@ class CApplication sealed
 	CGraphics * m_Graphics = nullptr;
 	CInput * m_Input = nullptr;
 	CPhysics * m_Physics = nullptr;
+	bool m_bShowMenu = true;
 private:
 	bool InitWindow( HINSTANCE hInstance, bool bFullscreen );
 public:

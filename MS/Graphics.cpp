@@ -200,6 +200,30 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_FirstPersonCamera->SetPosition( DirectX::XMVectorSet( Center.x, Center.y, Center.z, 1.0f ) );
 	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Center.x, Center.y, Center.z, 1.0f ) );
 
+	// Menu
+	m_MenuOutline = new CTextureWindow( );
+	if ( !m_MenuOutline->Initialize( m_D3D11->GetDevice( ),
+		L"2DArt\\Menu.png", MenuOutlineWidth, MenuOutlineHeight,
+		MenuOutlineWidth, MenuOutlineHeight ) )
+		return false;
+	m_Cursor = new CTextureWindow( );
+	if ( !m_Cursor->Initialize( m_D3D11->GetDevice( ),
+		L"2DArt\\Cursor.dds", WindowWidth, WindowHeight,
+		32, 32 ) )
+		return false;
+
+	m_vecMenuTexts.push_back( new CText( ) );
+	if ( !m_vecMenuTexts[0]->Initialize( m_D3D11->GetDevice( ), m_Font01, 12,
+		0, 0 ) )
+		return false;
+	m_vecMenuTexts[ 0 ]->Update( m_D3D11->GetImmediateContext( ), -25, -20, "Start game" );
+
+	m_vecMenuTexts.push_back( new CText( ) );
+	if ( !m_vecMenuTexts[ 1 ]->Initialize( m_D3D11->GetDevice( ), m_Font01, 10,
+		0, 0 ) )
+		return false;
+	m_vecMenuTexts[ 1 ]->Update( m_D3D11->GetImmediateContext( ), -20, 0, "Quit game" );
+
 	return true;
 }
 
@@ -1215,7 +1239,6 @@ void CGraphics::RenderUI( )
 
 	m_D3D11->EnableDefaultDSState( );
 
-
 	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FPSText->GetTexture( ),
@@ -1239,8 +1262,83 @@ void CGraphics::RenderUI( )
 #endif
 }
 
+void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
+{
+	m_fCursorX += m_Input->GetHorizontalMouseMove( );
+	m_fCursorY += m_Input->GetVerticalMouseMove( );
+	char buffer[ 10 ] = { 0 };
+	sprintf_s( buffer, "FPS: %d", FPS );
+	m_FPSText->Update( m_D3D11->GetImmediateContext( ), 0, 0, buffer );
+	char buffer2[ 20 ] = { 0 };
+	sprintf_s( buffer2, "Frame time: %.2lf", fFrameTime );
+	m_FrameTimeText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ), buffer2 );
+#if DEBUG || _DEBUG
+	char buffer3[ 300 ] = { 0 };
+	sprintf_s( buffer3, "DEBUG MODE" );
+	m_DebugText->Update( m_D3D11->GetImmediateContext( ), 0,
+		m_FPSText->GetHeight( ) * 3, buffer3 );
+#endif
+
+	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_FPSText->GetTexture( ),
+		utility::SColor( 1.0f, 1.0f, 0.0f, 1.0f ) );
+
+	m_FrameTimeText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FrameTimeText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
+		utility::SColor( 1.0f, 1.0f, 0.0f, 1.0f ) );
+
+
+	m_D3D11->EnableAlphaTransparencyBlendingState( );
+	m_MenuOutline->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_MenuOutline->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_MenuOutline->GetTexture( ) );
+	m_D3D11->EnableDefaultBlendingState( );
+	
+	for ( UINT i = 0; i < m_vecMenuTexts.size( ); ++i )
+	{
+		m_vecMenuTexts[i]->Render( m_D3D11->GetImmediateContext( ) );
+		m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_vecMenuTexts[ i ]->GetIndexCount( ),
+			m_D3D11->GetOrthoMatrix( ), m_vecMenuTexts[ i ]->GetTexture( ) );
+	}
+
+	m_Cursor->Render( m_D3D11->GetImmediateContext( ), m_fCursorX, m_fCursorY );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_Cursor->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_Cursor->GetTexture( ) );
+
+#if DEBUG || _DEBUG
+	m_DebugText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
+		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
+#endif
+
+}
+
 void CGraphics::Shutdown( )
 {
+	for ( UINT i = 0; i < m_vecMenuTexts.size( ); ++i )
+	{
+		if ( m_vecMenuTexts[ i ] )
+		{
+			m_vecMenuTexts[ i ]->Shutdown( );
+			delete m_vecMenuTexts[ i ];
+			m_vecMenuTexts[ i ] = 0;
+		}
+	}
+	if ( m_Cursor )
+	{
+		m_Cursor->Shutdown( );
+		delete m_Cursor;
+		m_Cursor = 0;
+	}
+	if ( m_MenuOutline )
+	{
+		m_MenuOutline->Shutdown( );
+		delete m_MenuOutline;
+		m_MenuOutline = 0;
+	}
 	if ( m_SceneWithLight )
 	{
 		m_SceneWithLight->Shutdown( );

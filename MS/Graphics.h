@@ -60,6 +60,8 @@ public:
 	static constexpr UINT DistanceFromTopToTopMap = 20;
 	static constexpr UINT MapWidth = 100;
 	static constexpr UINT MapWidthOver2 = 50;
+	static constexpr UINT MenuOutlineWidth = 512;
+	static constexpr UINT MenuOutlineHeight = 512;
 #if DEBUG || _DEBUG
 	static constexpr UINT DebugWindowWidthHeight = 100;
 #endif
@@ -120,6 +122,16 @@ private:
 	CRenderTexture * m_SceneWithLight;
 
 private:
+	CTextureWindow * m_MenuOutline;
+	CTextureWindow * m_Cursor;
+	std::vector<CText*> m_vecMenuTexts;
+	struct
+	{
+		float m_fCursorX;
+		float m_fCursorY;
+	};
+
+private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
 	SAdditionalInfoFromPhysicsEngine m_AdditionalPhysicsInfo;
 protected:
@@ -144,6 +156,7 @@ public:
 public:
 	bool Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen = true, CInput * Input = nullptr );
 	void Update( float fFrameTime, UINT FPS );
+	void RenderMenu( float fFrameTime, UINT FPS );
 	void RenderUI( );
 	void Render( );
 	void RenderGround( float* World,
@@ -243,6 +256,14 @@ public:
 		return AABB;
 	}
 public:
+	inline void BeginFrame( )
+	{
+		m_D3D11->BeginScene( );
+	}
+	inline void EndFrame( )
+	{
+		m_D3D11->EndScene( );
+	}
 	inline void BeginScene( )
 	{
 		m_D3D11->EnableDefaultViewPort( );

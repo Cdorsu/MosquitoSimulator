@@ -96,7 +96,7 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 	ZeroMemory( &swapDesc, sizeof( DXGI_SWAP_CHAIN_DESC ) );
 	swapDesc.BufferCount = 1; // buffer count
 	swapDesc.BufferDesc = modeDesc; // buffer description
-	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // Use the buffer as a back buffer
+	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT; // Use the buffer as a back buffer
 	swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG::DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // change between windowed and fullscreen
 	swapDesc.OutputWindow = hWnd;
 	swapDesc.SampleDesc.Count = m_SampleCount;
@@ -187,8 +187,19 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 		Backbuffer, // The data we need
 		nullptr, // No furhter description
 		&m_d3d11RenderTargetView ); // Make this Render Target View
+	if ( FAILED( hr ) )
+	{
+		Backbuffer->Release( );
+		OutputDebugString( L"Couldn't create a render target view" );
+		return false;
+	}
+	hr = m_d3d11Device->CreateShaderResourceView(
+		Backbuffer, // The data we need
+		nullptr, // No further description
+		&m_BackBufferSRV ); // Make this Shader Resource View
 	Backbuffer->Release( ); // Let's keep it clean
-	IFFAILED( hr, L"Couldn't create Render Target View" );
+	IFFAILED( hr, L"Couldn't create a shader resource view" );
+
 
 	ID3D11Texture2D * DSBuffer;
 	D3D11_TEXTURE2D_DESC dsbufferDesc = { 0 }; // description for depth stencil view buffer
@@ -266,7 +277,15 @@ bool CD3D11::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, float N
 	blendDesc.RenderTarget[ 0 ].DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;
 	blendDesc.RenderTarget[ 0 ].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_MAX;
 	blendDesc.RenderTarget[ 0 ].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;
-	hr = m_d3d11Device->CreateBlendState( &blendDesc, &m_AddColorsBleding );
+	hr = m_d3d11Device->CreateBlendState( &blendDesc, &m_AddColorsBlending );
+	IFFAILED( hr, L"Couldn't create a blending state" );
+	blendDesc.RenderTarget[ 0 ].BlendEnable = TRUE;
+	blendDesc.RenderTarget[ 0 ].SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[ 0 ].DestBlend = D3D11_BLEND::D3D11_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[ 0 ].BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[ 0 ].BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_MIN;
+	blendDesc.RenderTarget[ 0 ].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;
+	hr = m_d3d11Device->CreateBlendState( &blendDesc, &m_TransparentBlending );
 	IFFAILED( hr, L"Couldn't create a blending state" );
 
 	m_OrthoMatrix = DirectX::XMMatrixOrthographicLH( ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight, Near, Far );
@@ -296,7 +315,9 @@ void CD3D11::Shutdown( )
 	SAFE_RELEASE( m_NoCulling );
 	SAFE_RELEASE( m_FrontFaceCulling );
 	SAFE_RELEASE( m_DSLessEqual );
-	SAFE_RELEASE( m_AddColorsBleding );
+	SAFE_RELEASE( m_AddColorsBlending );
+	SAFE_RELEASE( m_TransparentBlending );
+	SAFE_RELEASE( m_BackBufferSRV );
 }
 
 CD3D11::~CD3D11( )

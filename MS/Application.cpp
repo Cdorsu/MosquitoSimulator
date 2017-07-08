@@ -3,7 +3,6 @@
 
 CApplication::CApplication( )
 {
-	ZeroMemory( this, sizeof( CApplication ) );
 }
 
 bool CApplication::InitWindow( HINSTANCE hInstance, bool bFullscreen )
@@ -51,6 +50,7 @@ bool CApplication::Initialize( HINSTANCE hInstance, bool bFullscreen )
 	m_Input = new CInput( );
 	if ( !m_Input->Initialize( hInstance, m_hWnd ) )
 		return false;
+	m_Input->addSpecialKey( DIK_ESCAPE );
 
 	m_Graphics = new CGraphics( );
 	if ( !m_Graphics->Initialize( m_hWnd, m_WindowWidth, m_WindowHeight, bFullscreen, m_Input ) )
@@ -85,12 +85,24 @@ void CApplication::Run( )
 			}
 			m_Timer.Frame( );
 			m_Input->Frame( );
-			if ( m_Input->isKeyPressed( DIK_ESCAPE ) )
-				break;
-			m_Graphics->BeginScene( );
-			m_Physics->Frame( m_Timer.GetFrameTime( ) );
-			m_Graphics->Update( m_Timer.GetFrameTime( ), m_FPS );
-			m_Graphics->EndScene( );
+			if ( m_Input->isSpecialKeyPressed( DIK_ESCAPE ) )
+			{
+				m_bShowMenu = m_bShowMenu ? false : true;
+				m_Timer.Frame( );
+			}
+			if ( m_bShowMenu )
+			{
+				m_Graphics->BeginFrame( );
+				m_Graphics->RenderMenu( m_Timer.GetFrameTime( ), m_FPS );
+				m_Graphics->EndFrame( );
+			}
+			else
+			{
+				m_Graphics->BeginScene( );
+				m_Physics->Frame( m_Timer.GetFrameTime( ) );
+				m_Graphics->Update( m_Timer.GetFrameTime( ), m_FPS );
+				m_Graphics->EndScene( );
+			}
 		}
 	}
 }

@@ -414,13 +414,6 @@ void CPhysics::Frame( float fFrameTime )
 			scale[ utility::toIndex( 2, 2 ) ] = scaling.z( );
 			scale[ utility::toIndex( 3, 3 ) ] = 1;
 			utility::MatrixMultiply( scale, world, matrix );
-			for ( int i = 0; i < 4; ++i )
-			{
-				for ( int j = 0; j < 4; ++j )
-					utility::OutputVDebugString( L"%.2f ", matrix[ utility::toIndex( i, j ) ] );
-				utility::OutputVDebugString( L"\n" );
-			}
-			utility::OutputVDebugString( L"\n" );
 			btVector3 minAABB, maxAABB;
 			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
 			m_Graphics->RenderChair( matrix,
@@ -443,13 +436,6 @@ void CPhysics::Frame( float fFrameTime )
 			scale[ utility::toIndex( 2, 2 ) ] = scaling.z( );
 			scale[ utility::toIndex( 3, 3 ) ] = 1;
 			utility::MatrixMultiply( scale, world, matrix );
-			for ( int i = 0; i < 4; ++i )
-			{
-				for ( int j = 0; j < 4; ++j )
-					utility::OutputVDebugString( L"%.2f ", matrix[ utility::toIndex( i, j ) ] );
-				utility::OutputVDebugString( L"\n" );
-			}
-			utility::OutputVDebugString( L"\n" );
 			btVector3 minAABB, maxAABB;
 			m_vecRigidBodies[ i ]->Body->getAabb( minAABB, maxAABB );
 			m_Graphics->RenderDoggo( matrix,
