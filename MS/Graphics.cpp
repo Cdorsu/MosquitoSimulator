@@ -193,6 +193,8 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_SceneWithLight->Initialize( m_D3D11->GetDevice( ), WindowWidth, WindowHeight,
 		CamNear, CamFar, FOV, ( FLOAT ) WindowWidth / WindowHeight ) )
 		return false;
+	m_SceneWithLight->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
+	m_SceneWithLight->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
 
 	//auto Center = m_Mosquito->GetCenter( );
 	DirectX::XMFLOAT3 Center( 0.0f, 1.0f, 0.0f );
@@ -201,11 +203,6 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_ThirdPersonCamera->SetDirection( DirectX::XMVectorSet( Center.x, Center.y, Center.z, 1.0f ) );
 
 	// Menu
-	m_MenuOutline = new CTextureWindow( );
-	if ( !m_MenuOutline->Initialize( m_D3D11->GetDevice( ),
-		L"2DArt\\Menu.png", MenuOutlineWidth, MenuOutlineHeight,
-		MenuOutlineWidth, MenuOutlineHeight ) )
-		return false;
 	m_Cursor = new CTextureWindow( );
 	if ( !m_Cursor->Initialize( m_D3D11->GetDevice( ),
 		L"2DArt\\Cursor.dds", WindowWidth, WindowHeight,
@@ -1336,13 +1333,6 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
 		utility::SColor( 1.0f, 1.0f, 0.0f, 1.0f ) );
 
-
-	m_D3D11->EnableAlphaTransparencyBlendingState( );
-	m_MenuOutline->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_MenuOutline->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_MenuOutline->GetTexture( ) );
-	m_D3D11->EnableDefaultBlendingState( );
-
 	for ( UINT i = 0; i < m_vecMenuTexts.size( ); ++i )
 	{
 		m_vecMenuTexts[ i ]->Render( m_D3D11->GetImmediateContext( ) );
@@ -1354,15 +1344,17 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 				m_D3D11->GetOrthoMatrix( ), m_vecMenuTexts[ i ]->GetTexture( ) );
 	}
 
+	m_FullscreenWindow->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FullscreenWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_SceneWithLight->GetTexture( ) );
+
+
 #if DEBUG || _DEBUG
 	m_DebugText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
 		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
 #endif
-	m_FullscreenWindow->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FullscreenWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_SceneWithLight->GetTexture( ) );
 
 	m_D3D11->EnableBackFaceCulling( );
 
@@ -1384,12 +1376,6 @@ void CGraphics::Shutdown( )
 		m_Cursor->Shutdown( );
 		delete m_Cursor;
 		m_Cursor = 0;
-	}
-	if ( m_MenuOutline )
-	{
-		m_MenuOutline->Shutdown( );
-		delete m_MenuOutline;
-		m_MenuOutline = 0;
 	}
 	if ( m_SceneWithLight )
 	{

@@ -130,7 +130,6 @@ private:
 	CRenderTexture * m_SceneWithLight;
 
 private:
-	CTextureWindow * m_MenuOutline;
 	CTextureWindow * m_Cursor;
 	std::vector<CText*> m_vecMenuTexts;
 	struct
