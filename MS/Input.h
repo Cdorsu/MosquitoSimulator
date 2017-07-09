@@ -40,5 +40,9 @@ public:
 	{
 		return ( float ) m_currentMouseState.lZ;
 	}
+	bool isLeftKeyPressed( )
+	{
+		return (m_currentMouseState.rgbButtons[ 0 ] & 0x80) > 0;
+	}
 };
 

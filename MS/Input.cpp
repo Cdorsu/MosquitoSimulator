@@ -59,10 +59,6 @@ bool CInput::isKeyPressed( BYTE key )
 
 bool CInput::isSpecialKeyPressed( BYTE key )
 {
-	if ( isKeyPressed( key ) )
-	{
-		OutputDebugString( L"" );
-	}
 	return m_currentKeyboard[ key ] & 0x80 && // if the key was pressed this frame
 		!(m_lastKeyboard[ key ] & 0x80); // and it was not pressed in the previous frame
 }

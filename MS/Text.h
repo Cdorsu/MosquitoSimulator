@@ -21,6 +21,7 @@ private:
 	float m_fPreviousX;
 	float m_fPreviousY;
 	LPCSTR m_lpLastMessage;
+	float m_fWidth;
 public:
 	CText( );
 	~CText( );
@@ -34,5 +35,8 @@ public:
 	inline UINT GetVertexCount( ) { return m_VertexCount; };
 	inline ID3D11ShaderResourceView * GetTexture( ) { return m_Font->GetTexture( ); };
 	inline float GetHeight( ) { return m_Font->m_fFontHeight; };
+	inline float GetWidth( ) { return m_fWidth; };
+	inline float GetXPosition( ) { return m_fPreviousX; };
+	inline float GetYPosition( ) { return m_fPreviousY; };
 };
 

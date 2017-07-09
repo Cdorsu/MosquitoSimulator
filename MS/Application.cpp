@@ -87,14 +87,29 @@ void CApplication::Run( )
 			m_Input->Frame( );
 			if ( m_Input->isSpecialKeyPressed( DIK_ESCAPE ) )
 			{
-				m_bShowMenu = m_bShowMenu ? false : true;
-				m_Timer.Frame( );
+				if ( m_bShowMenu )
+					break;
+				m_bShowMenu = true;
 			}
 			if ( m_bShowMenu )
 			{
 				m_Graphics->BeginFrame( );
 				m_Graphics->RenderMenu( m_Timer.GetFrameTime( ), m_FPS );
 				m_Graphics->EndFrame( );
+				if ( m_Input->isKeyPressed( DIK_RETURN ) ||
+					m_Input->isLeftKeyPressed( ) )
+				{
+					CGraphics::EMenuOption Option = m_Graphics->GetMenuSelection( );
+					if ( Option == CGraphics::EMenuOption::StartGame )
+					{
+						m_bShowMenu = false;
+						m_Timer.Frame( );
+					}
+					else if ( Option == CGraphics::EMenuOption::QuitGame )
+					{
+						break;
+					}
+				}
 			}
 			else
 			{

@@ -27,6 +27,14 @@
 
 class CGraphics sealed
 {
+public:
+#pragma warning (push)
+#pragma warning (disable : 4369)
+	enum class EMenuOption
+	{
+		StartGame, QuitGame, Nothing = 0xffffffff
+	};
+#pragma warning (pop)
 private:
 	struct SObjectToDraw
 	{
@@ -130,6 +138,7 @@ private:
 		float m_fCursorX;
 		float m_fCursorY;
 	};
+	UINT m_MenuSelected;
 
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
@@ -227,6 +236,10 @@ public:
 	{
 		return m_FirstPersonCamera;
 	}
+	inline EMenuOption GetMenuSelection( )
+	{
+		return static_cast< EMenuOption >( m_MenuSelected );
+	}
 public:
 	inline CModel * GetTorus( )
 	{
@@ -258,6 +271,9 @@ public:
 public:
 	inline void BeginFrame( )
 	{
+		m_D3D11->EnableDefaultViewPort( );
+		m_D3D11->EnableBackBuffer( );
+		m_D3D11->DisableCulling( );
 		m_D3D11->BeginScene( );
 	}
 	inline void EndFrame( )

@@ -214,15 +214,19 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 
 	m_vecMenuTexts.push_back( new CText( ) );
 	if ( !m_vecMenuTexts[0]->Initialize( m_D3D11->GetDevice( ), m_Font01, 12,
-		0, 0 ) )
+		(FLOAT) WindowWidth, (FLOAT) WindowHeight ) )
 		return false;
 	m_vecMenuTexts[ 0 ]->Update( m_D3D11->GetImmediateContext( ), -25, -20, "Start game" );
+	m_vecMenuTexts[ 0 ]->Update( m_D3D11->GetImmediateContext( ), WindowWidth / 2 - m_vecMenuTexts[ 0 ]->GetWidth( ) / 2,
+		WindowHeight / 2 - m_vecMenuTexts[ 0 ]->GetHeight( ), "Start game" );
 
 	m_vecMenuTexts.push_back( new CText( ) );
 	if ( !m_vecMenuTexts[ 1 ]->Initialize( m_D3D11->GetDevice( ), m_Font01, 10,
-		0, 0 ) )
+		( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
 	m_vecMenuTexts[ 1 ]->Update( m_D3D11->GetImmediateContext( ), -20, 0, "Quit game" );
+	m_vecMenuTexts[ 1 ]->Update( m_D3D11->GetImmediateContext( ), WindowWidth / 2 - m_vecMenuTexts[ 1 ]->GetWidth( ) / 2,
+		WindowHeight / 2 + m_vecMenuTexts[ 0 ]->GetHeight( ), "Quit game" );
 
 	return true;
 }
@@ -1264,6 +1268,7 @@ void CGraphics::RenderUI( )
 
 void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 {
+	/*Update part*/
 	m_fCursorX += m_Input->GetHorizontalMouseMove( );
 	m_fCursorY += m_Input->GetVerticalMouseMove( );
 	char buffer[ 10 ] = { 0 };
@@ -1278,7 +1283,21 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 	m_DebugText->Update( m_D3D11->GetImmediateContext( ), 0,
 		m_FPSText->GetHeight( ) * 3, buffer3 );
 #endif
-
+	m_MenuSelected = [ & ]
+	{
+		for ( UINT i = 0; i < m_vecMenuTexts.size( ); ++i )
+		{
+			if ( m_fCursorX < m_vecMenuTexts[ i ]->GetXPosition( ) + m_vecMenuTexts[ i ]->GetWidth( ) &&
+				m_fCursorX > m_vecMenuTexts[ i ]->GetXPosition( ) )
+				if ( m_fCursorY < m_vecMenuTexts[ i ]->GetYPosition( ) + m_vecMenuTexts[ i ]->GetHeight( ) &&
+					m_fCursorY > m_vecMenuTexts[ i ]->GetYPosition( ) )
+					return i;
+			
+		}
+		return 0xffffffff;
+	}( );
+	
+	/*Render part*/
 	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FPSText->GetTexture( ),
@@ -1296,16 +1315,20 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 		m_D3D11->GetOrthoMatrix( ), m_MenuOutline->GetTexture( ) );
 	m_D3D11->EnableDefaultBlendingState( );
 	
-	for ( UINT i = 0; i < m_vecMenuTexts.size( ); ++i )
-	{
-		m_vecMenuTexts[i]->Render( m_D3D11->GetImmediateContext( ) );
-		m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_vecMenuTexts[ i ]->GetIndexCount( ),
-			m_D3D11->GetOrthoMatrix( ), m_vecMenuTexts[ i ]->GetTexture( ) );
-	}
-
-	m_Cursor->Render( m_D3D11->GetImmediateContext( ), m_fCursorX, m_fCursorY );
+	m_Cursor->Render( m_D3D11->GetImmediateContext( ), ( UINT ) m_fCursorX, ( UINT ) m_fCursorY );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_Cursor->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_Cursor->GetTexture( ) );
+
+	for ( UINT i = 0; i < m_vecMenuTexts.size( ); ++i )
+	{
+		m_vecMenuTexts[ i ]->Render( m_D3D11->GetImmediateContext( ) );
+		if ( i == m_MenuSelected )
+			m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_vecMenuTexts[ i ]->GetIndexCount( ),
+				m_D3D11->GetOrthoMatrix( ), m_vecMenuTexts[ i ]->GetTexture( ), utility::hexToRGB( 0xFFFF00 ) );
+		else
+			m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_vecMenuTexts[ i ]->GetIndexCount( ),
+				m_D3D11->GetOrthoMatrix( ), m_vecMenuTexts[ i ]->GetTexture( ) );
+	}
 
 #if DEBUG || _DEBUG
 	m_DebugText->Render( m_D3D11->GetImmediateContext( ) );
