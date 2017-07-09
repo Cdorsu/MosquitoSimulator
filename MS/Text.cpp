@@ -30,6 +30,7 @@ bool CText::Initialize( ID3D11Device * device, FontClass * Font, size_t maxLengt
 	m_fPreviousX = -69.f;
 	m_fPreviousY = -69.f;
 	m_lpLastMessage = "";
+	m_fWidth = 0.0f;
 
 	return true;
 }
@@ -41,6 +42,9 @@ void CText::Update( ID3D11DeviceContext * context, float x, float y, LPCSTR Mess
 		return; // We already updated it
 	static HRESULT hr;
 	static D3D11_MAPPED_SUBRESOURCE Vertices, Indices;
+
+	m_fPreviousX = x;
+	m_fPreviousY = y;
 
 	x = ( m_fWindowWidth / 2 * -1 ) + x;
 	y = ( m_fWindowHeight / 2 ) - y;
@@ -57,7 +61,7 @@ void CText::Update( ID3D11DeviceContext * context, float x, float y, LPCSTR Mess
 		return;
 	}
 
-	m_Font->Build( Vertices.pData, Indices.pData, m_VertexCount, m_IndexCount, Message, x, y );
+	m_Font->Build( Vertices.pData, Indices.pData, m_VertexCount, m_IndexCount, Message, x, y, m_fWidth );
 
 	context->Unmap( m_IndexBuffer, 0 );
 

@@ -33,11 +33,12 @@ bool FontClass::Initialize( ID3D11Device* device, LPWSTR lpTexture, LPWSTR lpInf
 }
 
 void FontClass::Build( _Out_ void * whereto, _Out_ void * Indices, _Out_ UINT& VertexCount, _Out_ UINT& IndexCount,
-	_In_ LPCSTR lpSentence, _In_ float x, _In_ float y )
+	_In_ LPCSTR lpSentence, _In_ float x, _In_ float y, _Out_ float& Width )
 {
 	size_t length = strlen( lpSentence );
 	VertexCount = 0;
 	IndexCount = 0;
+	Width = x;
 	SVertex * vertices = ( SVertex* ) whereto;
 	DWORD * indices = ( DWORD* ) Indices;
 	for ( size_t i = 0; i < length; ++i )
@@ -78,6 +79,7 @@ void FontClass::Build( _Out_ void * whereto, _Out_ void * Indices, _Out_ UINT& V
 
 		x += m_Letters[ charIndex ].width + 1.0f;
 	}
+	Width = x - Width;
 }
 
 void FontClass::Shutdown( )

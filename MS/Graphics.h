@@ -27,6 +27,14 @@
 
 class CGraphics sealed
 {
+public:
+#pragma warning (push)
+#pragma warning (disable : 4369)
+	enum class EMenuOption
+	{
+		StartGame, QuitGame, Nothing = 0xffffffff
+	};
+#pragma warning (pop)
 private:
 	struct SObjectToDraw
 	{
@@ -122,7 +130,6 @@ private:
 	CRenderTexture * m_SceneWithLight;
 
 private:
-	CTextureWindow * m_MenuOutline;
 	CTextureWindow * m_Cursor;
 	std::vector<CText*> m_vecMenuTexts;
 	struct
@@ -130,6 +137,7 @@ private:
 		float m_fCursorX;
 		float m_fCursorY;
 	};
+	UINT m_MenuSelected;
 
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
@@ -192,7 +200,7 @@ public:
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );
 private:
-	void RenderScene( );
+	void RenderScene( bool bRenderUI = true );
 	void RenderMosquito( float * World, bool drawtoback,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
@@ -227,6 +235,10 @@ public:
 	{
 		return m_FirstPersonCamera;
 	}
+	inline EMenuOption GetMenuSelection( )
+	{
+		return static_cast< EMenuOption >( m_MenuSelected );
+	}
 public:
 	inline CModel * GetTorus( )
 	{
@@ -258,6 +270,9 @@ public:
 public:
 	inline void BeginFrame( )
 	{
+		m_D3D11->EnableDefaultViewPort( );
+		m_D3D11->EnableBackBuffer( );
+		m_D3D11->DisableCulling( );
 		m_D3D11->BeginScene( );
 	}
 	inline void EndFrame( )
@@ -272,9 +287,9 @@ public:
 		m_ActiveCamera->ConstructFrustum( );
 		m_D3D11->BeginScene( );
 	}
-	inline void EndScene( )
+	inline void EndScene( bool bRenderUI = true )
 	{
-		RenderScene( );
+		RenderScene( bRenderUI );
 		m_D3D11->EndScene( );
 	}
 };

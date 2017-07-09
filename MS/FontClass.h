@@ -36,7 +36,7 @@ public:
 public:
 	bool Initialize( ID3D11Device* device, LPWSTR lpFontTexture, LPWSTR lpFontInfo, float Height );
 	void Build( _Out_ void * whereto, _Out_ void * indices, _Out_ UINT& VertexCount, _Out_ UINT& IndexCount,
-		_In_ LPCSTR lpSentence, _In_ float x, _In_ float y );
+		_In_ LPCSTR lpSentence, _In_ float x, _In_ float y, _Out_ float& width );
 	void Shutdown( );
 public:
 	inline ID3D11ShaderResourceView * GetTexture( ) { return m_Texture->GetTexture( ); };
