@@ -90,6 +90,9 @@ void CApplication::Run( )
 				if ( m_bShowMenu )
 					break;
 				m_bShowMenu = true;
+				m_Graphics->BeginScene( );
+				m_Physics->Frame( 0.0f );
+				m_Graphics->EndScene( false );
 			}
 			if ( m_bShowMenu )
 			{

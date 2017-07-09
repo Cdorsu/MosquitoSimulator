@@ -201,7 +201,7 @@ public:
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
 	void Shutdown( );
 private:
-	void RenderScene( );
+	void RenderScene( bool bRenderUI = true );
 	void RenderMosquito( float * World, bool drawtoback,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
@@ -288,9 +288,9 @@ public:
 		m_ActiveCamera->ConstructFrustum( );
 		m_D3D11->BeginScene( );
 	}
-	inline void EndScene( )
+	inline void EndScene( bool bRenderUI = true )
 	{
-		RenderScene( );
+		RenderScene( bRenderUI );
 		m_D3D11->EndScene( );
 	}
 };

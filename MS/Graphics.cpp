@@ -472,7 +472,7 @@ void CGraphics::Render( )
 	EndScene( );
 }
 
-void CGraphics::RenderScene( )
+void CGraphics::RenderScene( bool bRenderUI )
 {
 	static DirectX::XMMATRIX WorldMatrix;
 #pragma region Render to depthmap
@@ -819,8 +819,16 @@ void CGraphics::RenderScene( )
 #endif
 
 #if defined USE_LIGHT
-	m_D3D11->EnableBackBuffer( );
-	m_D3D11->EnableDefaultViewPort( );
+	if ( bRenderUI )
+	{
+		m_D3D11->EnableBackBuffer( );
+		m_D3D11->EnableDefaultViewPort( );
+	}
+	else
+	{
+		m_SceneWithLight->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
+		m_SceneWithLight->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
+	}
 	m_ShadowShader->SetShaders( m_D3D11->GetImmediateContext( ) );
 	m_ShadowShader->SetLightData( m_D3D11->GetImmediateContext( ), m_LightView, m_LightDepthmap->GetTexture( ) );
 	for ( auto & iter : m_mwvecObjectsToDraw ) // Second pass - render to back buffer
@@ -984,9 +992,22 @@ void CGraphics::RenderScene( )
 	}
 #endif
 
+	m_D3D11->DisableCulling( );
+	m_D3D11->EnableDSLessEqual( );
+
+	m_Skybox->Render( m_D3D11->GetImmediateContext( ) );
+	m_SkyboxShader->Render( m_D3D11->GetImmediateContext( ), m_Skybox->GetIndexCount( ),
+		m_Skybox->GetWorld( ), m_ActiveCamera, m_Skybox->GetTexture( ) );
+
+	m_D3D11->EnableDefaultDSState( );
+	m_D3D11->EnableBackFaceCulling( );
+
 	m_mwvecObjectsToDraw.clear( );
-	RenderUI( );
+	if ( bRenderUI )
+		RenderUI( );
 }
+
+#pragma region Render Objects
 
 void CGraphics::RenderPlayer( DirectX::XMFLOAT3 Position, float * World,
 	float minX, float minY, float minZ,
@@ -1215,6 +1236,8 @@ void CGraphics::RenderDoggo( float* World,
 	}
 }
 
+#pragma endregion
+
 void CGraphics::RenderUI( )
 {
 	m_D3D11->DisableCulling( );
@@ -1234,14 +1257,6 @@ void CGraphics::RenderUI( )
 	m_MapWindow->Render( m_D3D11->GetImmediateContext( ), m_WindowWidth - DistanceFromRightWindowLeftMap, DistanceFromTopToTopMap );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_MapWindow->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_MapWindow->GetTexture( ) );
-
-	m_D3D11->EnableDSLessEqual( );
-
-	m_Skybox->Render( m_D3D11->GetImmediateContext( ) );
-	m_SkyboxShader->Render( m_D3D11->GetImmediateContext( ), m_Skybox->GetIndexCount( ),
-		m_Skybox->GetWorld( ), m_ActiveCamera, m_Skybox->GetTexture( ) );
-
-	m_D3D11->EnableDefaultDSState( );
 
 	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
@@ -1271,6 +1286,14 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 	/*Update part*/
 	m_fCursorX += m_Input->GetHorizontalMouseMove( );
 	m_fCursorY += m_Input->GetVerticalMouseMove( );
+	if ( m_fCursorX < 0 )
+		m_fCursorX = 0;
+	else if ( m_fCursorX > m_WindowWidth - 32 )
+		m_fCursorX = ( FLOAT ) m_WindowWidth - 32;
+	if ( m_fCursorY < 0 )
+		m_fCursorY = 0;
+	else if ( m_fCursorY > m_WindowHeight - 32 )
+		m_fCursorY = ( FLOAT ) m_WindowHeight - 32;
 	char buffer[ 10 ] = { 0 };
 	sprintf_s( buffer, "FPS: %d", FPS );
 	m_FPSText->Update( m_D3D11->GetImmediateContext( ), 0, 0, buffer );
@@ -1298,6 +1321,11 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 	}( );
 	
 	/*Render part*/
+	m_D3D11->DisableCulling( );
+	m_Cursor->Render( m_D3D11->GetImmediateContext( ), ( UINT ) m_fCursorX, ( UINT ) m_fCursorY );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_Cursor->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_Cursor->GetTexture( ) );
+
 	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FPSText->GetTexture( ),
@@ -1314,10 +1342,6 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_MenuOutline->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_MenuOutline->GetTexture( ) );
 	m_D3D11->EnableDefaultBlendingState( );
-	
-	m_Cursor->Render( m_D3D11->GetImmediateContext( ), ( UINT ) m_fCursorX, ( UINT ) m_fCursorY );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_Cursor->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_Cursor->GetTexture( ) );
 
 	for ( UINT i = 0; i < m_vecMenuTexts.size( ); ++i )
 	{
@@ -1336,6 +1360,11 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
 		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
 #endif
+	m_FullscreenWindow->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FullscreenWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_SceneWithLight->GetTexture( ) );
+
+	m_D3D11->EnableBackFaceCulling( );
 
 }
 
