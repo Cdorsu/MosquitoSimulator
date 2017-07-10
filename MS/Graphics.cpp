@@ -52,6 +52,9 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_HorizontalBlurShader = new CHorizontalBlurShader( );
 	if ( !m_HorizontalBlurShader->Initialize( m_D3D11->GetDevice( ) ) )
 		return false;
+	m_VerticalBlurShader = new CVerticalBlurShader( );
+	if ( !m_VerticalBlurShader->Initialize( m_D3D11->GetDevice( ) ) )
+		return false;
 
 	m_FirstPersonCamera = new CCamera( );
 	if ( !m_FirstPersonCamera->InitializeFirstPersonCamera( DirectX::XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f ),
@@ -235,8 +238,12 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	if ( !m_QuarterWindowHorizontalBlurTexture->Initialize( m_D3D11->GetDevice( ),
 		WindowWidth / 4, WindowHeight / 4, CamNear, CamFar, FOV, 1 ) )
 		return false;
-	m_QuarterWindowHorizontalBlurTexture->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
-	m_QuarterWindowHorizontalBlurTexture->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
+	m_QuarterWindowVerticalBlurTexture = new CRenderTexture( );
+	if ( !m_QuarterWindowVerticalBlurTexture->Initialize( m_D3D11->GetDevice( ),
+		WindowWidth / 4, WindowHeight / 4, CamNear, CamFar, FOV, 1 ) )
+		return false;
+	m_QuarterWindowVerticalBlurTexture->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
+	m_QuarterWindowVerticalBlurTexture->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
 
 	return true;
 }
@@ -1261,8 +1268,13 @@ void CGraphics::ApplyBlurToTexture( ID3D11ShaderResourceView * Texture, float Te
 	m_QuarterWindowHorizontalBlurTexture->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
 	m_QuarterWindowHorizontalBlurTexture->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
 	m_HorizontalBlurShader->Render( m_D3D11->GetImmediateContext( ), m_QuarterWindowWindow->GetIndexCount( ),
-		m_QuarterWindowHorizontalBlurTexture->GetOrthoMatrix( ), m_QuarterWindowTexture->GetTexture( ), TextureWidth );
-	
+		m_QuarterWindowHorizontalBlurTexture->GetOrthoMatrix( ), m_QuarterWindowTexture->GetTexture( ), TextureWidth / 4 );
+
+	m_QuarterWindowVerticalBlurTexture->SetRenderTarget( m_D3D11->GetImmediateContext( ) );
+	m_QuarterWindowVerticalBlurTexture->BeginScene( m_D3D11->GetImmediateContext( ), utility::hexToRGB( 0x0 ) );
+	m_VerticalBlurShader->Render( m_D3D11->GetImmediateContext( ), m_QuarterWindowWindow->GetIndexCount( ),
+		m_QuarterWindowHorizontalBlurTexture->GetOrthoMatrix( ), m_QuarterWindowHorizontalBlurTexture->GetTexture( ), TextureHeight / 4 );
+
 	m_D3D11->EnableBackFaceCulling( );
 }
 
@@ -1377,7 +1389,7 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 
 	m_FullscreenWindow->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FullscreenWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_QuarterWindowHorizontalBlurTexture->GetTexture( ) );
+		m_D3D11->GetOrthoMatrix( ), m_QuarterWindowVerticalBlurTexture->GetTexture( ) );
 
 
 #if DEBUG || _DEBUG
@@ -1393,6 +1405,12 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 
 void CGraphics::Shutdown( )
 {
+	if ( m_QuarterWindowVerticalBlurTexture )
+	{
+		m_QuarterWindowVerticalBlurTexture->Shutdown( );
+		delete m_QuarterWindowVerticalBlurTexture;
+		m_QuarterWindowVerticalBlurTexture = 0;
+	}
 	if ( m_QuarterWindowHorizontalBlurTexture )
 	{
 		m_QuarterWindowHorizontalBlurTexture->Shutdown( );
@@ -1613,6 +1631,12 @@ void CGraphics::Shutdown( )
 		m_FirstPersonCamera->Shutdown( );
 		delete m_FirstPersonCamera;
 		m_FirstPersonCamera = 0;
+	}
+	if ( m_VerticalBlurShader )
+	{
+		m_VerticalBlurShader->Shutdown( );
+		delete m_VerticalBlurShader;
+		m_VerticalBlurShader = 0;
 	}
 	if ( m_HorizontalBlurShader )
 	{

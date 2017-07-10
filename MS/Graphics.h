@@ -12,6 +12,7 @@
 #include "SunShadowShader.h"
 #include "AddTexturesShader.h"
 #include "HorizontalBlurShader.h"
+#include "VerticalBlurShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
 #include "Text.h"
@@ -87,6 +88,7 @@ private:
 	CSunShadowShader * m_SunShadowShader;
 	CAddTexturesShader * m_AddTexturesShader;
 	CHorizontalBlurShader * m_HorizontalBlurShader;
+	CVerticalBlurShader * m_VerticalBlurShader;
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
 #if _DEBUG || DEBUG
@@ -140,6 +142,7 @@ private:
 	CTextureWindow * m_QuarterWindowWindow;;
 	CRenderTexture * m_QuarterWindowTexture;
 	CRenderTexture * m_QuarterWindowHorizontalBlurTexture;
+	CRenderTexture * m_QuarterWindowVerticalBlurTexture;
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
 	SAdditionalInfoFromPhysicsEngine m_AdditionalPhysicsInfo;
