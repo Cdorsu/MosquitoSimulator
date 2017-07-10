@@ -11,6 +11,7 @@
 #include "ShadowShader.h"
 #include "SunShadowShader.h"
 #include "AddTexturesShader.h"
+#include "HorizontalBlurShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
 #include "Text.h"
@@ -85,6 +86,7 @@ private:
 	CShadowShader * m_ShadowShader;
 	CSunShadowShader * m_SunShadowShader;
 	CAddTexturesShader * m_AddTexturesShader;
+	CHorizontalBlurShader * m_HorizontalBlurShader;
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
 #if _DEBUG || DEBUG
