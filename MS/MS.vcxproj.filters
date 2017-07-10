@@ -126,12 +126,6 @@
     <ClCompile Include="AddTexturesShader.cpp">
       <Filter>Source Files\Graphics\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="HorizontalBlurShader.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="VerticalBlurShader.cpp">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\windowsIncludes.h">
@@ -242,12 +236,6 @@
     <ClInclude Include="AddTexturesShader.h">
       <Filter>Header Files\Graphics\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="HorizontalBlurShader.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="VerticalBlurShader.h">
-      <Filter>Header Files\Graphics\Shaders</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -305,18 +293,6 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="AddTexturesPixelShader.hlsl">
-      <Filter>Shader Files</Filter>
-    </FxCompile>
-    <FxCompile Include="VerticalBlurVertexShader.hlsl">
-      <Filter>Shader Files</Filter>
-    </FxCompile>
-    <FxCompile Include="VerticalBlurPixelShader.hlsl">
-      <Filter>Shader Files</Filter>
-    </FxCompile>
-    <FxCompile Include="HorizontalBlurVertexShader.hlsl">
-      <Filter>Shader Files</Filter>
-    </FxCompile>
-    <FxCompile Include="HorizontalBlurPixelShader.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

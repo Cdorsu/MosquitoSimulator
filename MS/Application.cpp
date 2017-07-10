@@ -93,6 +93,7 @@ void CApplication::Run( )
 				m_Graphics->BeginScene( );
 				m_Physics->Frame( 0.0f );
 				m_Graphics->EndScene( false );
+				m_Graphics->ApplyBlurToMenuImage( );
 			}
 			if ( m_bShowMenu )
 			{

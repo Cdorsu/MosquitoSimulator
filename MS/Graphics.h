@@ -11,8 +11,6 @@
 #include "ShadowShader.h"
 #include "SunShadowShader.h"
 #include "AddTexturesShader.h"
-#include "HorizontalBlurShader.h"
-#include "VerticalBlurShader.h"
 #include "TextureWindow.h"
 #include "Camera.h"
 #include "Text.h"
@@ -87,8 +85,6 @@ private:
 	CShadowShader * m_ShadowShader;
 	CSunShadowShader * m_SunShadowShader;
 	CAddTexturesShader * m_AddTexturesShader;
-	CHorizontalBlurShader * m_HorizontalBlurShader;
-	CVerticalBlurShader * m_VerticalBlurShader;
 	CCamera * m_FirstPersonCamera;
 	CCamera * m_ThirdPersonCamera;
 #if _DEBUG || DEBUG
@@ -138,7 +134,10 @@ private:
 		float m_fCursorY;
 	};
 	UINT m_MenuSelected;
-
+private:
+	CTextureWindow * m_QuarterWindowWindow;;
+	CRenderTexture * m_QuarterWindowTexture;
+	CRenderTexture * m_QuarterWindowHorizontalBlurTexture;
 private:
 	std::map<std::wstring, std::vector<SObjectToDraw>> m_mwvecObjectsToDraw;
 	SAdditionalInfoFromPhysicsEngine m_AdditionalPhysicsInfo;
@@ -167,6 +166,7 @@ public:
 	void RenderMenu( float fFrameTime, UINT FPS );
 	void RenderUI( );
 	void Render( );
+#pragma region Render models
 	void RenderGround( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
@@ -198,12 +198,14 @@ public:
 	void RenderDoggo( float* World,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
+#pragma endregion
 	void Shutdown( );
 private:
 	void RenderScene( bool bRenderUI = true );
 	void RenderMosquito( float * World, bool drawtoback,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
+	void ApplyBlurToTexture( ID3D11ShaderResourceView * Texture, float WindowWidth, float WindowHeight );
 public:
 	inline void SetScore( UINT score )
 	{
@@ -268,10 +270,14 @@ public:
 		return AABB;
 	}
 public:
+	inline void ApplyBlurToMenuImage( )
+	{
+		ApplyBlurToTexture( m_SceneWithLight->GetTexture( ), ( FLOAT ) m_WindowWidth, ( FLOAT ) m_WindowHeight );
+	}
 	inline void BeginFrame( )
 	{
-		m_D3D11->EnableDefaultViewPort( );
 		m_D3D11->EnableBackBuffer( );
+		m_D3D11->EnableDefaultViewPort( );
 		m_D3D11->DisableCulling( );
 		m_D3D11->BeginScene( );
 	}
