@@ -1187,15 +1187,29 @@ void CGraphics::RenderLightBulb( float* World,
 
 	if ( minX == 0 && minY == 0 && minZ == 0 &&
 		maxX == 0 && maxY == 0 && maxZ == 0 ) // Doesn't have an AABB? Just Render it
-		AddObjectToRenderList( L"LightBulb", World );
+		//AddObjectToRenderList( L"LightBulb", World );
+	{
+		m_LightBulb->Render( m_D3D11->GetImmediateContext( ) );
+		m_3DShader->SetData( m_D3D11->GetImmediateContext( ), DirectX::XMMATRIX( World ), m_ActiveCamera );
+		m_3DShader->SetMaterialData( m_D3D11->GetImmediateContext( ), false, utility::hexToRGB( 0xFFFFFF ), nullptr );
+		m_3DShader->SetShaders( m_D3D11->GetImmediateContext( ) );
+		m_3DShader->Draw( m_D3D11->GetImmediateContext( ), m_LineManager->GetVertexCount( ) );
+	}
 	else
 	{
 		bool bIsInViewFrustum, bIsInLightFrustum, bIsInSunLightFrustum;
 		bIsInViewFrustum = m_ActiveCamera->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
 		bIsInLightFrustum = m_LightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
 		bIsInSunLightFrustum = m_SunLightView->isAABBPartialInFrustum( minX, minY, minZ, maxX, maxY, maxZ );
-		AddObjectToRenderList( L"LightBulb", World, bIsInLightFrustum,
-			bIsInViewFrustum, bIsInSunLightFrustum );
+		//AddObjectToRenderList( L"LightBulb", World, bIsInLightFrustum,
+			//bIsInViewFrustum, bIsInSunLightFrustum );
+		if ( !bIsInViewFrustum )
+			return;
+		m_LightBulb->Render( m_D3D11->GetImmediateContext( ) );
+		m_3DShader->SetData( m_D3D11->GetImmediateContext( ), DirectX::XMMATRIX( World ), m_ActiveCamera );
+		m_3DShader->SetMaterialData( m_D3D11->GetImmediateContext( ), false, utility::hexToRGB( 0xFFFFFF ), nullptr );
+		m_3DShader->SetShaders( m_D3D11->GetImmediateContext( ) );
+		m_3DShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_LightBulb->GetIndexCount( ) );
 	}
 }
 
