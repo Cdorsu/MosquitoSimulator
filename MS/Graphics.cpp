@@ -13,6 +13,13 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_WindowWidth = WindowWidth;
 	m_WindowHeight = WindowHeight;
 
+	std::wifstream ifCitire( "Score.txt" );
+	if ( ifCitire.is_open( ) )
+	{
+		ifCitire >> m_iHighScore;
+		ifCitire.close( );
+	}
+
 	m_Input->addSpecialKey( DIK_V );
 
 	m_D3D11 = new CD3D11( );
@@ -135,7 +142,7 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		return false;
 	m_ScoreText = new CText( );
 	if ( !m_ScoreText->Initialize( m_D3D11->GetDevice( ), m_Font01,
-		12, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
+		30, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
 #if _DEBUG || DEBUG
 	m_DebugText = new CText( );
@@ -335,8 +342,9 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	char buffer2[ 20 ] = { 0 };
 	sprintf_s( buffer2, "Frame time: %.2lf", fFrameTime );
 	m_FrameTimeText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ), buffer2 );
-	char buffer3[ 12 ] = { 0 };
-	sprintf_s( buffer3, "Score: %d", m_iScore );
+	char buffer3[ 30 ] = { 0 };
+	sprintf_s( buffer3, "Score: %d / Highscore: %d", m_iScore > MaxScore ? MaxScore : m_iScore,
+		m_iHighScore > MaxScore ? MaxScore : m_iHighScore );
 	m_ScoreText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ) * 2, buffer3 );
 #if DEBUG || _DEBUG
 	char buffer4[ 300 ] = { 0 };
@@ -1729,4 +1737,7 @@ void CGraphics::Shutdown( )
 CGraphics::~CGraphics( )
 {
 	Shutdown( );
+	std::wofstream ofPrint( "Score.txt" );
+	ofPrint << m_iHighScore;
+	ofPrint.close( );
 }

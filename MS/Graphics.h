@@ -70,6 +70,7 @@ public:
 	static constexpr UINT MapWidthOver2 = 50;
 	static constexpr UINT MenuOutlineWidth = 512;
 	static constexpr UINT MenuOutlineHeight = 512;
+	static constexpr UINT MaxScore = 9999;
 #if DEBUG || _DEBUG
 	static constexpr UINT DebugWindowWidthHeight = 100;
 #endif
@@ -150,6 +151,7 @@ protected:
 	UINT m_WindowWidth;
 	UINT m_WindowHeight;
 	UINT m_iScore;
+	UINT m_iHighScore;
 private: // Fonts
 	FontClass * m_Font;
 	FontClass * m_Font01;
@@ -215,8 +217,8 @@ public:
 	inline void SetScore( UINT score )
 	{
 		m_iScore = score;
-		if ( m_iScore > 9999 )
-			m_iScore = 9999;
+		if ( m_iScore > MaxScore )
+			m_iScore = MaxScore;
 	}
 	inline void SetPlayerDirection( DirectX::XMFLOAT3 PlayerDirection)
 	{
@@ -275,6 +277,11 @@ public:
 		return AABB;
 	}
 public:
+	inline void UpdateHighScore( )
+	{
+		m_iScore = 0;
+		m_iHighScore = m_iHighScore >= m_iScore ? m_iHighScore : m_iScore;
+	}
 	inline void ApplyBlurToMenuImage( )
 	{
 		ApplyBlurToTexture( m_SceneWithLight->GetTexture( ), ( FLOAT ) m_WindowWidth, ( FLOAT ) m_WindowHeight );
