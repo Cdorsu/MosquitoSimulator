@@ -85,7 +85,7 @@ void CApplication::Run( )
 			}
 			m_Timer.Frame( );
 			m_Input->Frame( );
-			if ( m_Input->isSpecialKeyPressed( DIK_ESCAPE ) )
+			if ( m_Input->isSpecialKeyPressed( DIK_ESCAPE ) && m_bGameRunning )
 			{
 				if ( m_bShowMenu )
 					break;
@@ -115,12 +115,32 @@ void CApplication::Run( )
 					}
 				}
 			}
-			else
+			else if ( m_bGameRunning )
 			{
 				m_Graphics->BeginScene( );
-				m_Physics->Frame( m_Timer.GetFrameTime( ) );
+				bool bFrameResult = m_Physics->Frame( m_Timer.GetFrameTime( ) );
 				m_Graphics->Update( m_Timer.GetFrameTime( ), m_FPS );
-				m_Graphics->EndScene( );
+				if ( bFrameResult )
+					m_Graphics->EndScene( );
+				else
+				{
+					m_Graphics->EndScene( false );
+					m_Graphics->ApplyBlurToMenuImage( );
+					m_bGameRunning = false;
+					m_ReleaseTime = std::chrono::system_clock::now( ) + std::chrono::seconds( SecondsToWait );
+				}
+			}
+			else
+			{
+				m_Graphics->BeginFrame( );
+				m_Graphics->RenderDeathMenu( m_Timer.GetFrameTime( ), m_FPS );
+				m_Graphics->EndFrame( );
+				std::chrono::system_clock::time_point now = std::chrono::system_clock::now( );
+				if ( now > m_ReleaseTime )
+				{
+					m_bGameRunning = true;
+					m_bShowMenu = true;
+				}
 			}
 		}
 	}

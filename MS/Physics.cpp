@@ -42,6 +42,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	MotionState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 50, 0 ) ) );
 	PlaneCI = btRigidBody::btRigidBodyConstructionInfo( 0, MotionState, PlaneShape );
 	Plane = new btRigidBody( PlaneCI );
+	Plane->setRestitution( 1.0f );
+	Plane->setUserIndex( WallID );
 	Plane->setCollisionFlags( Plane->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
 	PlanePtr = new bulletObject( L"Ceiling", Plane );
 	Plane->setUserPointer( PlanePtr );
@@ -55,6 +57,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	WallState->setWorldTransform( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 0, 0, -50 ) ) );
 	btRigidBody::btRigidBodyConstructionInfo WallCI( 0, WallState, WallShape );
 	btRigidBody * Wall = new btRigidBody( WallCI );
+	Wall->setRestitution( 1.0f );
+	Wall->setUserIndex( WallID );
 	Wall->setCollisionFlags( Wall->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
 	bulletObject *WallPtr = new bulletObject( L"Wall", Wall );
 	Wall->setUserPointer( WallPtr );
@@ -68,6 +72,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	WallState->setWorldTransform( btTransform( RotMat, btVector3( -50, 0, 0 ) ) );
 	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
 	Wall = new btRigidBody( WallCI );
+	Wall->setRestitution( 1.0f );
+	Wall->setUserIndex( WallID );
 	Wall->setCollisionFlags( Wall->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
 	WallPtr = new bulletObject( L"Wall", Wall );
 	Wall->setUserPointer( WallPtr );
@@ -81,6 +87,8 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	WallState->setWorldTransform( btTransform( RotMat, btVector3( 0, 0, 50 ) ) );
 	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
 	Wall = new btRigidBody( WallCI );
+	Wall->setRestitution( 1.0f );
+	Wall->setUserIndex( WallID );
 	Wall->setCollisionFlags( Wall->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
 	WallPtr = new bulletObject( L"Wall", Wall );
 	Wall->setUserPointer( WallPtr );
@@ -94,7 +102,9 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	WallState->setWorldTransform( btTransform( RotMat, btVector3( 50, 0, 0 ) ) );
 	WallCI = btRigidBody::btRigidBodyConstructionInfo( 0, WallState, WallShape );
 	Wall = new btRigidBody( WallCI );
+	Wall->setRestitution( 1.0f );
 	Wall->setCollisionFlags( Wall->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
+	Wall->setUserIndex( WallID );
 	WallPtr = new bulletObject( L"Wall", Wall );
 	Wall->setUserPointer( WallPtr );
 	m_pWorld->addRigidBody( Wall );
@@ -267,6 +277,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	btRigidBody * Capsule = new btRigidBody( CapsuleCI );
 	Capsule->setFlags( Capsule->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
 	Capsule->setActivationState( DISABLE_DEACTIVATION );
+	Capsule->setRestitution( 1.0f );
 	bulletObject * CapsulePtr = new bulletObject( L"Player", Capsule );
 	CapsulePtr->Score = 0;
 	Capsule->setUserPointer( CapsulePtr );
@@ -289,7 +300,7 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 	return true;
 }
 
-void CPhysics::Frame( float fFrameTime )
+bool CPhysics::Frame( float fFrameTime )
 {
 	m_Player->bTouchesTheGround = false;
 	m_pWorld->stepSimulation( fFrameTime );
@@ -537,6 +548,8 @@ void CPhysics::Frame( float fFrameTime )
 	m_Graphics->SetUserTouchesTheGround( m_Player->bTouchesTheGround );
 	m_Graphics->SetScore( m_Player->Score );
 	m_Player->bUpdateScoreThisFrame = false;
+	m_Player->bUpdateLivesThisFrame = false;
+	return m_Graphics->SetLives( m_Player->Lives );
 }
 
 btRigidBody* CPhysics::CreateCustomRigidBody/*AndAddItToTheWorld*/( std::vector<CModel::SVertex>& vertices, std::vector<DWORD>& indices,
@@ -658,44 +671,64 @@ bool CPhysics::Collision( btManifoldPoint& cp,
 		return false;
 	btRigidBody * Torus = nullptr;
 	btRigidBody * User = nullptr;
+	btRigidBody * Wall = nullptr;
 
 	if ( First->Body->getUserIndex( ) == PlayerID )
 		User = First->Body;
 	else if ( First->Body->getUserIndex( ) == CheckpointID )
 		Torus = First->Body;
+	else if ( First->Body->getUserIndex( ) == WallID )
+		Wall = First->Body;
+	
+	if ( Second->Body->getUserIndex( ) == PlayerID )
+		User = Second->Body;
+	else if ( Second->Body->getUserIndex( ) == CheckpointID )
+		Torus = Second->Body;
+	else if ( Second->Body->getUserIndex( ) == WallID )
+		Wall = Second->Body;
 
 	if ( User == nullptr )
 		return false;
-	if ( Torus == nullptr )
-		return false;
-	float x;
-	float z;
-	float y;
-	bool Done = false;
-	while ( !Done ) // Make sure we don't place the checkpoint inside player's AABB
+	if ( Torus != nullptr )
 	{
-		btVector3 UserMinAABB, UserMaxAABB;
-		btVector3 TorusMinAABB, TorusMaxAABB;
-		x = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
-		z = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
-		y = CPhysics::m_yFloatDistribution( CPhysics::m_RandomGenerator );
-		Torus->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
-		Torus->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
-		User->getAabb( UserMinAABB,UserMaxAABB );
-		Torus->getAabb( TorusMinAABB, TorusMaxAABB );
-		if ( !AABBCollidingWithAABB( UserMinAABB, UserMaxAABB, TorusMinAABB, TorusMaxAABB ) )
-			Done = true;
+		float x;
+		float z;
+		float y;
+		bool Done = false;
+		while ( !Done ) // Make sure we don't place the checkpoint inside player's AABB
+		{
+			btVector3 UserMinAABB, UserMaxAABB;
+			btVector3 TorusMinAABB, TorusMaxAABB;
+			x = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
+			z = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
+			y = CPhysics::m_yFloatDistribution( CPhysics::m_RandomGenerator );
+			Torus->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
+			Torus->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
+			User->getAabb( UserMinAABB, UserMaxAABB );
+			Torus->getAabb( TorusMinAABB, TorusMaxAABB );
+			if ( !AABBCollidingWithAABB( UserMinAABB, UserMaxAABB, TorusMinAABB, TorusMaxAABB ) )
+				Done = true;
+		}
+		Torus->setLinearVelocity( btVector3( 0, 0, 0 ) );
+		Torus->setGravity( btVector3( 0, 0, 0 ) );
+		Torus->activate( );
+		if ( !( ( bulletObject* ) User->getUserPointer( ) )->bUpdateScoreThisFrame )
+		{
+			( ( bulletObject* ) User->getUserPointer( ) )->Score = ( ( bulletObject* ) User->getUserPointer( ) )->Score + 1;
+			( ( bulletObject* ) User->getUserPointer( ) )->bUpdateScoreThisFrame = true;
+		}
+		return true;
 	}
-	Torus->setLinearVelocity( btVector3( 0, 0, 0 ) );
-	Torus->setGravity( btVector3( 0, 0, 0 ) );
-	Torus->activate( );
-	if ( !( ( bulletObject* ) User->getUserPointer( ) )->bUpdateScoreThisFrame )
+	else if ( Wall != nullptr )
 	{
-		( ( bulletObject* ) User->getUserPointer( ) )->Score = ( ( bulletObject* ) User->getUserPointer( ) )->Score + 1;
-		( ( bulletObject* ) User->getUserPointer( ) )->bUpdateScoreThisFrame = true;
+		if ( !( ( bulletObject* ) User->getUserPointer( ) )->bUpdateLivesThisFrame )
+		{
+			( ( bulletObject* ) User->getUserPointer( ) )->bUpdateLivesThisFrame = true;
+			( ( bulletObject* ) User->getUserPointer( ) )->Lives = ( ( bulletObject* ) User->getUserPointer( ) )->Lives - 1;
+		}
+		return true;
 	}
-
-	return true;
+	return false;
 }
 
 void CPhysics::myTickCallBack( btDynamicsWorld *world, btScalar timeStep )

@@ -236,6 +236,11 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_vecMenuTexts[ 1 ]->Update( m_D3D11->GetImmediateContext( ), WindowWidth / 2 - m_vecMenuTexts[ 1 ]->GetWidth( ) / 2,
 		WindowHeight / 2 + m_vecMenuTexts[ 0 ]->GetHeight( ), "Quit game" );
 
+	m_LoseImage = new CTextureWindow( );
+	if ( !m_LoseImage->Initialize( m_D3D11->GetDevice( ), L"2DArt\\DiedScreen.png",
+		WindowWidth, WindowHeight, MenuImageWidth, MenuImageHeight ) )
+		return false;
+
 	// Blur
 	m_QuarterWindowWindow = new CTextureWindow( );
 	if ( !m_QuarterWindowWindow->Initialize( m_D3D11->GetDevice( ), L"",
@@ -505,7 +510,7 @@ void CGraphics::Render( )
 	EndScene( );
 }
 
-void CGraphics::RenderScene( bool bRenderUI )
+void CGraphics::RenderScene( bool bRenderUI, bool bClearScene )
 {
 	static DirectX::XMMATRIX WorldMatrix;
 #pragma region Render to depthmap
@@ -583,7 +588,9 @@ void CGraphics::RenderScene( bool bRenderUI )
 					continue;
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_DepthShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_LightView );
+				m_D3D11->DisableCulling( );
 				m_DepthShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Table->GetIndexCount( ) );
+				m_D3D11->EnableBackFaceCulling( );
 			}
 		}
 		else if ( iter.first == L"Chair" )
@@ -1035,7 +1042,8 @@ void CGraphics::RenderScene( bool bRenderUI )
 	m_D3D11->EnableDefaultDSState( );
 	m_D3D11->EnableBackFaceCulling( );
 
-	m_mwvecObjectsToDraw.clear( );
+	if ( bClearScene )
+		m_mwvecObjectsToDraw.clear( );
 	if ( bRenderUI )
 		RenderUI( );
 }
@@ -1422,9 +1430,68 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 				m_D3D11->GetOrthoMatrix( ), m_vecMenuTexts[ i ]->GetTexture( ) );
 	}
 
+#if DEBUG || _DEBUG
+	m_DebugText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_DebugText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
+		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
+#endif
+
 	m_FullscreenWindow->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FullscreenWindow->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_QuarterWindowVerticalBlurTexture->GetTexture( ) );
+
+
+	m_D3D11->EnableBackFaceCulling( );
+
+}
+
+void CGraphics::RenderDeathMenu( float fFrameTime, UINT FPS )
+{
+	/*Update part*/
+	m_fCursorX += m_Input->GetHorizontalMouseMove( );
+	m_fCursorY += m_Input->GetVerticalMouseMove( );
+	if ( m_fCursorX < 0 )
+		m_fCursorX = 0;
+	else if ( m_fCursorX > m_WindowWidth - 32 )
+		m_fCursorX = ( FLOAT ) m_WindowWidth - 32;
+	if ( m_fCursorY < 0 )
+		m_fCursorY = 0;
+	else if ( m_fCursorY > m_WindowHeight - 32 )
+		m_fCursorY = ( FLOAT ) m_WindowHeight - 32;
+	char buffer[ 10 ] = { 0 };
+	sprintf_s( buffer, "FPS: %d", FPS );
+	m_FPSText->Update( m_D3D11->GetImmediateContext( ), 0, 0, buffer );
+	char buffer2[ 20 ] = { 0 };
+	sprintf_s( buffer2, "Frame time: %.2lf", fFrameTime );
+	m_FrameTimeText->Update( m_D3D11->GetImmediateContext( ), 0, m_FPSText->GetHeight( ), buffer2 );
+#if DEBUG || _DEBUG
+	char buffer3[ 300 ] = { 0 };
+	sprintf_s( buffer3, "DEBUG MODE" );
+	m_DebugText->Update( m_D3D11->GetImmediateContext( ), 0,
+		m_FPSText->GetHeight( ) * 3, buffer3 );
+#endif
+
+	m_D3D11->DisableCulling( );
+	m_Cursor->Render( m_D3D11->GetImmediateContext( ), ( UINT ) m_fCursorX, ( UINT ) m_fCursorY );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_Cursor->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_Cursor->GetTexture( ) );
+
+	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_FPSText->GetTexture( ),
+		utility::SColor( 1.0f, 1.0f, 0.0f, 1.0f ) );
+
+	m_FrameTimeText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FrameTimeText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_FrameTimeText->GetTexture( ),
+		utility::SColor( 1.0f, 1.0f, 0.0f, 1.0f ) );
+
+	m_LoseImage->Render( m_D3D11->GetImmediateContext( ),
+		m_WindowWidth / 2 - MenuImageWidth / 2,
+		m_WindowHeight / 2 - MenuImageHeight / 2 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_LoseImage->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_LoseImage->GetTexture() );
 
 
 #if DEBUG || _DEBUG
@@ -1434,8 +1501,11 @@ void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
 		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
 #endif
 
-	m_D3D11->EnableBackFaceCulling( );
+	m_FullscreenWindow->Render( m_D3D11->GetImmediateContext( ), 0, 0 );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FullscreenWindow->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_QuarterWindowVerticalBlurTexture->GetTexture( ) );
 
+	m_D3D11->EnableBackFaceCulling( );
 }
 
 void CGraphics::Shutdown( )
@@ -1472,6 +1542,12 @@ void CGraphics::Shutdown( )
 			delete m_vecMenuTexts[ i ];
 			m_vecMenuTexts[ i ] = 0;
 		}
+	}
+	if ( m_LoseImage )
+	{
+		m_LoseImage->Shutdown( );
+		delete m_LoseImage;
+		m_LoseImage = 0;
 	}
 	if ( m_Cursor )
 	{

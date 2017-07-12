@@ -13,6 +13,7 @@ class CPhysics sealed : public btIDebugDraw
 {
 	static constexpr int CheckpointID = 69;
 	static constexpr int PlayerID = 169;
+	static constexpr int WallID = 269;
 	static constexpr int MaxXZSpeed2 = 49;
 	static constexpr int MaxSpeed2 = 100;
 	static constexpr int VerticalImpulse = 5;
@@ -22,8 +23,10 @@ class CPhysics sealed : public btIDebugDraw
 		btRigidBody* Body;
 		std::wstring Name;
 		unsigned int Score;
+		unsigned int Lives = 3;
 		bool bTouchesTheGround = false;
 		bool bUpdateScoreThisFrame = false;
+		bool bUpdateLivesThisFrame = false;
 		bulletObject( )
 		{
 			ZeroMemory( this, sizeof( CPhysics::bulletObject ) );
@@ -76,7 +79,7 @@ public:
 	/// <return>Returns a pair of numbers [begin, end) with indices for m_vecRigidBodies (the created bodies)</return>
 	///
 	std::pair<int,int> CreateMultipleCustomRigidBodies( std::vector<SCreateCustomRigidBody>& RigidBodiesToCreate );
-	void Frame( float fFrameTime );
+	bool Frame( float fFrameTime );
 	void Shutdown( );
 public:
 	static bool Collision( btManifoldPoint& cp,

@@ -68,8 +68,8 @@ public:
 	static constexpr UINT DistanceFromTopToTopMap = 20;
 	static constexpr UINT MapWidth = 100;
 	static constexpr UINT MapWidthOver2 = 50;
-	static constexpr UINT MenuOutlineWidth = 512;
-	static constexpr UINT MenuOutlineHeight = 512;
+	static constexpr UINT MenuImageWidth = 512;
+	static constexpr UINT MenuImageHeight = 512;
 	static constexpr UINT MaxScore = 9999;
 	static constexpr UINT MaxLives = 9;
 #if DEBUG || _DEBUG
@@ -142,6 +142,8 @@ private:
 	};
 	UINT m_MenuSelected;
 private:
+	CTextureWindow * m_LoseImage;
+private:
 	CTextureWindow * m_QuarterWindowWindow;;
 	CRenderTexture * m_QuarterWindowTexture;
 	CRenderTexture * m_QuarterWindowHorizontalBlurTexture;
@@ -174,6 +176,7 @@ public:
 	bool Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool bFullscreen = true, CInput * Input = nullptr );
 	void Update( float fFrameTime, UINT FPS );
 	void RenderMenu( float fFrameTime, UINT FPS );
+	void RenderDeathMenu( float fFrameTime, UINT FPS );
 	void RenderUI( );
 	void Render( );
 #pragma region Render models
@@ -211,7 +214,7 @@ public:
 #pragma endregion
 	void Shutdown( );
 private:
-	void RenderScene( bool bRenderUI = true );
+	void RenderScene( bool bRenderUI = true, bool bClearScene = true );
 	void RenderMosquito( float * World, bool drawtoback,
 		float minX = 0, float minY = 0, float minZ = 0,
 		float maxX = 0, float maxY = 0, float maxZ = 0 );
@@ -222,12 +225,14 @@ public:
 		m_iScore = score;
 		if ( m_iScore > MaxScore )
 			m_iScore = MaxScore;
+		UpdateHighScore( );
 	}
-	inline void SetLives( UINT Lives )
+	inline bool SetLives( UINT Lives )
 	{
 		m_iLives = Lives;
 		if ( m_iLives > MaxLives )
 			m_iLives = MaxLives;
+		return m_iLives > 0;
 	}
 	inline void SetPlayerDirection( DirectX::XMFLOAT3 PlayerDirection)
 	{
@@ -288,7 +293,6 @@ public:
 public:
 	inline void UpdateHighScore( )
 	{
-		m_iScore = 0;
 		m_iHighScore = m_iHighScore >= m_iScore ? m_iHighScore : m_iScore;
 	}
 	inline void ApplyBlurToMenuImage( )
@@ -314,9 +318,9 @@ public:
 		m_ActiveCamera->ConstructFrustum( );
 		m_D3D11->BeginScene( );
 	}
-	inline void EndScene( bool bRenderUI = true )
+	inline void EndScene( bool bRenderUI = true, bool bClearScene = true )
 	{
-		RenderScene( bRenderUI );
+		RenderScene( bRenderUI, bClearScene );
 		m_D3D11->EndScene( );
 	}
 };

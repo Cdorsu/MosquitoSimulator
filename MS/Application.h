@@ -11,6 +11,8 @@
 
 class CApplication sealed
 {
+	static constexpr UINT SecondsToWait = 5;
+private:
 	HINSTANCE m_hInstance;
 	HWND m_hWnd;
 	CHRTimer m_Timer;
@@ -21,6 +23,8 @@ class CApplication sealed
 	CInput * m_Input = nullptr;
 	CPhysics * m_Physics = nullptr;
 	bool m_bShowMenu = true;
+	bool m_bGameRunning = true;
+	std::chrono::system_clock::time_point m_ReleaseTime;
 private:
 	bool InitWindow( HINSTANCE hInstance, bool bFullscreen );
 public:
