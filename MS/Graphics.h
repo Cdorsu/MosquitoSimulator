@@ -71,6 +71,7 @@ public:
 	static constexpr UINT MenuOutlineWidth = 512;
 	static constexpr UINT MenuOutlineHeight = 512;
 	static constexpr UINT MaxScore = 9999;
+	static constexpr UINT MaxLives = 9;
 #if DEBUG || _DEBUG
 	static constexpr UINT DebugWindowWidthHeight = 100;
 #endif
@@ -112,6 +113,7 @@ private:
 	CText * m_FPSText;
 	CText * m_FrameTimeText;
 	CText * m_ScoreText;
+	CText * m_LivesText;
 #if _DEBUG || DEBUG
 	CText * m_DebugText;
 #endif
@@ -152,6 +154,7 @@ protected:
 	UINT m_WindowHeight;
 	UINT m_iScore;
 	UINT m_iHighScore;
+	UINT m_iLives;
 private: // Fonts
 	FontClass * m_Font;
 	FontClass * m_Font01;
@@ -219,6 +222,12 @@ public:
 		m_iScore = score;
 		if ( m_iScore > MaxScore )
 			m_iScore = MaxScore;
+	}
+	inline void SetLives( UINT Lives )
+	{
+		m_iLives = Lives;
+		if ( m_iLives > MaxLives )
+			m_iLives = MaxLives;
 	}
 	inline void SetPlayerDirection( DirectX::XMFLOAT3 PlayerDirection)
 	{

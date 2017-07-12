@@ -150,6 +150,10 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 		300, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
 		return false;
 #endif // _DEBUG || DEBUG
+	m_LivesText = new CText( );
+	if ( !m_LivesText->Initialize( m_D3D11->GetDevice( ), m_Font01,
+		10, ( FLOAT ) WindowWidth, ( FLOAT ) WindowHeight ) )
+		return false;
 
 	m_Skybox = new CSkybox( );
 	if ( !m_Skybox->Initialize( m_D3D11->GetDevice( ), L"Assets\\Skymap.dds" ) )
@@ -352,6 +356,10 @@ void CGraphics::Update( float fFrameTime, UINT FPS )
 	m_DebugText->Update( m_D3D11->GetImmediateContext( ), 0,
 		m_FPSText->GetHeight( ) * 3, buffer4 );
 #endif
+	char buffer5[ 10 ] = { 0 };
+	sprintf_s( buffer5, "Lives: %d", m_iLives );
+	m_LivesText->Update( m_D3D11->GetImmediateContext( ), 0,
+		m_WindowHeight - m_LivesText->GetHeight( ), buffer5 );
 }
 
 void CGraphics::RenderLine( DirectX::XMFLOAT3 From, DirectX::XMFLOAT3 To, utility::SColor Color )
@@ -1341,6 +1349,11 @@ void CGraphics::RenderUI( )
 		m_D3D11->GetOrthoMatrix( ), m_DebugText->GetTexture( ),
 		utility::SColor( 0.0f, 1.0f, 1.0f, 1.0f ) );
 #endif
+
+	m_LivesText->Render( m_D3D11->GetImmediateContext( ) );
+	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_LivesText->GetIndexCount( ),
+		m_D3D11->GetOrthoMatrix( ), m_LivesText->GetTexture( ),
+		utility::SColor( 1.0f, 0.0f, 0.0f, 1.0f ) );
 }
 
 void CGraphics::RenderMenu( float fFrameTime, UINT FPS )
@@ -1511,6 +1524,12 @@ void CGraphics::Shutdown( )
 		m_Mosquito->Shutdown( );
 		delete m_Mosquito;
 		m_Mosquito = 0;
+	}
+	if ( m_LivesText )
+	{
+		m_LivesText->Shutdown( );
+		delete m_LivesText;
+		m_LivesText = 0;
 	}
 #if DEBUG || _DEBUG
 	if ( m_DebugText )
