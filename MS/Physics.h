@@ -79,6 +79,7 @@ public:
 	/// <return>Returns a pair of numbers [begin, end) with indices for m_vecRigidBodies (the created bodies)</return>
 	///
 	std::pair<int,int> CreateMultipleCustomRigidBodies( std::vector<SCreateCustomRigidBody>& RigidBodiesToCreate );
+	void ResetGame( );
 	bool Frame( float fFrameTime );
 	void Shutdown( );
 public:

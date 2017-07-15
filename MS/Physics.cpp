@@ -272,7 +272,10 @@ bool CPhysics::Initialize( CGraphics * GraphicsObject, CInput * InputObject )
 #endif
 	btCollisionShape * CapsuleShape = new btBoxShape( btVector3( MaxAABB.x, MaxAABB.y - 0.7f, MaxAABB.z ) );
 	m_vecCollisionShapes.push_back( CapsuleShape );
-	btMotionState * CapsuleState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( 10, 15, 10 ) ) );
+	x = m_xzFloatDistribution( m_RandomGenerator );
+	z = m_xzFloatDistribution( m_RandomGenerator );
+	y = m_yFloatDistribution( m_RandomGenerator );
+	btMotionState * CapsuleState = new btDefaultMotionState( btTransform( btQuaternion( 0, 0, 0, 1 ), btVector3( x, y, z ) ) );
 	btRigidBody::btRigidBodyConstructionInfo CapsuleCI( 50, CapsuleState, CapsuleShape );
 	btRigidBody * Capsule = new btRigidBody( CapsuleCI );
 	Capsule->setFlags( Capsule->getCollisionFlags( ) | btRigidBody::CollisionFlags::CF_CUSTOM_MATERIAL_CALLBACK );
@@ -550,6 +553,18 @@ bool CPhysics::Frame( float fFrameTime )
 	m_Player->bUpdateScoreThisFrame = false;
 	m_Player->bUpdateLivesThisFrame = false;
 	return m_Graphics->SetLives( m_Player->Lives );
+}
+
+void CPhysics::ResetGame( )
+{
+	m_Player->Lives = 3;
+	m_Player->Score = 0;
+	float x, y, z;
+	x = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
+	z = CPhysics::m_xzFloatDistribution( CPhysics::m_RandomGenerator );
+	y = CPhysics::m_yFloatDistribution( CPhysics::m_RandomGenerator );
+	m_Player->Body->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
+	m_Player->Body->getMotionState( )->setWorldTransform( btTransform( m_3x3RotationMatrix, btVector3( x, y, z ) ) );
 }
 
 btRigidBody* CPhysics::CreateCustomRigidBody/*AndAddItToTheWorld*/( std::vector<CModel::SVertex>& vertices, std::vector<DWORD>& indices,

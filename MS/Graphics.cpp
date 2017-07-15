@@ -963,7 +963,9 @@ void CGraphics::RenderScene( bool bRenderUI, bool bClearScene )
 				WorldMatrix = DirectX::XMLoadFloat4x4( &iter.second[ i ]._4x4fWorld );
 				m_ShadowShader->SetData( m_D3D11->GetImmediateContext( ), WorldMatrix, m_ActiveCamera );
 				m_ShadowShader->SetMaterialData( m_D3D11->GetImmediateContext( ), m_Table->GetMaterial( ) );
+				m_D3D11->DisableCulling( );
 				m_ShadowShader->DrawIndexed( m_D3D11->GetImmediateContext( ), m_Table->GetIndexCount( ) );
+				m_D3D11->EnableBackFaceCulling( );
 			}
 		}
 		else if ( iter.first == L"Chair" )

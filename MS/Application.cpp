@@ -128,6 +128,7 @@ void CApplication::Run( )
 					m_Graphics->ApplyBlurToMenuImage( );
 					m_bGameRunning = false;
 					m_ReleaseTime = std::chrono::system_clock::now( ) + std::chrono::seconds( SecondsToWait );
+					m_Physics->ResetGame( );
 				}
 			}
 			else
