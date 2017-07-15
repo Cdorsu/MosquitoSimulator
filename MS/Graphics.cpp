@@ -83,15 +83,6 @@ bool CGraphics::Initialize( HWND hWnd, UINT WindowWidth, UINT WindowHeight, bool
 	m_FullscreenWindow = new CTextureWindow( );
 	if ( !m_FullscreenWindow->Initialize( m_D3D11->GetDevice( ), L"", WindowWidth, WindowHeight, WindowWidth, WindowHeight ) )
 		return false;
-	m_MapWindow = new CTextureWindow( );
-	if ( !m_MapWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\MapTest.png", WindowWidth, WindowHeight, MapWidth, MapWidth ) )
-		return false;
-	m_PlayerWindow = new CTextureWindow( );
-	if ( !m_PlayerWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\Player.png", WindowWidth, WindowHeight, 3, 3 ) )
-		return false;
-	m_CheckpointWindow = new CTextureWindow( );
-	if ( !m_CheckpointWindow->Initialize( m_D3D11->GetDevice( ), L"2DArt\\Checkpoint.png", WindowWidth, WindowHeight, 3, 3 ) )
-		return false;
 
 	m_LineManager = new CLineManager( );
 	if ( !m_LineManager->Initialize( m_D3D11->GetDevice( ) ) )
@@ -1322,22 +1313,6 @@ void CGraphics::RenderUI( )
 {
 	m_D3D11->DisableCulling( );
 
-	m_CheckpointWindow->Render( m_D3D11->GetImmediateContext( ),
-		m_WindowWidth - DistanceFromRightWindowLeftMap + MapWidthOver2 + ( UINT ) m_CheckpointX,
-		DistanceFromTopToTopMap + MapWidthOver2 + ( UINT ) m_CheckpointZ );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_CheckpointWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_CheckpointWindow->GetTexture( ) );
-
-	m_PlayerWindow->Render( m_D3D11->GetImmediateContext( ),
-		m_WindowWidth - DistanceFromRightWindowLeftMap + MapWidthOver2 + ( UINT ) m_PlayerX,
-		DistanceFromTopToTopMap + MapWidthOver2 + ( UINT ) m_PlayerZ );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_PlayerWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_PlayerWindow->GetTexture( ) );
-
-	m_MapWindow->Render( m_D3D11->GetImmediateContext( ), m_WindowWidth - DistanceFromRightWindowLeftMap, DistanceFromTopToTopMap );
-	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_MapWindow->GetIndexCount( ),
-		m_D3D11->GetOrthoMatrix( ), m_MapWindow->GetTexture( ) );
-
 	m_FPSText->Render( m_D3D11->GetImmediateContext( ) );
 	m_2DShader->Render( m_D3D11->GetImmediateContext( ), m_FPSText->GetIndexCount( ),
 		m_D3D11->GetOrthoMatrix( ), m_FPSText->GetTexture( ),
@@ -1706,24 +1681,6 @@ void CGraphics::Shutdown( )
 		m_LineManager->Shutdown( );
 		delete m_LineManager;
 		m_LineManager = 0;
-	}
-	if ( m_CheckpointWindow )
-	{
-		m_CheckpointWindow->Shutdown( );
-		delete m_CheckpointWindow;
-		m_CheckpointWindow = 0;
-	}
-	if ( m_PlayerWindow )
-	{
-		m_PlayerWindow->Shutdown( );
-		delete m_PlayerWindow;
-		m_PlayerWindow = 0;
-	}
-	if ( m_MapWindow )
-	{
-		m_MapWindow->Shutdown( );
-		delete m_MapWindow;
-		m_MapWindow = 0;
 	}
 	if ( m_FullscreenWindow )
 	{

@@ -97,9 +97,6 @@ private:
 	CTextureWindow * m_DebugWindow;
 #endif
 	CTextureWindow * m_FullscreenWindow;
-	CTextureWindow * m_MapWindow;
-	CTextureWindow * m_PlayerWindow;
-	CTextureWindow * m_CheckpointWindow;
 	CLineManager * m_LineManager;
 	CModel * m_Cube;
 	CModel * m_Torus;
